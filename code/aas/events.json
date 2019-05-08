@@ -1,0 +1,18 @@
+{
+    "IRIS": {
+        "data": "IRIS.response",
+        "url": "http://service.iris.edu/fdsnws/event/1/query?starttime=2018-01-01T00:00:00&minmag=6&format=text&endtime=2019-01-01T00:00:00"
+    },
+    "INGV": {
+        "data": "INGV.response",
+        "url": "http://webservices.ingv.it/fdsnws/event/1/query?starttime=2018-01-01T00:00:00&minmag=6&format=text&endtime=2019-01-01T00:00:00"
+    },
+    "USGS": {
+        "data": "USGS.response",
+        "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?starttime=2018-01-01T00:00:00&minmag=6&format=text&endtime=2019-01-01T00:00:00"
+    },
+    "IMO": {
+        "data": "IMO.response",
+        "url": "http://www.orfeus-eu.org/fdsnws/event/1/query?starttime=2018-01-01T00:00:00&minmag=6&format=text&endtime=2019-01-01T00:00:00"
+    }
+}

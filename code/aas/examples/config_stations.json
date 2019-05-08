@@ -1,0 +1,25 @@
+{
+  "webservice": {
+    "type": "fdsnws",
+    "interface": "station",
+    "majorversion": "1",
+    "application": "query",
+    "parameters": {
+      "latitude": "40",
+      "longitude": "23",
+      "maxradius": "0.7"
+    }
+  },
+  "repositories": [
+    {
+      "name": "NOA",
+      "url": "http://eida.gein.noa.gr/fdsnws/"
+    }
+  ],
+  "listener": {
+    "interval": 10,
+    "timeout": "360",
+    "data_ext": ".response",
+    "results_name": "output.json"
+  }
+}

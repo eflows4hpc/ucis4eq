@@ -1,0 +1,39 @@
+{
+  "webservice": {
+    "type": "fdsnws",
+    "interface": "event",
+    "majorversion": "1",
+    "application": "query",
+    "parameters": {
+      "minmag": "6",
+      "starttime": "2018-01-01T00:00:00",
+      "endtime": "2019-01-01T00:00:00",
+      "format": "text"
+    }
+  },
+  "repositories": [
+    {
+      "name": "INGV",
+      "url": "http://webservices.ingv.it/fdsnws/"
+    },
+    {
+      "name": "IMO",
+      "url": "http://www.orfeus-eu.org/fdsnws/"
+    },
+    {
+      "name": "USGS",
+      "url": "https://earthquake.usgs.gov/fdsnws/"
+    },
+    {
+      "name": "IRIS",
+      "url": "http://service.iris.edu/fdsnws/" 
+    }
+  ],
+  "listener": {
+    "interval": 15,
+    "timeout": "360",
+    "data_ext": ".response",
+    "results_name": "events.json"
+    "trigger" : ""
+  }
+}
