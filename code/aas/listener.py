@@ -62,7 +62,7 @@ def calculatestar(args):
     
 def requestRepository(name, url):
     # Request data
-    print("Requesting info from " + url)
+    print("Requesting info from '" + url + "'")
     r = requests.get(url)
 
     # Write file to disk
@@ -105,13 +105,13 @@ def exploreRepositories(sc, pool = None):
         repo['url'] = r['url']+query
         repo['data'] = r['name']+sc.config['listener']['data_ext']
         output[r['name']] = repo
-        
+
     
     with open(sc.config['listener']['results_name'], "w") as f:
         json.dump(output, f, indent=4)
     
-    # TODO
     # Start running the triggering system
+    os.system(sc.config['listener']['trigger'] + "&")
     
     # Queue the following job
     sc.enter(sc.config['listener']['interval'], 1, exploreRepositories, (sc, pool))

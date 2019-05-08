@@ -33,7 +33,7 @@
     "interval": 15,
     "timeout": "360",
     "data_ext": ".response",
-    "results_name": "events.json"
-    "trigger" : ""
+    "results_name": "events.json",
+    "trigger" : "echo 'TODO: Start here the AAS workflow'"
   }
 }
