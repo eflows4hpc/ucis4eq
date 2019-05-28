@@ -33,6 +33,7 @@ import sched, time
 import multiprocessing
 import obspy
 import datetime
+import psutil
 
 ################################################################################
 # Methods and classes
@@ -40,17 +41,36 @@ import datetime
 # Interface class 
 class WSGeneral:
 
-    
     # Methos
     def __init__(self, config):
+
+        # Wait for the process to finish
+        #if( 'opid' in config['listener'] ):
+        #    while psutil.pid_exists(config['listener']['opid']):
+        #        print(config['listener']['opid'], "already exists")
+        #        time.sleep(10)    
+        #else:
+        #    os.system('python %s' % ' '.join(sys.argv[0:]), "-p ", str(os.getpid()))
+                
+        # Attributes
+        self.results = {}
+        self.outdir = "./"
+        self.tmpdata =  ""
+        
         # Object UUID
         #self.uuid = uuid.uuid1()
         
         # Store the configuration parameters 
         self.config = config
-        
-        # Attributes
-        self.results = {}
+        # Check if an output directory was provided
+        if( not "outputdir" in self.config["listener"] ):
+            self.config["listener"]["outputdir"] = self.outdir
+        self.outdir = self.config["listener"]["outputdir"] + "/"
+        self.tmpdata = self.outdir + "temporary_data/"
+                        
+        # Create data directories
+        if not os.path.exists(self.outdir):
+            os.makedirs(self.tmpdata, exist_ok=True)
         
         # Create the recursive scheduler
         self.s = sched.scheduler(time.time, time.sleep)
@@ -63,11 +83,14 @@ class WSGeneral:
     
     # Explore the set of input repositories    
     def exploreRepositories(self, pool = None):
+        
+        # Variables
+        output = {}
+        dump = {}
+        
         # Prepare the pool of processes
         np = len(self.config['repositories'])
-        
         ws = self.config['webservice']
-        output = {}
         
         #print("Creating pool with", str(np), "processes")
         
@@ -91,24 +114,32 @@ class WSGeneral:
         imap_unordered_it = pool.imap_unordered(self.runtask, tasks)
         
         # Wait the tasks to finish
-        for name, result in imap_unordered_it:
+        for name, nelems, result in imap_unordered_it:
             self.results[name] = result
+            if( nelems ):
+                dump[name] = nelems
                 
         # Store the current timestamp
         self.postprocess_actions()
         
-        # Generate JSON file containing the generated metada
+        # Generate JSON file containing the generated metadas
         for r in self.config['repositories']:
-            repo = {}
-            repo['url'] = r['url']+query
-            repo['data'] = r['name']+self.config['listener']['data_ext']
-            output[r['name']] = repo
+            if( r['name'] in dump ):
+                repo = {}
+                repo['url'] = r['url']+query
+                repo['data'] = self.tmpdata+r['name']+self.config['listener']['data_ext']
+                repo['results'] = self.results[r['name']]
+                output[r['name']] = repo
 
-        with open(self.config['listener']['results_name'], "w") as f:
-            json.dump(output, f, indent=4)
+        # If there are elements, write them and trigger the set action
+        if( output ):
+            time = datetime.datetime.now(datetime.timezone.utc).strftime('%d%m%Y_%H%M%S')+"_"
+            file = self.outdir + time + self.config['listener']['results_name']
+            with open(file, "w") as f:
+                json.dump(output, f, indent=4)
         
-        # Start running the triggering system
-        #os.system(self.config['listener']['trigger'] + "&")
+            # Start running the triggering system
+            os.system((self.config['listener']['trigger'] + "&").replace("%s", file))
         
         # Queue the following job
         interval = self.config['listener']['interval']
@@ -121,15 +152,22 @@ class WSGeneral:
         # Request data
         #print("Requesting info from '" + url + "'")
         self.r = requests.get(url, stream=True)
-                
+
+        nelems, result = self.process_data(self.r, name)     
+           
         # Process data
-        return (name, self.process_data(self.r, name))
+        return (name, nelems, result)
             
     # Process obtained data
     def process_data(self, results, name):
+        # Variables 
+        file = self.tmpdata+name+self.config['listener']['data_ext']
         # Write file to disk
-        with open(name+self.config['listener']['data_ext'], 'wb') as f:
+        with open(file, 'wb') as f:
             f.write(results.content)
+        
+        # Return the complete filename    
+        return file
             
     # Post-process actions
     def postprocess_actions(self):
@@ -158,48 +196,65 @@ class WSEvents(WSGeneral):
         params = self.config['webservice']['parameters']
         
         # Write the original file to disk
-        super(WSEvents, self).process_data(results, name)
+        file = super(WSEvents, self).process_data(results, name)
             
         # Check the requested format 
         if( 'format' in params.keys() and params['format'] == "xml"):
-            return self.process_xml_data(results, name)
+            return self.process_xml_data(results, file, name)
         
         return 0
             
     # Process a QuakeML data
-    def process_xml_data(self, results, name):
+    def process_xml_data(self, results, file, name):
         # Variables
         now = None
         delay = None
         cat = None
+        events = []
         
         # Set the time threshold 
         if( name in self.results.keys() ):
-            currenttime = self.results[name]
+            currenttime = self.results[name]['timestamp']
         else:
             currenttime = 0.0
         
         try:
             # Read the set of events
-            cat = obspy.read_events(name+self.config['listener']['data_ext'], "QUAKEML")
+            cat = obspy.read_events(file, "QUAKEML")
         except Exception as error:
-            #print("Obspy error", error )
-            return 0
+            print("Obspy error", error )
+            return False, {}    
         
-        #print(name, ":", self.a)
-        #self.a = cat.count()
         #print("[", name, "] --> ", cat.count(),"events found")
-            
+    
         for e in cat:
             if( currenttime < e.origins[0]['time'].timestamp ):
+                # Calculate the elapsed time from last event occurred
                 now = datetime.datetime.now(datetime.timezone.utc)
                 delay = now.timestamp() - e.origins[0]['time'].timestamp
+                
+                # DEBUG pursoses message
                 print(now,
-                    "[", name, "] --> ",  e.origins[0]['time'].datetime, 
-                    e.origins[0]['latitude'], e.origins[0]['longitude'], 
-                    e.origins[0]['depth'], e.magnitudes[0]['mag'],
-                    "Delay (secs):", delay)
-                # TODO Do something here!
+                "[", name, "] --> ",  e.origins[0]['time'].datetime, 
+                e.origins[0]['latitude'], e.origins[0]['longitude'], 
+                e.origins[0]['depth'], e.magnitudes[0]['mag'],
+                "Delay (secs):", delay)
+                
+                # Don't add the event if a deadline time was reached 
+                # SPRUCE [P.Beckman 2006]
+                if( delay > self.config['listener']['deadline'] ):
+                  continue
+                  
+                # Obtain information about the event
+                event = {}
+                event['time'] = e.origins[0]['time'].datetime.strftime("%d/%m/%Y, %H:%M:%S")
+                event['latitude'] = e.origins[0]['latitude']
+                event['longitude'] = e.origins[0]['longitude']
+                event['depth'] =  e.origins[0]['depth']
+                event['magnitude'] = e.magnitudes[0]['mag']
+                event['elapsedtime'] = int(delay)
+                
+                events.append(event)
                     
         #print(name, ":", self.a)
         #print( cat.__str__(print_all=True) )
@@ -207,7 +262,7 @@ class WSEvents(WSGeneral):
         #    cat[0].origins[0]['latitude'], cat[0].origins[0]['longitude'], 
         #    cat[0].origins[0]['depth'], cat[0].magnitudes[0]['mag'])
             #self.currenttime = cat[1]['creation_info']['creation_time']
-        return cat[0].origins[0]['time'].timestamp
+        return len(events), {'timestamp': cat[0].origins[0]['time'].timestamp, 'events' : events}
     
     # Post-process actions
     def postprocess_actions(self):
@@ -215,7 +270,7 @@ class WSEvents(WSGeneral):
         pass
 
 def format_ts(ts):
-    return datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.datetime.utcfromtimestamp(ts).strftime('%d/%m/%Y, %H:%M:%S')
                 
 # Arguments parser
 def parser():
@@ -225,12 +280,14 @@ def parser():
         prog='listener',
         description='FDSN-WS Listener')
     parser.add_argument('config', help='JSON configuration file')
+    parser.add_argument('-p', dest='opid',
+        help='Wait for a given PID before start')
     args = parser.parse_args()
     
     # Check the arguments
     if not os.path.isfile(args.config):
       raise Exception("The configuration file '"+args.config+ "' doesn't exist")
-    
+        
     # Return them
     return args
 
@@ -239,10 +296,13 @@ def main():
     try:    
         # Call the parser
         args = parser()
-                
+            
         # Read the configuration file
         with open(args.config, 'r') as f:
             config = json.load(f)
+            
+        if( args.opid ):
+            config['listener']['opid'] = args.opid
             
         if( config['webservice']['interface'] == "event" ):
             ws = WSEvents(config)
