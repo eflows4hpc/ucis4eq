@@ -20,6 +20,8 @@
     "interval": 10,
     "timeout": "360",
     "data_ext": ".response",
-    "results_name": "output.json"
+    "results_name": "output.json",
+    "trigger" : "echo 'TODO: Start here the AAS workflow'"
+
   }
 }
