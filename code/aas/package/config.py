@@ -1,5 +1,6 @@
-"""This is init module."""
-
+#!/usr/bin/env python3
+#
+# Configure app to connect with database
 # This module is part of the Automatic Alert System (AAS) solution
 #
 # Author:  Juan Esteban Rodríguez, Josep de la Puente
@@ -20,10 +21,10 @@
 
 ################################################################################
 # Module imports
-from flask import Flask
+from pymongo import MongoClient
 
-# Dispatcher App creation
-dispatcherApp = Flask(__name__)
+# Database name
+DATABASE = MongoClient()['EQEvents']
 
-# Include dispatcher routes
-from package import eventsDispatcher
+# DB client
+client = MongoClient('localhost', 27017)

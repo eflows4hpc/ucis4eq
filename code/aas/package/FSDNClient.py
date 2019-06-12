@@ -125,7 +125,7 @@ class WSGeneral:
                 json.dump(output, f, indent=4)
 
             # Start running the triggering system
-            #os.system((self.config['listener']['trigger'] + "&").replace("%s", file))
+            os.system((self.config['listener']['trigger'] + "&").replace("%s", file))
 
         # Queue the following job
         interval = self.config['listener']['interval']
@@ -297,7 +297,10 @@ class WSEvents(WSGeneral):
                 e['time'] = datetime.datetime.utcfromtimestamp(e['time']).strftime('%d/%m/%Y, %H:%M:%S')
 
                 # Set the information provided by the specific agency
-                events[id][r] = e
+                # TODO: Add mechanisms able to detect if an event was already
+                #       triggered.
+                if( id in events.keys() ):
+                    events[id][r] = e
 
         # Just check if some event was registered by any agency
         if( events.keys() ):

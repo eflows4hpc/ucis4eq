@@ -1,5 +1,6 @@
-"""This is init module."""
-
+#!/usr/bin/env python3
+#
+# RESTful server for event treatment
 # This module is part of the Automatic Alert System (AAS) solution
 #
 # Author:  Juan Esteban Rodríguez, Josep de la Puente
@@ -20,10 +21,14 @@
 
 ################################################################################
 # Module imports
-from flask import Flask
+import sys
+sys.path.append("./package/")
 
-# Dispatcher App creation
-dispatcherApp = Flask(__name__)
 
-# Include dispatcher routes
-from package import eventsDispatcher
+from package import dispatcherApp
+
+################################################################################
+# Run the program
+if __name__ == '__main__':
+    # Running app in debug mode
+    dispatcherApp.run(debug=True)
