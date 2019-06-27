@@ -24,7 +24,7 @@
 from pymongo import MongoClient
 
 # Database name
-DATABASE = MongoClient()['EQEvents']
+#DATABASE = MongoClient()['EQEvents']
 
 # DB client
 client = MongoClient('localhost', 27017)

@@ -1,0 +1,42 @@
+# Obtain a clean Ubuntu distribution
+FROM ubuntu:18.04
+
+# Set the working director
+WORKDIR /workspace
+
+# Import the public key used by the MongoDB package management system
+RUN apt-get update && apt-get install -y gnupg gnupg2 gnupg1 systemd
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+RUN echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" >> /etc/apt/sources.list.d/mongodb-org-4.0.list
+
+# Install some packages
+RUN apt-get update 
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y wget vim libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev mongodb-org iputils-ping
+    apt-get -qq install mongodb
+    apt-get -qq install openssh-server
+
+# Install Python 3.5.4
+RUN cd /usr/src; wget -nv --show-progress --progress=bar:force:noscroll https://www.python.org/ftp/python/3.5.6/Python-3.5.6.tgz; tar xzf Python-3.5.6.tgz
+RUN cd /usr/src/Python-3.5.6; ./configure --enable-optimizations; make altinstall
+
+# Install some packages
+#RUN apt-get -qq update && apt-get -qq install -y python3-pip wget vim > /dev/null
+
+# Prepare Python
+RUN ln -s /usr/local/bin/python3.5 /usr/local/bin/python
+RUN ln -s /usr/local/bin/pip3.5 /usr/local/bin/pip
+
+# Install ucis4eq and dependencies
+RUN pip install numpy flask pymongo requests; pip install obspy; pip install ucis4eq
+
+ENV PYTHONPATH /usr/local/lib/python3.5/site-packages/
+
+# Start the MongoDB service
+RUN service mongodb start
+
+# Expose the MongoDB port
+EXPOSE 27017
+EXPOSE 5000
+
+# Entry point
+ENTRYPOINT ["bash"]

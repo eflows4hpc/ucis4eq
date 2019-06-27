@@ -123,7 +123,7 @@ class WSGeneral:
             file = self.outdir + time2 + self.config['listener']['results_name']
             with open(file, "w") as f:
                 json.dump(output, f, indent=4)
-
+                
             # Start running the triggering system
             os.system((self.config['listener']['trigger'] + "&").replace("%s", file))
 

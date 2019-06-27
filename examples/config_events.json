@@ -7,8 +7,8 @@
     "parameters": {
       "format": "xml",
       "orderby": "time",
-      "minmag": "0.1",
-      "starttime": "2019-06-12T00:00:00"
+      "minmag": "3.0",
+      "starttime": "2019-06-25T08:00:00"
     }
   },
   "repositories": {
@@ -17,12 +17,12 @@
     "IMO": "http://www.orfeus-eu.org/fdsnws/"
   },
   "listener": {
-    "interval": 30,
+    "interval": 60,
     "timeout": "360",
     "data_ext": ".response",
     "results_name": "events.json",
-    "trigger": "python notifier.py ../examples/config_notifier.json %s",
-    "deadline": 60000,
+    "trigger": "python notifier.py ../../examples/config_notifier.json %s",
+    "deadline": 600000,
     "outputdir": "./tmp",
     "timethreshold": "5",
     "latthreshold": "0.5",

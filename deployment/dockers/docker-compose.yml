@@ -1,0 +1,26 @@
+###
+###   Docker file for the ucis4eq services
+###
+
+version: '0.1.1b'
+services:
+  ucis4eq-aas-listener:
+    image: registry.gitlab.com/hpse/cheese_pd1:ucis4eq-aas-listener
+    # Tool is to be used internally, no need for ports definition, keeping this for
+    # debug purposes
+    volumes:
+      - $PWD:/workspace
+    # Safer to always restart in case the process exits normally when it shouldn't
+    restart: always
+    
+  ucis4eq-scc-dispatcher:
+    image: registry.gitlab.com/hpse/cheese_pd1:ucis4eq-scc-dispatcher
+    # Tool is to be used internally, no need for ports definition, keeping this for
+    # debug purposes
+    ports:
+#      - "27017:27017"
+      - "5000:5000"
+    volumes:
+      - $PWD:/workspace
+    # Safer to always restart in case the process exits normally when it shouldn't
+    restart: always

@@ -25,5 +25,8 @@ from flask import Flask
 # Dispatcher App creation
 dispatcherApp = Flask(__name__)
 
+print("---> 1")
+
 # Include dispatcher routes
-from package import eventsDispatcher
+from ucis4eq.scc import eventsDispatcher
+print("---> 2")

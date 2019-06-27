@@ -22,10 +22,8 @@
 ################################################################################
 # Module imports
 import sys
-sys.path.append("./package/")
 
-
-from package import dispatcherApp
+from ucis4eq.scc import dispatcherApp
 
 ################################################################################
 # Run the program

@@ -21,9 +21,12 @@
 
 ################################################################################
 # Module imports
-from package import dispatcherApp, config
+from ucis4eq.scc import dispatcherApp, config
 from bson.json_util import dumps
 from flask import request, jsonify
+import sys
+import subprocess
+import traceback
 import json
 import ast
 import imp
@@ -32,13 +35,10 @@ import imp
 # Methods and classes
 
 # Import the helpers module
-helper_module = imp.load_source('*', './package/helpers.py')
+#helper_module = imp.load_source('*', './helpers.py')
 
 # Select the database
 db = config.client.EQEvents
-
-# Select the collection
-collection = db.EQEvents
 
 @dispatcherApp.route("/")
 def get_initial_response():
@@ -68,8 +68,14 @@ def incommingEvents():
             # Add message for debugging purpose
             return "", 400
 
+        # Insert each source
+        record_created = db.EQSources.insert(body['sources'])
+
         # Store the set of events
-        record_created = collection.insert(body)
+        for key, value in body['events'].items():
+            value['sources_id'] = record_created
+            value['id'] = key
+            record_created = db.EQEvents.insert(value)
 
         # Prepare the response
         if isinstance(record_created, list):
@@ -78,7 +84,11 @@ def incommingEvents():
         else:
             # Return Id of the newly created item
             return jsonify(str(record_created)), 201
-    except:
+    except Exception as error:
         # Error while trying to create the resource
         # Add message for debugging purpose
+        print("Exception in code:")
+        print('-'*80)
+        traceback.print_exc(file=sys.stdout)
+        print('-'*80)
         return "", 500

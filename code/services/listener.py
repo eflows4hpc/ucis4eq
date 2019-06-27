@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 #
-# Events notifier
+# FDSN-WebService Listener
 # This module is part of the Automatic Alert System (AAS) solution
 #
 # Author:  Juan Esteban Rodríguez, Josep de la Puente
-# Contact: juan.rodriguez@bself.es, josep.delapuente@bself.es
+# Contact: juan.rodriguez@bsc.es, josep.delapuente@bsc.es
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,16 +17,17 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ################################################################################
 # Module imports
-import os
 import sys
+import os
 import traceback
 import argparse
 import json
-import requests
+
+from ucis4eq.aas import FSDNClient
 
 ################################################################################
 # Methods and classes
@@ -36,10 +37,11 @@ def parser():
 
     # Parse the arguments
     parser = argparse.ArgumentParser(
-        prog='notifier',
-        description='Events notifier')
+        prog='listener',
+        description='FDSN-WS Listener')
     parser.add_argument('config', help='JSON configuration file')
-    parser.add_argument('data', help='JSON file')
+    parser.add_argument('-p', dest='opid',
+        help='Wait for a given PID before start')
     args = parser.parse_args()
 
     # Check the arguments
@@ -59,12 +61,13 @@ def main():
         with open(args.config, 'r') as f:
             config = json.load(f)
 
-        # Read the configuration file
-        with open(args.data, 'r') as f:
-            data = json.load(f)
+        if( args.opid ):
+            config['listener']['opid'] = args.opid
 
-        # Perform the request
-        req = requests.post(config['url']+config['routes']['POST'], json=data)
+        if( config['webservice']['interface'] == "event" ):
+            ws = FSDNClient.WSEvents(config)
+        else:
+            ws = FSDNClient.WSGeneral(config)
 
     except Exception as error:
         print("Exception in code:")
