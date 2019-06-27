@@ -21,9 +21,9 @@
     "timeout": "360",
     "data_ext": ".response",
     "results_name": "events.json",
-    "trigger": "python notifier.py ../../examples/config_notifier.json %s",
+    "trigger": "curl -X POST -H 'Content-Type: application/json' -d @%s http://127.0.0.1:5000/api/v1/events",
     "deadline": 600000,
-    "outputdir": "./tmp",
+    "outputdir": "/tmp/ucis4eq-aas-listener/",
     "timethreshold": "5",
     "latthreshold": "0.5",
     "longthreshold": "0.5"
