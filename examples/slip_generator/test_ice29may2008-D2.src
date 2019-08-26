@@ -1,0 +1,25 @@
+#
+# Iceland source file: may 29, 2008 (Doublet 2)
+#
+MAGNITUDE = 6.3 
+FAULT_LENGTH = 19
+FAULT_WIDTH = 10
+DEPTH_TO_TOP = 0.00
+STRIKE = 0
+RAKE = 180.00
+DIP = 90
+LAT_TOP_CENTER = 63.982
+LON_TOP_CENTER = -21.166
+HYPO_ALONG_STK = 0.0
+HYPO_DOWN_DIP =  5.1
+#
+# Model specific parameters
+#
+DWID = 0.5
+DLEN = 0.5
+CORNER_FREQ = 0.15
+#
+# Alternative SEEDS create alternative .srf
+#
+SEED = 2379646
+#SEED = 4379646

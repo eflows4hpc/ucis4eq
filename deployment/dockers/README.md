@@ -1,4 +1,5 @@
 # Installation guide
+_________________
 
 ### 1- Install software Dependencies
 
@@ -37,12 +38,13 @@ Due to the image was registered on the GitLab repository, first step is doing lo
   docker-compose up
 ```
 
-##### Option 2: Get and run the docker conainers manually
+##### Option 2: Get and run the docker containers manually
 
 1 - Pull the ucis4eq image from the registry
 ```
   docker pull registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/listener
   docker pull registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/dispatcher
+  docker pull registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/slip-gen
 ```
 
 2 - Indicate the configuration file of the ucis4eq listener service 
@@ -55,9 +57,11 @@ Due to the image was registered on the GitLab repository, first step is doing lo
 ```
   docker run -ti --net="host" -v "$PWD:/workspace" registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/dispatcher
   docker run -ti --net="host" -v "$UCIS4EQ_LISTENER_CONFIG:/root/services/config.json" -v "$PWD:/workspace" registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/listener
+  docker run -ti -v "$PWD:/workspace" registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/slip-gen
 ```
 
 # Additional actions
+_________________
 
 ### Generate the ucis4eq-service Docker local image
 

@@ -30,3 +30,8 @@ services:
     restart: always
     network_mode: "host"
     entrypoint: python /root/services/dispatcher.py
+
+  ucis4eq-scc-slip-generator:
+    image: registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/slip-gen
+    volumes:
+      - ${PWD}:/workspace
