@@ -1,0 +1,24 @@
+# Obtain a clean python capable distribution
+FROM python:2.7
+
+# Set the working directory
+WORKDIR /workspace
+
+# Clone the BBP project 
+#RUN git clone https://github.com/SCECcode/bbp.git bbp-19.4.0
+
+# Install BBP
+#RUN cd bbp-19.4.0/setup; ./easy_install_bbp_19.4.0.sh
+
+# Install FFTW3
+RUN apt-get update && apt-get install -y fftw3
+
+# Install Python dependencies
+RUN pip install numpy matplotlib;
+
+# Copy software directory into /root directory
+ADD software /root/
+
+# Start a shell
+ENTRYPOINT ["/bin/bash", "/root/scripts/launcher.sh"]
+
