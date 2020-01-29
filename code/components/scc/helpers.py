@@ -4,7 +4,7 @@
 # This module is part of the Automatic Alert System (AAS) solution
 #
 # Author:  Juan Esteban Rodríguez, Josep de la Puente
-# Contact: juan.rodriguez@bself.es, josep.delapuente@bself.es
+# Contact: juan.rodriguez@bsc.es, josep.delapuente@bsc.es
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

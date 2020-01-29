@@ -1,0 +1,114 @@
+digraph D {
+
+  Start [shape=Mdiamond, penwidth=2.0]
+  End [shape=Msquare, penwidth=2.0]
+
+  ep  [label = "Event priority", shape = circle]
+  ucp [label = "UC Protocol", shape = circle]
+  script [label = "Build scripts", shape = circle]
+  
+  list [label = "Event listener", shape = circle]
+  upd [label = "Event updater", shape = circle]
+  eval [label = "Event evaluator'", shape = circle]
+  abort [label = "Abort", shape = circle, color = red]
+  restart [label = "Restart", shape = circle]
+  
+  unify [label = "Unify sources'", shape = circle]
+  cmt [label = "CMT Calculation", shape = circle]
+  sg1 [label = "Slip generator 1", shape = circle]
+  sg2 [label = "Slip generator 2", shape = circle]
+  sgn [label = "Slip generator n", shape = circle]
+  d1 [label = "Data location 1", shape = circle]
+  d2 [label = "Data location 2", shape = circle]
+  dn [label = "Data location n", shape = circle]
+  m1 [label = "Model builder 1", shape = circle]
+  m2 [label = "Model builder 2", shape = circle]
+  mn [label = "Model builder n", shape = circle]
+  p1 [label = "Params builder 1'", shape = circle]
+  p2 [label = "Params builder 2'", shape = circle]
+  pn [label = "Params builder n", shape = circle]
+  sim1 [label = "HPC Simulation 1", shape = circle, color = green, penwidth=3.0]
+  sim2 [label = "HPC Simulation 2", shape = circle, color = green, penwidth=3.0]
+  simn [label = "HPC Simulation n", shape = circle, color = green, penwidth=3.0]
+  post1 [label = "HPC Postprocess 1", shape = circle, color = green, penwidth=3.0]
+  post2 [label = "HPC Postprocess 2", shape = circle, color = green, penwidth=3.0]
+  postn [label = "HPC Postprocess n", shape = circle, color = green, penwidth=3.0]
+  ru  [label = "Results unifier", shape = circle]
+  a [label = "Analisys and decision making", shape = circle]
+  
+#  { rank = same list, ucp, uni}
+    
+  subgraph cluster_sim{
+    label="Simulation branch"
+    penwidth=3.0
+    unify, cmt, ru, a
+    subgraph cluster_sim1{
+     penwidth=0.5
+     label="Scenario 1"
+     style=dashed
+     sg1, d1, m1, p1, sim1, post1
+    }
+    subgraph cluster_sim2{
+     penwidth=0.5
+     label="Scenario 2"
+     style=dashed
+     sg2, d2, m2, p2, sim2, post2
+    }
+    subgraph cluster_simn{
+     penwidth=0.5
+     label="Scenario n"
+     style=dashed
+     sgn, dn, mn, pn, simn, postn
+    }
+  }
+  
+  subgraph cluster_restart{
+    label="Event update branch" 
+    penwidth=3.0
+    {rank=same list, upd, eval, abort, restart}
+    list, upd, eval, abort, restart
+  }
+  
+  subgraph cluster_UCP {
+   label="Urgent Computing Protocol branch" 
+   #color=red 
+   penwidth=3.0
+   #{rank = same ep, ucp, script}
+   ep, ucp, script
+ }
+ 
+  
+  # Computing
+  Start                 -> unify
+  unify                 -> cmt
+  cmt                   -> {sg1, sg2, sgn}
+  sg1                   -> d1
+  sg2                   -> d2
+  sgn                   -> dn
+  d1                    -> {m1, p1}
+  d2                    -> {m2, p2}  
+  dn                    -> {mn, pn}
+  {m1, p1}              -> sim1
+  {m2, p2}              -> sim2
+  {mn, pn}              -> simn
+  sim1                  -> post1
+  sim2                  -> post2
+  simn                  -> postn
+  {post1, post2, postn} -> ru 
+  ru                    -> a
+  a                     -> End
+    
+  # UCP 
+  Start                 -> ep
+  ep                    -> {script, ucp} 
+  ucp                   -> script
+  script                -> {sim1, sim2, simn} 
+
+  # Listener
+  Start                 -> list  
+  list                  -> upd
+  upd                   -> eval
+  eval                  -> abort
+  abort                 -> restart
+  restart               -> unify [style=dashed, color=grey]
+}
