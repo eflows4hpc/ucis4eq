@@ -1,6 +1,9 @@
 # Start building the Docker image from the UCIS4EQ base image
 FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
 
+# Install dependencies
+RUN pip install haversine
+
 # Obtain the microServices App
 RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2FmicroServices.py/raw?ref=master' > /root/services/microServices.py
 
