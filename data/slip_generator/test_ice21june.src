@@ -1,0 +1,26 @@
+#
+# Iceland source file: june 21, 2000
+#
+MAGNITUDE = 6.4 
+FAULT_LENGTH = 18.00
+FAULT_WIDTH = 10.50
+DEPTH_TO_TOP = 0.00
+STRIKE = 0
+RAKE = 180.00
+DIP = 90
+LAT_TOP_CENTER = 63.982
+LON_TOP_CENTER = -20.703
+HYPO_ALONG_STK = 0.0
+HYPO_DOWN_DIP =  5.1
+#
+# Model specific parameters
+#
+DWID = 0.1
+DLEN = 0.1
+CORNER_FREQ = 0.15
+#
+# Alternative SEEDS create alternative .srf
+#
+#SEED = 2379646
+#SEED = 4379646
+SEED = 1

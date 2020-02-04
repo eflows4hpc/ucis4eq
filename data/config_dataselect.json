@@ -1,0 +1,27 @@
+{
+  "webservice": {
+    "type": "fdsnws",
+    "interface": "dataselect",
+    "majorversion": "1",
+    "application": "query",
+    "parameters": {
+      "network": "IU",
+      "station": "COLA",
+      "starttime": "2012-01-01T00:00:00",
+      "endtime": "2012-01-01T12:00:00"
+    }
+  },
+  "repositories": [
+    {
+      "name": "IRIS",
+      "url": "http://service.iris.edu/fdsnws/"
+    }
+  ],
+  "listener": {
+    "interval": 1000,
+    "timeout": "360",
+    "data_ext": ".response",
+    "results_name": "output.json",
+    "trigger": "echo 'TODO: Start here the AAS workflow'"
+  }
+}

@@ -20,10 +20,3 @@
 
 ################################################################################
 # Module imports
-from flask import Flask
-
-# Dispatcher App creation
-dispatcherApp = Flask(__name__)
-
-# Include dispatcher routes
-from ucis4eq.scc import eventsDispatcher

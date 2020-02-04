@@ -1,0 +1,31 @@
+{
+  "webservice": {
+    "type": "fdsnws",
+    "interface": "event",
+    "majorversion": "1",
+    "application": "query",
+    "parameters": {
+      "format": "xml",
+      "orderby": "time",
+      "minmag": "3.0",
+      "starttime": "2020-01-30T08:00:00"
+    }
+  },
+  "repositories": {
+    "IRIS": "http://service.iris.edu/fdsnws/",
+    "INGV": "http://webservices.ingv.it/fdsnws/",
+    "IMO": "http://www.orfeus-eu.org/fdsnws/"
+  },
+  "listener": {
+    "interval": 60,
+    "timeout": "360",
+    "data_ext": ".response",
+    "results_name": "events.json",
+    "trigger": "curl -X POST -H 'Content-Type: application/json' -d @%s http://127.0.0.1:5000/eventsDispatcher",
+    "deadline": 600000,
+    "outputdir": "/tmp/ucis4eq-aas-listener/",
+    "timethreshold": "5",
+    "latthreshold": "0.5",
+    "longthreshold": "0.5"
+  }
+}

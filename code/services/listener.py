@@ -20,14 +20,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ################################################################################
-# Module imports
+# Module importsmon
 import sys
 import os
 import traceback
 import argparse
 import json
 
-from ucis4eq.aas import FSDNClient
+from ucis4eq.components.aas import FSDNClient
 
 ################################################################################
 # Methods and classes

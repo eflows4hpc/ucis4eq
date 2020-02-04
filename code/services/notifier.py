@@ -67,7 +67,7 @@ def main():
         try:
             req = requests.post(config['url']+config['routes']['POST'], json=data)
         except Exception as error:
-            print("Unaccesible event dispatcher: Please, check that that\
+            print("Unaccesible event dispatcher: Please, check that \
  dispatcher is running and avaible")
 
     except Exception as error:

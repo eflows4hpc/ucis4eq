@@ -38,7 +38,7 @@ import datetime
 # Interface class
 class WSGeneral:
 
-    # Methos
+    # Methods
     def __init__(self, config):
 
         # Wait for the process to finish

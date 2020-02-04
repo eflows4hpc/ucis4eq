@@ -18,8 +18,6 @@ RUN pip install numpy matplotlib;
 
 # Copy and decompress the slip generator code into /root directory
 ADD gp-slip-gen.tar.gz /root/
-#RUN tar -xzvf gp-slip-gen.tar.gz
 
 # Start a shell
 ENTRYPOINT ["/bin/bash", "/root/scripts/launcher.sh"]
-

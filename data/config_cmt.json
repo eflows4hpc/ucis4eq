@@ -1,0 +1,22 @@
+{
+  "event": {
+    "magnitude": 6.3,
+    "latitude": 64.0,
+    "longitude":  -21.01,
+    "depth": 10000.0
+  },
+  "setup": {
+    "magnitudethreshold": 5.0,
+    "k": {
+      "min": 4,
+      "max": 20
+    },
+    "distance":{
+      "threshold": 300000.0,
+      "growthrate": 1.1
+    },
+    "output":{
+      "focalmechanisms": 4
+    }
+  }
+}

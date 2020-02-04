@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Author:  Name name
 # Contact: bsc.mail@bsc.es
+
+# -*- coding: utf-8 -*-
 ''' **ucis4eq** set up.
 '''
 
@@ -50,26 +52,15 @@ def get_ext_modules():
 
     return numpy_includes
 
-class PostInstallCommand(install):
-    """Post-installation for installation mode."""
-    def run(self):
-        # Prepare the environemnt
-
-        install.run(self)
-
 if __name__ == '__main__':
     from setuptools import setup
-
     import os
-
-    # Get the ucis4eq libraries before packing
-    os.system("cp -R ../../code/ucis4eq/ .")
 
     # ucis4eq setup
     setup(name=name(),
           maintainer="juan.rodriguez",
           maintainer_email="juan.rodriguez@bsc.es",
-          version='0.0.1',
+          version='VERSION',
           long_description=long_description(),
           description=description(),
           url="https://www.bsc.es/",
@@ -89,10 +80,7 @@ if __name__ == '__main__':
                        'Operating System :: POSIX :: Linux'],
           keywords=['HPC, Hererogeneous Computing, Geophysics'],
           platforms="Linux",
-          include_package_data=True,
-          cmdclass={
-            'install': PostInstallCommand,
-          }
+          include_package_data=True
           )
 
 else:

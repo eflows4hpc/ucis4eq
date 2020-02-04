@@ -21,12 +21,11 @@
 
 ################################################################################
 # Module imports
-import sys
-
-from ucis4eq.scc import dispatcherApp
 
 ################################################################################
-# Run the program
-if __name__ == '__main__':
-    # Running app in debug mode
-    dispatcherApp.run(debug=True)
+# Methods and classes
+class MicroServiceABC():
+    
+    # Method for defining the entry point to the service implementation
+    def entryPoint(self, body):
+        raise NotImplementedError("Error: 'entryPoint' method should be implemented")

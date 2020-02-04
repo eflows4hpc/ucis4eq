@@ -13,7 +13,7 @@ RUN echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qq -y wget vim libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev mongodb-org iputils-ping
 RUN apt-get -qq install mongodb openssh-server curl
 
-# Install Python 3.5.4
+# Install Python 3.5.6
 RUN cd /usr/src; wget -nv --show-progress --progress=bar:force:noscroll https://www.python.org/ftp/python/3.5.6/Python-3.5.6.tgz; tar xzf Python-3.5.6.tgz
 RUN cd /usr/src/Python-3.5.6; ./configure --enable-optimizations; make altinstall
 
@@ -25,22 +25,11 @@ RUN ln -s /usr/local/bin/python3.5 /usr/local/bin/python
 RUN ln -s /usr/local/bin/pip3.5 /usr/local/bin/pip
 
 # Install ucis4eq and dependencies
-RUN pip install numpy flask pymongo requests; pip install obspy; pip install ucis4eq
-
-ENV PYTHONPATH /usr/local/lib/python3.5/site-packages/
-
-# Start the MongoDB service
-RUN service mongodb start
-
-# Expose the MongoDB port
-EXPOSE 27017
-EXPOSE 5000
+RUN pip install --upgrade pip
+RUN pip install --upgrade setuptools; pip install numpy flask pymongo requests; pip install obspy; pip install ucis4eq
 
 # Prepare the service to run
-RUN mkdir /root/services; 
-RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2Flistener.py/raw?ref=master' > /root/services/listener.py
-RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2Fnotifier.py/raw?ref=master' > /root/services/notifier.py
-RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2Fdispatcher.py/raw?ref=master' > /root/services/dispatcher.py
+RUN mkdir /root/services;
 
 # Entry point
-ENTRYPOINT ["python", "/root/services/dispatcher.py"]
+ENTRYPOINT ["echo", "Base Docker image for building UCIS4EQ services"]
