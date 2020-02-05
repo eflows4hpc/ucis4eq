@@ -27,7 +27,7 @@ import traceback
 import argparse
 import json
 
-from ucis4eq.components.aas import FSDNClient
+from ucis4eq.aas import FSDNClient
 
 ################################################################################
 # Methods and classes
