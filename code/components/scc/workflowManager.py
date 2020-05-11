@@ -24,7 +24,8 @@
 # System
 import sys
 import traceback
-from bson.json_util import dumps
+import requests
+import json
 
 # Third parties
 from flask import jsonify
@@ -58,7 +59,7 @@ class workflowManagerEmulator(microServiceABC.MicroServiceABC):
                 
             # Event dispatcher
             r = requests.post("http://127.0.0.1:5000/eventsDispatcher", json=events)
-            
+            nevents = len(r.json()['result'])
             # For each received alert
             for e in r.json()['result']:
                 # Calculate the CMT input parameters
@@ -98,10 +99,9 @@ class workflowManagerEmulator(microServiceABC.MicroServiceABC):
                     #   - Spectral acceleration (By ranges calculated)
                     #   - Rot50 (calculated from two orthogonal horizontal components, 
                     #     and azimuthally independent)
-                
-                
+                                
             # Return list of Id of the newly created item
-            return jsonify(result = {}, response = 201)
+            return jsonify(result = str(nevents) + " events notified", response = 201)
                 
         except Exception as error:
             # Error while trying to create the resource

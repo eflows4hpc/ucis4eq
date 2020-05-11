@@ -4,11 +4,14 @@ FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
 # Install dependencies
 RUN pip install haversine
 
-# Expose the Flask aplication port
+# Expose the Flask application port
 EXPOSE 5000
 
 # Obtain the microServices App
 RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2FmicroServices.py/raw?ref=master' > /root/services/microServices.py
 
+# Prepare an script able to start the service
+RUN echo "python /root/services/microServices.py" >> /root/services/start.sh
+
 # Entry point
-ENTRYPOINT ["python", "/root/services/microServices.py"]
+ENTRYPOINT ["python", "/root/services/start.py"]

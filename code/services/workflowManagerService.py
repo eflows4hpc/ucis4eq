@@ -83,7 +83,7 @@ def get_initial_response():
 # Determine the kind of source for the simulation
 @workflowManagerServiceApp.route("/WMEmulator", methods=['POST'])
 @postRequest
-def sourceTypeService(body):
+def workflowManagerEmulatorService(body):
     """
     Call component implementing this micro service
     """

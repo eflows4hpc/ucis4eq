@@ -1,8 +1,14 @@
 # Obtain a clean Ubuntu distribution
 FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
 
+# Expose the Flask application port
+EXPOSE 5001
+
 # Obtain the EQ Temporal Workflow Manager Emulator
 RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2FworkflowManagerService.py/raw?ref=master' > /root/services/workflowManagerService.py
 
+# Prepare an script able to start the service
+RUN echo "python /root/services/workflowManagerService.py" >> /root/services/start.sh
+
 # Entry point
-ENTRYPOINT ["python", "/root/services/workflowManagerService.py"]
+ENTRYPOINT ["python", "/root/services/start.py"]

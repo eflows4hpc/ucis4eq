@@ -2,36 +2,16 @@
 ###   Docker file for the ucis4eq services
 ###
 
-version: '2.3'
+version: '3'
 
 services:
-  ucis4eq-aas-listener:
-    image: registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/listener
-    # Tool is to be used internally, no need for ports definition, keeping this for
-    # debug purposes
-    volumes:
-      - ${PWD}:/workspace
-      - ${UCIS4EQ_LISTENER_CONFIG?Missing UCIS4EQ_LISTENER_CONFIG environment variable}:/root/services/config.json
-    # Safer to always restart in case the process exits normally when it shouldn't
-    restart: always
+  DAL:
     network_mode: "host"
-    entrypoint: python /root/services/listener.py /root/services/config.json
-    
-  ucis4eq-scc-dispatcher:
-    image: registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/dispatcher
-    # Tool is to be used internally, no need for ports definition, keeping this for
-    # debug purposes
+    image: mongo:3.4
+   # hostname: mongo
     ports:
-      #- "27017:27017"
-      - "5000:5000"
-    volumes:
-      - ${PWD}:/workspace
-    # Safer to always restart in case the process exits normally when it shouldn't
-    restart: always
-    network_mode: "host"
-    entrypoint: python /root/services/dispatcher.py
+      - "27017:27017"
+      
 
-  ucis4eq-scc-slip-generator:
-    image: registry.gitlab.com/juane2rodriguez/cheese_pd1/ucis4eq-services/slip-gen
-    volumes:
-      - ${PWD}:/workspace
+# TODO: Add the rest of Dockers here 
+  
