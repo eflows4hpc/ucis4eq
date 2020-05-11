@@ -1,8 +1,0 @@
-# Obtain a clean Ubuntu distribution
-FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
-
-# Obtain the EQ Temporal Workflow Manager Emulator
-RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fworkflows%2FWMEmulator.py/raw?ref=master' > /root/workflows/workflowManager.py
-
-# Entry point
-ENTRYPOINT ["python", "/root/workflows/workflowManager.py"]

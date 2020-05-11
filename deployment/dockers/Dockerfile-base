@@ -27,11 +27,11 @@ RUN ln -s /usr/local/bin/pip3.5 /usr/local/bin/pip
 # Install ucis4eq and dependencies
 RUN pip install --upgrade pip
 
-RUN pip install --upgrade setuptools; pip install numpy flask pymongo requests; pip install obspy; pip install ucis4eq
+#ARG CACHEBUST=1 
+RUN pip install --upgrade setuptools; pip install numpy flask pymongo requests; pip install obspy; pip install ucis4eq 
 
 # Prepare the service to run
 RUN mkdir /root/services;
-RUN mkdir /root/workflows;
 
 # Entry point
 ENTRYPOINT ["echo", "Base Docker image for building UCIS4EQ services"]

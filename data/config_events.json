@@ -21,7 +21,7 @@
     "timeout": "360",
     "data_ext": ".response",
     "results_name": "events.json",
-    "trigger": "python /root/workflows/workflowManager.py %s",
+    "trigger": "curl -X POST -H 'Content-Type: application/json' -d @%s http://127.0.0.1:5001/WMEmulator",
     "deadline": 600000,
     "outputdir": "/tmp/ucis4eq-aas-listener/",
     "timethreshold": "5",
