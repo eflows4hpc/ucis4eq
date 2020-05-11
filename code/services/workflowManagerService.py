@@ -38,7 +38,7 @@ from ucis4eq.scc.workflowManager import workflowManagerEmulator
 ################################################################################
 # Dispatcher App creation
 ################################################################################
-microServicesApp = Flask(__name__)
+workflowManagerServiceApp = Flask(__name__)
 
 # POST request decorator
 def postRequest(fn):
@@ -62,7 +62,7 @@ def postRequest(fn):
     return wrapped
 
 # Base root of the micro-services Hub
-@microServicesApp.route("/")
+@workflowManagerServiceApp.route("/")
 def get_initial_response():
     """Welcome message for the API."""
     # Message to the user
@@ -81,7 +81,7 @@ def get_initial_response():
 ################################################################################
     
 # Determine the kind of source for the simulation
-@microServicesApp.route("/WMEmulator", methods=['POST'])
+@workflowManagerServiceApp.route("/WMEmulator", methods=['POST'])
 @postRequest
 def sourceTypeService(body):
     """
