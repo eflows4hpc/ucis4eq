@@ -7,6 +7,9 @@ EXPOSE 27017
 # Obtain the EQ events listener service
 RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2Flistener.py/raw?ref=master' > /root/services/listener.py
 
+# Obtain the EQ Temporal Workflow Manager Emulator
+RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fworkflows%2FWMEmulator.py/raw?ref=master' > /root/workflows/workflowManager.py
+
 # Prepare an script able to start MongoDB and run the events listener service
 RUN echo "service mongodb start" >> /root/services/start.sh
 RUN echo "python /root/services/listener.py /root/services/config.json" >> /root/services/start.sh

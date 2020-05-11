@@ -36,12 +36,12 @@ from ucis4eq.scc import microServiceABC
 ################################################################################
 # Methods and classes
 
-class eventsDispatcher(microServiceABC.MicroServiceABC):
+class sourceType(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
         """
-        Initialize the eventDispatcher component implementation    
+        Initialize the sourceType component implementation    
         """
         
         # Select the database
@@ -50,23 +50,49 @@ class eventsDispatcher(microServiceABC.MicroServiceABC):
     # Service's entry point definition
     def entryPoint(self, body):
         """
+        Determine if the type of sources. This is:
+           - Punctual (implemented as an UCIS4EQ component)
+           - Slip distribution model (generated externally with Graves-Pitarka)
+        """
+        try:
+            # TODO: Calculate the source type and return it
+            # - 'punctual'
+            # - 'slipdist'
+            # - 'all' 
+
+            sourcetype = 'slipdist'
+                
+            # Return list of Id of the newly created item
+            return jsonify(result = sourcetype, response = 201)
+                
+        except Exception as error:
+            # Error while trying to create the resource
+            # Add message for debugging purpose
+            print("Exception in code:")
+            print('-'*80)
+            traceback.print_exc(file=sys.stdout)
+            print('-'*80)
+            return jsonify(result = {}, response = 501)
+
+class punctualSource(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the punctualSource component implementation    
+        """
+
+    # Service's entry point definition
+    def entryPoint(self, body):
+        """
         Deal with a new earthquake event
         """
         try:
-            # Insert each source
-            record_created = self.db.EQSources.insert(body['sources'])
-
-            records = []
-            # Store the set of events
-            for key, value in body['events'].items():
-                field = {}
-                field['alerts'] = value
-                field['sources_id'] = record_created
-                #field['id'] = key
-                records.append(self.db.EQEvents.insert(field))
+            # TODO: Calculate the punctual source en return it
+              
 
             # Return list of Id of the newly created item
-            return jsonify(result = [str(v) for v in records], response = 201)
+            return jsonify(result = {}, response = 201)
                 
         except Exception as error:
             # Error while trying to create the resource

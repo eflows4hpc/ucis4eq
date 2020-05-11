@@ -7,8 +7,8 @@
     "parameters": {
       "format": "xml",
       "orderby": "time",
-      "minmag": "3.0",
-      "starttime": "2020-01-30T08:00:00"
+      "minmag": "6.0",
+      "starttime": "2020-05-05T10:00:00"
     }
   },
   "repositories": {
@@ -21,7 +21,7 @@
     "timeout": "360",
     "data_ext": ".response",
     "results_name": "events.json",
-    "trigger": "curl -X POST -H 'Content-Type: application/json' -d @%s http://127.0.0.1:5000/eventsDispatcher",
+    "trigger": "python /root/workflows/workflowManager.py %s",
     "deadline": 600000,
     "outputdir": "/tmp/ucis4eq-aas-listener/",
     "timethreshold": "5",

@@ -43,3 +43,4 @@ cd deployment/pypi/
 sed -i 's/VERSION/'"$CI_COMMIT_TAG"'/'  setup.py
 python setup.py sdist
 twine upload dist/*
+sed -i 's/'"$CI_COMMIT_TAG"'/VERSION/'  setup.py

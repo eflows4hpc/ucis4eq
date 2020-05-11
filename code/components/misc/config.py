@@ -22,9 +22,19 @@
 ################################################################################
 # Module imports
 from pymongo import MongoClient
+import json
+from bson import ObjectId
 
 # Database name
-#DATABASE = MongoClient()['EQEvents']
+database = MongoClient()['UCIS4EQ']
 
 # DB client
 client = MongoClient('localhost', 27017)
+
+
+# Class for convert ObjectId to string        
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        return json.JSONEncoder.default(self, o)

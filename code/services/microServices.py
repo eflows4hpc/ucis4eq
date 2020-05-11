@@ -34,7 +34,9 @@ from flask import Flask, request, jsonify
 
 # Load micro-services implemented components
 from ucis4eq.scc.eventsDispatcher import eventsDispatcher
-from ucis4eq.scc.CMTCalculation import CMTCalculation
+from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs 
+from ucis4eq.scc.sourceAssesment import sourceType, punctualSource 
+
 
 ################################################################################
 # Dispatcher App creation
@@ -62,7 +64,6 @@ def postRequest(fn):
         
     return wrapped
 
-
 # Base root of the micro-services Hub
 @microServicesApp.route("/")
 def get_initial_response():
@@ -82,6 +83,19 @@ def get_initial_response():
 # Services definition
 ################################################################################
 
+# CMT Input generation
+@microServicesApp.route("/precmt", methods=['POST'])
+@postRequest
+def CMTInputsService(body):
+    """
+    Call component implementing this micro service
+    """
+    
+    setup = "/root/data/configCMT.json"
+    
+    return CMTInputs(setup).entryPoint(body)
+    
+
 # CMT Aproximation
 @microServicesApp.route("/cmt", methods=['POST'])
 @postRequest
@@ -90,9 +104,30 @@ def CMTCalculationService(body):
     Call component implementing this micro service
     """
     
-    catalog = "/home/jrodrig1/workspace/CHEESE/PD1/UCIS4EQ/data/cmt/SPUD_QUAKEML_bundle_2019-10-31T11.28.02.xml"
-    
+    catalog = "/root/data/historicalEvents.xml"
     return CMTCalculation(catalog).entryPoint(body)
+    
+
+# Determine the kind of source for the simulation
+@microServicesApp.route("/sourceType", methods=['POST'])
+@postRequest
+def sourceTypeService(body):
+    """
+    Call component implementing this micro service
+    """
+    
+    return sourceType().entryPoint(body)
+
+
+# Calculate the punctual source for an event
+@microServicesApp.route("/punctualSource", methods=['POST'])
+@postRequest
+def punctualSourceService(body):
+    """
+    Call component implementing this micro service
+    """
+    
+    return punctualSource().entryPoint(body)
     
 # Incomming event dispatcher
 @microServicesApp.route("/eventsDispatcher", methods=['POST'])
