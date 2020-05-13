@@ -11,6 +11,7 @@ stages:
   - publish
   - build_base
   - build_components
+  - build_tools
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -37,10 +38,18 @@ build_base:
     - tags
 
 build_slipgen:
-  stage: build_components
+  stage: build_tools
   script:
     - docker build -f deployment/dockers/Dockerfile-slipGen -t registry.gitlab.com/cheese-coe/ucis4eq/slipgen .
     - docker push registry.gitlab.com/cheese-coe/ucis4eq/slipgen
+  only:
+    - tags
+  
+build_salvus:
+  stage: build_tools
+  script:
+    - docker build -f deployment/dockers/Dockerfile-salvus -t registry.gitlab.com/cheese-coe/ucis4eq/salvus .
+    - docker push registry.gitlab.com/cheese-coe/ucis4eq/salvus
   only:
     - tags
     
