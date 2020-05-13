@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y fftw3
 RUN pip install numpy matplotlib;
 
 # Copy and decompress the slip generator code into /root directory
-ADD thirdparties/gp-slip-gen.tar.gz /root/
+ADD deployment/dockers/thirdparties/gp-slip-gen.tar.gz /root/
 
 # Start a shell
 ENTRYPOINT ["/bin/bash", "/root/scripts/launcher.sh"]

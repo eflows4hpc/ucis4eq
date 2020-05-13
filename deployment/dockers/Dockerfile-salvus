@@ -33,7 +33,7 @@ ARG SALVUS_USERNAME
 ARG SALVUS_PASSWORD
 
 # Copy and decompress the Salvus scripts and launcher into /root directory
-ADD thirdparties/salvus.tar.gz Utils
+ADD deployment/dockers/thirdparties/salvus.tar.gz Utils
 
 RUN pip install Utils/Salvus/python_packages/salvus-*.whl \
     && cp Utils/Salvus/salvus-licenses.toml /root/.salvus-licenses.toml \
