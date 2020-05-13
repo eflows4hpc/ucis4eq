@@ -16,7 +16,7 @@ services:
   
   # UCIS4EQ Workflow Manager service  
   workflowManager:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/workflow-manager
+    image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
     network_mode: "host"
     #restart: always
 

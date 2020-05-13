@@ -1,0 +1,73 @@
+image: docker:19.03.0
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+services:
+  - docker:19.03.0-dind
+
+stages:
+  - publish
+  - build
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+pypi_publication:
+  stage: publish
+  variables:
+    TWINE_USERNAME: $TWINE_USER
+    TWINE_PASSWORD: $TWINE_PASS
+  script:
+    - deployment/pypi/configure.sh
+  only:
+    - tags
+
+build_slipgen:
+  stage: build
+  script:
+    - docker build -f deployment/dockers/Dockerfile-slipGen -t registry.gitlab.com/cheese-coe/ucis4eq/slipgen .
+    - docker push registry.gitlab.com/cheese-coe/ucis4eq/slipgen
+  only:
+    - tags
+
+build_base:
+  stage: build
+  dependencies:
+  - pypi_publication
+  script:
+    - docker build -f deployment/dockers/Dockerfile-base -t registry.gitlab.com/cheese-coe/ucis4eq/base .
+    - docker push registry.gitlab.com/cheese-coe/ucis4eq/base
+  only:
+    - tags
+    
+build_microservices:
+  stage: build
+  dependencies:
+  - build_base
+  script:
+    - docker build -f deployment/dockers/Dockerfile-microServices -t registry.gitlab.com/cheese-coe/ucis4eq/microServices .
+    - docker push registry.gitlab.com/cheese-coe/ucis4eq/microservices
+  only:
+    - tags
+    
+build_workflowmanager:
+  stage: build
+  dependencies:
+  - build_base
+  script:
+    - docker build -f deployment/dockers/Dockerfile-workflowManager -t registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager .
+    - docker push registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
+  only:
+    - tags
+
+build_listener:
+  stage: build
+  dependencies:
+  - build_base
+  script:
+    - docker build -f deployment/dockers/Dockerfile-listener -t registry.gitlab.com/cheese-coe/ucis4eq/listener .
+    - docker push registry.gitlab.com/cheese-coe/ucis4eq/listener
+  only:
+    - tags
