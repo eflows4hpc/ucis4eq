@@ -5,13 +5,37 @@
 version: '3'
 
 services:
+  # UCIS4EQ Micro-services 
+  microServices:
+    image: registry.gitlab.com/cheese-coe/ucis4eq/microservices
+    network_mode: "host"
+    volumes:
+      - ${UCIS4EQ_CMT_CONFIG}:/root/data/configCMT.json
+      - ${UCIS4EQ_CMT_HEVENTS}:/root/data/historicalEvents.xml
+    #restart: always  
+  
+  # UCIS4EQ Workflow Manager service  
+  workflowManager:
+    image: registry.gitlab.com/cheese-coe/ucis4eq/workflow-manager
+    network_mode: "host"
+    #restart: always
+
+  # Mongo DataBase 
   DAL:
     network_mode: "host"
     image: mongo:3.4
-   # hostname: mongo
     ports:
       - "27017:27017"
-      
-
-# TODO: Add the rest of Dockers here 
-  
+    restart: always
+    
+  # UCIS4EQ Listener service
+  listener:
+    image: registry.gitlab.com/cheese-coe/ucis4eq/listener
+    network_mode: "host"
+    volumes:
+      - ${UCIS4EQ_LISTENER_CONFIG}:/root/services/config.json
+    #restart: always
+    depends_on:
+      - DAL
+      - workflowManager
+      - microServices

@@ -27,7 +27,7 @@ RUN ln -s /usr/local/bin/pip3.5 /usr/local/bin/pip
 # Install ucis4eq and dependencies
 RUN pip install --upgrade pip
 
-#ARG CACHEBUST=1 
+ARG CACHEBUST=1 
 RUN pip install --upgrade setuptools; pip install numpy flask pymongo requests; pip install obspy; pip install ucis4eq 
 
 # Prepare the service to run

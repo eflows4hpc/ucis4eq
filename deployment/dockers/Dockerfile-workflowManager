@@ -11,4 +11,4 @@ RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://g
 RUN echo "python /root/services/workflowManagerService.py" >> /root/services/start.sh
 
 # Entry point
-ENTRYPOINT ["python", "/root/services/start.py"]
+ENTRYPOINT ["sh", "/root/services/start.sh"]
