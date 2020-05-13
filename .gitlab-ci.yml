@@ -9,7 +9,8 @@ services:
 
 stages:
   - publish
-  - build
+  - build_base
+  - build_components
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -24,26 +25,26 @@ pypi_publication:
   only:
     - tags
 
-build_slipgen:
-  stage: build
-  script:
-    - docker build -f deployment/dockers/Dockerfile-slipGen -t registry.gitlab.com/cheese-coe/ucis4eq/slipgen .
-    - docker push registry.gitlab.com/cheese-coe/ucis4eq/slipgen
-  only:
-    - tags
-
 build_base:
-  stage: build
+  stage: build_base
   dependencies:
-  - pypi_publication
+    - pypi_publication
   script:
     - docker build -f deployment/dockers/Dockerfile-base -t registry.gitlab.com/cheese-coe/ucis4eq/base .
     - docker push registry.gitlab.com/cheese-coe/ucis4eq/base
   only:
     - tags
+
+build_slipgen:
+  stage: build_components
+  script:
+    - docker build -f deployment/dockers/Dockerfile-slipGen -t registry.gitlab.com/cheese-coe/ucis4eq/slipgen .
+    - docker push registry.gitlab.com/cheese-coe/ucis4eq/slipgen
+  only:
+    - tags
     
 build_microservices:
-  stage: build
+  stage: build_components
   dependencies:
   - build_base
   script:
@@ -53,7 +54,7 @@ build_microservices:
     - tags
     
 build_workflowmanager:
-  stage: build
+  stage: build_components
   dependencies:
   - build_base
   script:
@@ -63,7 +64,7 @@ build_workflowmanager:
     - tags
 
 build_listener:
-  stage: build
+  stage: build_components
   dependencies:
   - build_base
   script:
