@@ -14,14 +14,14 @@ stages:
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-
+  - docker pull registry.gitlab.com/cheese-coe/ucis4eq/base
 pypi_publication:
   stage: publish
   variables:
     TWINE_USERNAME: $TWINE_USER
     TWINE_PASSWORD: $TWINE_PASS
   script:
-    - deployment/pypi/configure.sh
+    - docker run -v "$PWD:/workspace" -e CI_COMMIT_TAG=$CI_COMMIT_TAG -e TWINE_USERNAME=$TWINE_USERNAME -e TWINE_PASSWORD=$TWINE_PASSWORD --entrypoint=bash  registry.gitlab.com/cheese-coe/ucis4eq/base  -c deployment/pypi/configure.sh
   only:
     - tags
 
