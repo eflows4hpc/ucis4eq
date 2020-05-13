@@ -15,6 +15,7 @@ stages:
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - docker pull registry.gitlab.com/cheese-coe/ucis4eq/base
+  
 pypi_publication:
   stage: publish
   variables:
@@ -48,7 +49,7 @@ build_microservices:
   dependencies:
   - build_base
   script:
-    - docker build -f deployment/dockers/Dockerfile-microServices -t registry.gitlab.com/cheese-coe/ucis4eq/microServices .
+    - docker build -f deployment/dockers/Dockerfile-microServices -t registry.gitlab.com/cheese-coe/ucis4eq/microservices .
     - docker push registry.gitlab.com/cheese-coe/ucis4eq/microservices
   only:
     - tags
