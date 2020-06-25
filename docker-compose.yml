@@ -1,10 +1,18 @@
 ###
 ###   Docker file for the ucis4eq services
 ###
-
 version: '3'
 
 services:
+  # UCIS4EQ Slip Generator service  
+  slipGen:
+    image: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
+    network_mode: "host"
+    volumes:
+      - ${UCIS4EQ_GP_DATA}:/root/inputs/
+    entrypoint: ["/bin/bash", "/root/services/start.sh"]
+    #restart: always  
+  
   # UCIS4EQ Micro-services 
   microServices:
     image: registry.gitlab.com/cheese-coe/ucis4eq/microservices
@@ -12,18 +20,25 @@ services:
     volumes:
       - ${UCIS4EQ_CMT_CONFIG}:/root/data/configCMT.json
       - ${UCIS4EQ_CMT_HEVENTS}:/root/data/historicalEvents.xml
+      - ${UCIS4EQ_DAL_DATA}:/root/DALdata/
+    depends_on:
+      - DAL
     #restart: always  
   
   # UCIS4EQ Workflow Manager service  
   workflowManager:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
     network_mode: "host"
+    depends_on:
+      - slipGen
+      - microServices
+    volumes:
     #restart: always
 
   # Mongo DataBase 
   DAL:
     network_mode: "host"
-    image: mongo:3.4
+    image: mongo:4.2
     ports:
       - "27017:27017"
     restart: always

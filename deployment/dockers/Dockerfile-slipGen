@@ -16,8 +16,23 @@ RUN apt-get update && apt-get install -y fftw3
 # Install Python dependencies
 RUN pip install numpy matplotlib;
 
+# Install some packages
+RUN apt-get -qq update && apt-get -qq install -y python3-pip wget vim > /dev/null
+
+# Install UCIS4EQ
+RUN pip3 install --upgrade setuptools; pip3 install numpy flask pymongo requests; pip3 install obspy; pip3 install ucis4eq 
+
 # Copy and decompress the slip generator code into /root directory
 ADD deployment/dockers/thirdparties/gp-slip-gen.tar.gz /root/
+
+# Prepare the service to run
+RUN mkdir /root/services;
+
+# Expose the Flask application port
+EXPOSE 5002
+
+# Prepare an script able to start MongoDB and run the events listener service
+RUN echo "python3 /root/services/slipGenService.py" >> /root/services/start.sh
 
 # Start a shell
 ENTRYPOINT ["/bin/bash", "/root/scripts/launcher.sh"]

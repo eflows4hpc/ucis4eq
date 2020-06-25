@@ -32,13 +32,13 @@ from functools import wraps
 # Flask (WSGI) utils
 from flask import Flask, request, jsonify
 
-# Load micro-services implemented components
-from ucis4eq.scc.workflowManager import WorkflowManagerEmulator
+# Load slip-gen service implemented components
+from ucis4eq.scc.slipGen import SlipGenGP
 
 ################################################################################
 # Dispatcher App creation
 ################################################################################
-workflowManagerServiceApp = Flask(__name__)
+slipGenServiceApp = Flask(__name__)
 
 # POST request decorator
 def postRequest(fn):
@@ -62,14 +62,14 @@ def postRequest(fn):
     return wrapped
 
 # Base root of the micro-services Hub
-@workflowManagerServiceApp.route("/")
+@slipGenServiceApp.route("/")
 def get_initial_response():
     """Welcome message for the API."""
     # Message to the user
     message = {
         'apiVersion': 'v1.0',
         'status': '200',
-        'message': 'Welcome to the ChEESE Workflow Manager service for PD1'
+        'message': 'Welcome to the ChEESE Slip Generation service for PD1'
     }
     # Making the message looks good
     resp = jsonify(message)
@@ -81,14 +81,13 @@ def get_initial_response():
 ################################################################################
     
 # Determine the kind of source for the simulation
-@workflowManagerServiceApp.route("/WMEmulator", methods=['POST'])
+@slipGenServiceApp.route("/Graves-Pitarka", methods=['POST'])
 @postRequest
-def workflowManagerEmulatorService(body):
+def slipGenGPService(body):
     """
-    Call component implementing this micro service
+    Call component implementing this service
     """
-    
-    return WorkflowManagerEmulator().entryPoint(body)
+    return SlipGenGP().entryPoint(body)
 
 ################################################################################
 # Start the micro-services aplication
@@ -96,4 +95,4 @@ def workflowManagerEmulatorService(body):
 
 if __name__ == '__main__':
     # Running app in debug mode
-    workflowManagerServiceApp.run(debug=True, port=5001)
+    slipGenServiceApp.run(debug=True, port=5002)

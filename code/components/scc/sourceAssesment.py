@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Events dispatcher
+# Source Assesment
 # This module is part of the Smart Center Control (SSC) solution
 #
 # Author:  Juan Esteban Rodríguez, Josep de la Puente
@@ -36,7 +36,7 @@ from ucis4eq.scc import microServiceABC
 ################################################################################
 # Methods and classes
 
-class sourceType(microServiceABC.MicroServiceABC):
+class SourceType(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
@@ -48,33 +48,24 @@ class sourceType(microServiceABC.MicroServiceABC):
         self.db = config.database
 
     # Service's entry point definition
+    @config.safeRun
     def entryPoint(self, body):
         """
         Determine if the type of sources. This is:
            - Punctual (implemented as an UCIS4EQ component)
            - Slip distribution model (generated externally with Graves-Pitarka)
         """
-        try:
-            # TODO: Calculate the source type and return it
-            # - 'punctual'
-            # - 'slipdist'
-            # - 'all' 
+        # TODO: Calculate the source type and return it
+        # - 'punctual'
+        # - 'slipdist'
+        # - 'all' 
 
-            sourcetype = 'slipdist'
-                
-            # Return list of Id of the newly created item
-            return jsonify(result = sourcetype, response = 201)
-                
-        except Exception as error:
-            # Error while trying to create the resource
-            # Add message for debugging purpose
-            print("Exception in code:")
-            print('-'*80)
-            traceback.print_exc(file=sys.stdout)
-            print('-'*80)
-            return jsonify(result = {}, response = 501)
+        sourcetype = 'slipdist'
+            
+        # Return list of Id of the newly created item
+        return jsonify(result = sourcetype, response = 201)
 
-class punctualSource(microServiceABC.MicroServiceABC):
+class PunctualSource(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
@@ -83,22 +74,13 @@ class punctualSource(microServiceABC.MicroServiceABC):
         """
 
     # Service's entry point definition
+    @config.safeRun
     def entryPoint(self, body):
         """
         Deal with a new earthquake event
         """
-        try:
-            # TODO: Calculate the punctual source en return it
-              
+        
+        # TODO: Calculate the punctual source en return it 
 
-            # Return list of Id of the newly created item
-            return jsonify(result = {}, response = 201)
-                
-        except Exception as error:
-            # Error while trying to create the resource
-            # Add message for debugging purpose
-            print("Exception in code:")
-            print('-'*80)
-            traceback.print_exc(file=sys.stdout)
-            print('-'*80)
-            return jsonify(result = {}, response = 501)
+        # Return list of Id of the newly created item
+        return jsonify(result = {}, response = 201)

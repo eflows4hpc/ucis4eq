@@ -1,0 +1,26 @@
+{
+  "documents": [
+    {
+      "id": "SISZ",
+      "model": {
+        "name": "SISZ-1D",
+        "alias": [
+          "1D",
+          "SISZ-1D"
+        ],
+        "geometry": {
+          "min_latitude": 63.25,
+          "max_latitude": 64.75,
+          "min_longitude": -22.5,
+          "max_longitude": -19,
+          "depth": 10000
+        }
+      },
+      "parameters": {
+        "simulation_length": 60,
+        "corner_freq": 0.15,
+        "freq_max": 0.3
+      }
+    }
+  ]
+}

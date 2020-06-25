@@ -112,12 +112,10 @@ class CMTInputs(microServiceABC.MicroServiceABC):
         
         except Exception as error:
             # Error while trying to create the resource
-            # Add message for debugging purpose
-            print("Exception in code:")
-            print('-'*80)
-            traceback.print_exc(file=sys.stdout)
-            print('-'*80)
-            return jsonify(result = {}, response = 501)
+            config.printException()
+
+            # Return error code and message
+            return jsonify(result = str(error), response = 501)
 
 class CMTCalculation(microServiceABC.MicroServiceABC):
     
@@ -161,16 +159,14 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                                e['magnitude']
                               )
 
-            return self._getFocalMechanism()
-        
+            return jsonify(result = self._getFocalMechanism(), response = 201)
+                    
         except Exception as error:
             # Error while trying to create the resource
-            # Add message for debugging purpose
-            print("Exception in code:")
-            print('-'*80)
-            traceback.print_exc(file=sys.stdout)
-            print('-'*80)
-            return "", 500
+            config.printException()
+
+            # Return error code and message
+            return jsonify(result = str(error), response = 501)
                         
     def _getFocalMechanism(self):
         """

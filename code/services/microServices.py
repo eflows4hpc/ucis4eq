@@ -24,6 +24,7 @@
 
 # System imports
 import sys
+import os
 import json
 import ast
 import traceback
@@ -33,10 +34,11 @@ from functools import wraps
 from flask import Flask, request, jsonify
 
 # Load micro-services implemented components
-from ucis4eq.scc.eventsDispatcher import eventsDispatcher
+from ucis4eq.misc import config
+from ucis4eq.scc.event import EventRegistration, EventRegion
 from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs 
-from ucis4eq.scc.sourceAssesment import sourceType, punctualSource 
-
+from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource 
+from ucis4eq.scc.inputBuilder import InputParametersBuilder
 
 ################################################################################
 # Dispatcher App creation
@@ -64,6 +66,30 @@ def postRequest(fn):
         
     return wrapped
 
+# Task to run before first request
+@microServicesApp.before_first_request
+def initializeDALData():
+    
+    # Check the input directory for collections 
+    DALdir = "/root/DALdata/";
+    
+    # For each collection found, add to the DAL if there was not added yet
+    for file in os.listdir(DALdir):
+        if file.endswith(".json"):
+            collection = config.database[os.path.splitext(file)[0]]
+
+            with open(os.path.join(DALdir, file), "r", encoding="utf-8") as f:
+                fdata = json.load(f)
+            
+            # Get the set of collections set in DAL
+            list = collection.distinct( "id" )
+                
+            # Insert the new ones
+            for item in fdata['documents']:
+                if not item['id'] in list:
+                    print(item['id'], flush=True)
+                    collection.insert_one(item)
+        
 # Base root of the micro-services Hub
 @microServicesApp.route("/")
 def get_initial_response():
@@ -74,6 +100,7 @@ def get_initial_response():
         'status': '200',
         'message': 'Welcome to the ChEESE Micro-Services Hub for PD1'
     }
+    
     # Making the message looks good
     resp = jsonify(message)
     # Returning the object
@@ -94,7 +121,6 @@ def CMTInputsService(body):
     setup = "/root/data/configCMT.json"
     
     return CMTInputs(setup).entryPoint(body)
-    
 
 # CMT Aproximation
 @microServicesApp.route("/cmt", methods=['POST'])
@@ -116,10 +142,10 @@ def sourceTypeService(body):
     Call component implementing this micro service
     """
     
-    return sourceType().entryPoint(body)
+    return SourceType().entryPoint(body)
 
 
-# Calculate the punctual source for an event
+# Calculate a punctual source for an event
 @microServicesApp.route("/punctualSource", methods=['POST'])
 @postRequest
 def punctualSourceService(body):
@@ -127,16 +153,35 @@ def punctualSourceService(body):
     Call component implementing this micro service
     """
     
-    return punctualSource().entryPoint(body)
+    return PunctualSource().entryPoint(body)
+
+# Calculate the punctual source for an event
+@microServicesApp.route("/inputParametersBuilder", methods=['POST'])
+@postRequest
+def YAMLBuilderService(body):
+    """
+    Call component implementing this micro service
+    """
     
-# Incomming event dispatcher
-@microServicesApp.route("/eventsDispatcher", methods=['POST'])
+    return InputParametersBuilder().entryPoint(body)
+    
+# Incomming event registration
+@microServicesApp.route("/eventRegistration", methods=['POST'])
 @postRequest
 def eventDispatcherService(body):
     """
     Call component implementing this micro service
     """
-    return eventsDispatcher().entryPoint(body)
+    return EventRegistration().entryPoint(body)
+
+# Event region detection
+@microServicesApp.route("/eventRegion", methods=['POST'])
+@postRequest
+def eventRegionService(body):
+    """
+    Call component implementing this micro service
+    """
+    return EventRegion().entryPoint(body)
 
 ################################################################################
 # Start the micro-services aplication

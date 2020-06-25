@@ -23,14 +23,18 @@
 # Module imports
 from pymongo import MongoClient
 import json
+import traceback
+import sys
 from bson import ObjectId
 
-# Database name
-database = MongoClient()['UCIS4EQ']
+# Third parties
+from flask import jsonify
 
 # DB client
 client = MongoClient('localhost', 27017)
 
+# Database name
+database = client['UCIS4EQ']
 
 # Class for convert ObjectId to string        
 class JSONEncoder(json.JSONEncoder):
@@ -38,3 +42,32 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, ObjectId):
             return str(o)
         return json.JSONEncoder.default(self, o)
+
+# Method for formatting exceptions
+def printException():
+    print('#'*80)
+    print("Exception in code:")
+    traceback.print_exc(file=sys.stdout)
+    print('#'*80, flush=True)
+    
+# Decorator for protect a service execution
+def safeRun(func):
+    def func_wrapper(*args, **kwargs):
+
+        try:
+           return func(*args, **kwargs)
+
+        except Exception as e:
+
+            printException()
+
+            # Return error code and message
+            return jsonify(result = str(e), response = 501)
+
+    return func_wrapper
+
+# Check post request
+def checkPostRequest(r):
+    if r.json()['response'] == 501:
+        raise Exception(r.json()['result'])
+        

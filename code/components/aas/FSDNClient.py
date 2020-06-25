@@ -119,13 +119,29 @@ class WSGeneral:
 
         # If there are elements, write them and trigger the set action
         if( output ):
-            time2 = datetime.datetime.now(datetime.timezone.utc).strftime('%d%m%Y_%H%M%S')+"_"
-            file = self.outdir + time2 + self.config['listener']['results_name']
-            with open(file, "w") as f:
-                json.dump(output, f, indent=4)
+            #time2 = datetime.datetime.now(datetime.timezone.utc).strftime('%d%m%Y_%H%M%S')+"_"
+            #file = self.outdir + time2 + self.config['listener']['results_name']
+
+            #print(json.dumps(output), flush=True)
+            
+            # Do a trigger for each event received
+            event = {}
+            for e in output['events']:
+                event['alerts'] = output['events'][e]
+                event['uuid'] = e
+                event['sources'] = {}
                 
-            # Start running the triggering system
-            os.system((self.config['listener']['trigger'] + "&").replace("%s", file))
+                for a in event['alerts']:
+                    agency = a['agency']
+                    event['sources'][agency] = output['sources'][agency]
+                #print(json.dumps(event), flush=True)
+                
+                file = self.outdir + e + "." + self.config['listener']['results_name']
+                with open(file, "w") as f:
+                    json.dump(event, f, indent=4)
+                
+                # Start running the triggering system
+                os.system((self.config['listener']['trigger'] + "&").replace("%s", file))
 
         # Queue the following job
         interval = self.config['listener']['interval']
@@ -225,7 +241,7 @@ class WSEvents(WSGeneral):
                 e.origins[0]['latitude'], e.origins[0]['longitude'],
                 e.origins[0]['depth'], e.magnitudes[0]['mag'],
                 e.event_descriptions[0].text if e.event_descriptions else "",
-                "Delay (secs):", delay)
+                "Delay (secs):", delay, flush=True)
 
                 # Don't add the event if a deadline time was reached
                 # SPRUCE [P.Beckman 2006]
@@ -288,19 +304,22 @@ class WSEvents(WSGeneral):
                 if( id == "" ):
                     id = str(uuid.uuid1())
                     #print("Creating ID:", id)
-                    events[id] = {}
+                    events[id] = []
 
                 # Insert the event on the sorted list
                 self.events.append({'time': e['time'], 'event': id})
 
                 # Convert event timestamp in a readable format
                 e['time'] = datetime.datetime.utcfromtimestamp(e['time']).strftime('%d/%m/%Y, %H:%M:%S')
+                
+                # Add the agency information
+                e['agency'] = r
 
                 # Set the information provided by the specific agency
                 # TODO: Add mechanisms able to detect if an event was already
                 #       triggered.
                 if( id in events.keys() ):
-                    events[id][r] = e
+                    events[id].append(e)
 
         # Just check if some event was registered by any agency
         if( events.keys() ):

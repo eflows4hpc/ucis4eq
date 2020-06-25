@@ -7,8 +7,8 @@
     "parameters": {
       "format": "xml",
       "orderby": "time",
-      "minmag": "6.0",
-      "starttime": "2020-05-05T10:00:00"
+      "minmag": "7.0",
+      "starttime": "2020-06-22T10:00:00"
     }
   },
   "repositories": {
