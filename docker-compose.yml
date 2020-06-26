@@ -21,6 +21,8 @@ services:
       - ${UCIS4EQ_CMT_CONFIG}:/root/data/configCMT.json
       - ${UCIS4EQ_CMT_HEVENTS}:/root/data/historicalEvents.xml
       - ${UCIS4EQ_DAL_DATA}:/root/DALdata/
+      - ${UCIS4EQ_IPRIORITY_DATA}:/root/IndexPriority/
+
     depends_on:
       - DAL
     #restart: always  

@@ -24,6 +24,7 @@ services:
       - ${UCIS4EQ_CMT_CONFIG}:/root/data/configCMT.json
       - ${UCIS4EQ_CMT_HEVENTS}:/root/data/historicalEvents.xml
       - ${UCIS4EQ_DAL_DATA}:/root/DALdata/
+      - ${UCIS4EQ_IPRIORITY_DATA}:/root/IndexPriority/
       - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.5/site-packages/ucis4eq
       - ${UCIS4EQ_HOME}/code/services/microServices.py:/root/services/microServices.py
     depends_on:
