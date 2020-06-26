@@ -35,10 +35,12 @@ from flask import Flask, request, jsonify
 
 # Load micro-services implemented components
 from ucis4eq.misc import config
-from ucis4eq.scc.event import EventRegistration, EventRegion
+from ucis4eq.scc.event import EventRegistration, EventRegion, EventCountry
 from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs 
 from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource 
 from ucis4eq.scc.inputBuilder import InputParametersBuilder
+from ucis4eq.scc.indexPriority import IndexPriority
+
 
 ################################################################################
 # Dispatcher App creation
@@ -134,6 +136,18 @@ def CMTCalculationService(body):
     return CMTCalculation(catalog).entryPoint(body)
     
 
+# Index Priority
+@microServicesApp.route("/indexPriority", methods=['POST'])
+@postRequest
+def indexPriorityService(body):
+    """
+    Call component implementing this micro service
+    """
+    
+    data = "/root/IndexPriority/"
+    
+    return IndexPriority(data).entryPoint(body)
+
 # Determine the kind of source for the simulation
 @microServicesApp.route("/sourceType", methods=['POST'])
 @postRequest
@@ -182,6 +196,15 @@ def eventRegionService(body):
     Call component implementing this micro service
     """
     return EventRegion().entryPoint(body)
+
+# Event region detection
+@microServicesApp.route("/eventCountry", methods=['POST'])
+@postRequest
+def eventCountryService(body):
+    """
+    Call component implementing this micro service
+    """
+    return EventCountry().entryPoint(body)
 
 ################################################################################
 # Start the micro-services aplication

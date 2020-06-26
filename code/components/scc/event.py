@@ -28,6 +28,7 @@ import json
 
 from bson.json_util import dumps
 from bson import ObjectId
+from urllib.request import urlopen
 
 # Third parties
 from flask import jsonify
@@ -150,3 +151,44 @@ class EventRegion(microServiceABC.MicroServiceABC):
         
         # Return list of Id of the newly created item
         return jsonify(result = region, response = 201)
+
+class EventCountry(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the eventDispatcher component implementation    
+        """
+
+    # Service's entry point definition
+    @config.safeRun
+    def entryPoint(self, body):
+        """
+        Figure out the country which the incoming EQ event belong 
+        """
+        
+        # Query Google to obtain the contry and city
+        alert = body['alerts'][0];
+        country = self._getPlace(alert['latitude'], alert['longitude'])
+        
+        # Return list of Id of the newly created item
+        return jsonify(result = country, response = 201)
+        
+    def _getPlace(self, lat, lon):
+        # TODO: @Marisol, do something clever here please!!!
+        
+        #key = "yourkeyhere"
+        #url = "https://maps.googleapis.com/maps/api/geocode/json?"
+        #url += "latlng=%s,%s&sensor=false&key=%s" % (lat, lon, key)
+        #v = urlopen(url).read()
+        #j = json.loads(v)
+        #components = j['results'][0]['address_components']
+        #country = town = None
+        #for c in components:
+        #    if "country" in c['types']:
+        #        country = c['long_name']
+        #    if "postal_town" in c['types']:
+        #        town = c['long_name']
+        
+        #return town, country
+        return "Iceland".upper()

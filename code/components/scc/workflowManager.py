@@ -55,7 +55,19 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         """
         # Just a naming convention
         event = body
+        
+        # Obtain the Event Id. (useful during all the workflow livecycle)
+        # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
 
+        r = requests.post("http://127.0.0.1:5000/eventCountry", json=event)
+        config.checkPostRequest(r)
+        event['country'] = r.json()['result']
+        
+        # Calculate the event priority
+        # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
+        r = requests.post("http://127.0.0.1:5000/indexPriority", json=event)
+        config.checkPostRequest(r)   
+             
         # Obtain the Event Id. (useful during all the workflow livecycle)
         r = requests.post("http://127.0.0.1:5000/eventRegistration", json=event)
         config.checkPostRequest(r)
