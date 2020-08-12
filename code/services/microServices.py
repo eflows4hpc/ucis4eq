@@ -144,9 +144,9 @@ def indexPriorityService(body):
     Call component implementing this micro service
     """
     
-    data = "/root/IndexPriority/"
+    setup = "/root/data/config_indexPriority.json"
     
-    return IndexPriority(data).entryPoint(body)
+    return IndexPriority(setup).entryPoint(body)
 
 # Determine the kind of source for the simulation
 @microServicesApp.route("/sourceType", methods=['POST'])

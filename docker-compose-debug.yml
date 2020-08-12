@@ -24,8 +24,10 @@ services:
       - ${UCIS4EQ_CMT_CONFIG}:/root/data/configCMT.json
       - ${UCIS4EQ_CMT_HEVENTS}:/root/data/historicalEvents.xml
       - ${UCIS4EQ_DAL_DATA}:/root/DALdata/
-      - ${UCIS4EQ_IPRIORITY_DATA}:/root/IndexPriority/
-      - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.5/site-packages/ucis4eq
+      - ${UCIS4EQ_IPRIORITY_DATA}:/root/data/indexPriority/
+      - ${UCIS4EQ_IPRIORITY_CONFIG}:/root/data/config_indexPriority.json
+      - ${UCIS4EQ_COUNTRIES_DATA}:/root/data/countries.geojson
+      - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.7/site-packages/ucis4eq
       - ${UCIS4EQ_HOME}/code/services/microServices.py:/root/services/microServices.py
     depends_on:
       - DAL

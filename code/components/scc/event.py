@@ -25,6 +25,11 @@
 import sys
 import traceback
 import json
+import requests
+
+from shapely.geometry import mapping, shape
+from shapely.prepared import prep
+from shapely.geometry import Point
 
 from bson.json_util import dumps
 from bson import ObjectId
@@ -167,28 +172,40 @@ class EventCountry(microServiceABC.MicroServiceABC):
         Figure out the country which the incoming EQ event belong 
         """
         
-        # Query Google to obtain the contry and city
         alert = body['alerts'][0];
         country = self._getPlace(alert['latitude'], alert['longitude'])
-        
+        print(country, flush = True)
         # Return list of Id of the newly created item
         return jsonify(result = country, response = 201)
         
     def _getPlace(self, lat, lon):
-        # TODO: @Marisol, do something clever here please!!!
         
-        #key = "yourkeyhere"
-        #url = "https://maps.googleapis.com/maps/api/geocode/json?"
-        #url += "latlng=%s,%s&sensor=false&key=%s" % (lat, lon, key)
-        #v = urlopen(url).read()
-        #j = json.loads(v)
-        #components = j['results'][0]['address_components']
-        #country = town = None
-        #for c in components:
-        #    if "country" in c['types']:
-        #        country = c['long_name']
-        #    if "postal_town" in c['types']:
-        #        town = c['long_name']
+        # TODO: Download the countries.geojson to save in local 
+        # data = requests.get("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").json()
+        with open("/root/data/countries.geojson", 'r', encoding='utf-8') as f:
+            data = json.load(f)
+                
         
-        #return town, country
-        return "Iceland".upper()
+        countries = {}
+        for feature in data["features"]:
+            geom = feature["geometry"]
+            country = feature["properties"]["ADMIN"]
+            countries[country] = prep(shape(geom))
+            
+            
+        def get_country(lon, lat):
+          point = Point(lon, lat)
+          for country, geom in countries.items():
+              if geom.contains(point):
+                  return country
+          
+        
+        
+        return get_country(lon, lat).upper()
+
+        
+      
+      
+      
+      
+      

@@ -67,6 +67,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
         r = requests.post("http://127.0.0.1:5000/indexPriority", json=event)
         config.checkPostRequest(r)   
+        #print(r.json()['result'],flush=True)
              
         # Obtain the Event Id. (useful during all the workflow livecycle)
         r = requests.post("http://127.0.0.1:5000/eventRegistration", json=event)
