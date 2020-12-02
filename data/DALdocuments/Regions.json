@@ -3,9 +3,8 @@
     {
       "id": "SISZ",
       "model": {
-        "name": "SISZ-1D",
+        "name": "SISZ_1D",
         "alias": [
-          "1D",
           "SISZ-1D"
         ],
         "geometry": {

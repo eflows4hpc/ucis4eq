@@ -68,7 +68,7 @@ if __name__ == '__main__':
           license='To be defined',
           packages=['ucis4eq'],
           include_dirs=get_ext_modules(),
-          install_requires=['numpy', 'flask', 'pymongo', 'request', 'obspy'],
+          install_requires=['numpy', 'flask', 'pymongo', 'requests', 'obspy'],
           setup_requires=['sphinx'],
           classifiers=['Development Status :: 3 - Alpha',
                        'License :: Free for non-commercial use',

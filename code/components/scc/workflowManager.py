@@ -152,16 +152,25 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                 # Generate the input parameter file for phase 2 in YAML format
                 r = requests.post("http://127.0.0.1:5000/inputParametersBuilder", json=input)
                 config.checkPostRequest(r)
-
-                        
-                # Call Salvus system (or other)        
-                # TODO
+                stage2InputP = r.json()['result']
+                
+                # TODO:
+                # Call a service in charge of deciding the simulator code (HUB)
+                # Call Salvus system (or other)
+                sim = {}
+                sim["uuid"] = input["uuid"]
+                sim["input"] = stage2InputP
+                r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
+                config.checkPostRequest(r)
+                outputPath = r.json()['result']
+                
                 
                 # Post-process output by generating:
                 #   - Spectral acceleration (By ranges calculated)
                 #   - Rot50 (calculated from two orthogonal horizontal components, 
                 #     and azimuthally independent)                    
-                # TODO
+                r = requests.post("http://127.0.0.1:5003/SalvusPost", json=outputPath)
+                config.checkPostRequest(r)
                             
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']) + " notified for region " + str(region['id']), response = 201)

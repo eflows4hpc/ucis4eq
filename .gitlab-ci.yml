@@ -44,15 +44,18 @@ build_slipgen:
     - docker push registry.gitlab.com/cheese-coe/ucis4eq/slipgen
   only:
     - tags
-  
+    
 build_salvus:
   stage: build_tools
+  variables:
+    DOCKER_BUILDKIT: 1
+    COMPOSE_DOCKER_CLI_BUILD: 1
   script:
-    - docker build -f deployment/dockers/Dockerfile-salvus -t registry.gitlab.com/cheese-coe/ucis4eq/salvus .
+    - docker build --ssh default -f deployment/dockers/Dockerfile-salvusServices --build-arg SALVUS_USERNAME=$SALVUS_USERNAME --build-arg SALVUS_PASSWORD=$SALVUS_PASSWORD -t registry.gitlab.com/cheese-coe/ucis4eq/salvus .
     - docker push registry.gitlab.com/cheese-coe/ucis4eq/salvus
   only:
     - tags
-    
+      
 build_microservices:
   stage: build_components
   dependencies:

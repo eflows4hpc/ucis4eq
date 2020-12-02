@@ -60,7 +60,7 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
     @config.safeRun
     def entryPoint(self, body):
         """
-        Build the set of simulation parameters in YAML format   
+        Build the set of simulation parameters
         """
         # Initialize inputP dict 
         inputP = {}
@@ -101,23 +101,6 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         inputP["geometry"] = self.geometry
         inputP["receivers"] = self.receivers
         inputP["rupture"] = "\n".join(self.rupture['rupture'])
-        
-        # Enable multiline writting
-        yaml.SafeDumper.org_represent_str = yaml.SafeDumper.represent_str
-
-        def repr_str(dumper, data):
-            if '\n' in data:
-                return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
-            return dumper.org_represent_str(data)
-
-        yaml.add_representer(str, repr_str, Dumper=yaml.SafeDumper)
             
-        # Write the YAML file
-        # TODO: This file should be sent to other service
-        inputPyaml = yaml.safe_dump(inputP)
-        with open("/tmp/" + body["uuid"] + ".yaml", "w") as f:
-            f.write(inputPyaml)
-            #yaml.safe_dump(inputP, f)
-                        
         # Return list of Id of the newly created item
-        return jsonify(result = {}, response = 201)
+        return jsonify(result = inputP, response = 201)

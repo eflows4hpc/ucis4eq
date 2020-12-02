@@ -11,7 +11,16 @@ services:
     volumes:
       - ${UCIS4EQ_GP_DATA}:/root/inputs/
     entrypoint: ["/bin/bash", "/root/services/start.sh"]
-    #restart: always  
+    #restart: always
+
+  # UCIS4EQ Salvus    
+  salvus:
+    image: registry.gitlab.com/cheese-coe/ucis4eq/salvus
+    network_mode: "host"
+    volumes:
+      - ${UCIS4EQ_SALVUS_DATA}:/root/inputs/
+    entrypoint: ["/bin/bash", "/root/services/start.sh"]
+    #restart: always
   
   # UCIS4EQ Micro-services 
   microServices:

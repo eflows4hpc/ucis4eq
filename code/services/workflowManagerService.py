@@ -34,6 +34,7 @@ from flask import Flask, request, jsonify
 
 # Load micro-services implemented components
 from ucis4eq.scc.workflowManager import WorkflowManagerEmulator
+#from ucis4eq.scc.workflowManagerExperimental import DaskWorkflowManager
 
 ################################################################################
 # Dispatcher App creation
@@ -89,6 +90,17 @@ def workflowManagerEmulatorService(body):
     """
     
     return WorkflowManagerEmulator().entryPoint(body)
+
+# Determine the kind of source for the simulation
+#@workflowManagerServiceApp.route("/DaskWM", methods=['POST'])
+#@postRequest
+#def DaskWorkflowManagerService(body):
+#    """
+#    Call component implementing this micro service
+#    """
+#    
+#    return DaskWorkflowManager().entryPoint(body)
+
 
 ################################################################################
 # Start the micro-services aplication

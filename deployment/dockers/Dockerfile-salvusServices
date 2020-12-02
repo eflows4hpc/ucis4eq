@@ -1,0 +1,58 @@
+# syntax=docker/dockerfile:experimental
+# Obtain a clean python capable distribution
+FROM python:3.7
+
+# Set the working directory
+WORKDIR /workspace
+
+# Install basis packages
+RUN apt-get update && apt-get install -y vim
+
+# Install Miniconda3
+RUN wget \
+    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && mkdir /root/.conda \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+    && rm -f Miniconda3-latest-Linux-x86_64.sh \
+    && echo PATH="/root/miniconda3/bin/":$PATH >> /root/.bashrc
+
+# Obtain the Salvus environment
+RUN wget \ 
+    https://mondaic.com/environment.yml \
+    && /root/miniconda3/bin/conda env create -n salvus -f environment.yml \
+    && rm -f environment.yml
+
+SHELL ["/bin/bash", "--login", "-c"]
+    
+RUN /root/miniconda3/bin/conda init bash
+
+# Activate the environment, and make sure it's activated:
+RUN echo "conda activate salvus" >> ~/.bashrc
+
+# Install UCIS4EQ
+RUN pip3 install --upgrade setuptools; pip3 install numpy flask pymongo pyyaml requests; pip3 install obspy; pip3 install ucis4eq 
+
+# Install Salvus (except salvus-compute)
+ARG SALVUS_USERNAME
+ARG SALVUS_PASSWORD
+
+ARG CACHEBUST=1    
+
+# Prepare Salvus
+ADD deployment/dockers/thirdparties/salvus.tar.gz .
+RUN Salvus/install.sh    
+    
+# Obtain Marta Pienkowska-Cote's Salvus wrapper for UCIS4EQ
+RUN mkdir -m 700 /root/.ssh; \
+  touch -m 600 /root/.ssh/known_hosts; \
+  ssh-keyscan github.com > /root/.ssh/known_hosts
+RUN --mount=type=ssh git clone git@github.com:martapien/salvus_urgent_simulations_setup.git /root/salvusWrapper
+    
+# Expose the Flask application port
+EXPOSE 5003
+
+# Obtain the SalvusService App
+RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%salvusService.py/raw?ref=master' > /root/services/salvusService.py
+ 
+# Start a shell
+ENTRYPOINT ["/bin/bash", "/root/scripts/launcher.sh"]
