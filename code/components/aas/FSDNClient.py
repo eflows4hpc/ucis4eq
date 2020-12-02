@@ -116,7 +116,7 @@ class WSGeneral:
 
         # Store the current timestamp
         output = self.postprocess_actions()
-
+        
         # If there are elements, write them and trigger the set action
         if( output ):
             #time2 = datetime.datetime.now(datetime.timezone.utc).strftime('%d%m%Y_%H%M%S')+"_"
@@ -127,6 +127,7 @@ class WSGeneral:
             # Do a trigger for each event received
             event = {}
             for e in output['events']:
+                
                 event['alerts'] = output['events'][e]
                 event['uuid'] = e
                 event['sources'] = {}
@@ -246,6 +247,10 @@ class WSEvents(WSGeneral):
                 # Don't add the event if a deadline time was reached
                 # SPRUCE [P.Beckman 2006]
                 if( delay > self.config['listener']['deadline'] ):
+                  print("WARNING: The event occurred at " +  str(e.origins[0]['time'].datetime) +
+                  " in (" + str(e.origins[0]['latitude']) + ", " + str(e.origins[0]['longitude']) 
+                  + ") and magnitude " + str(e.magnitudes[0]['mag']) 
+                  + " overpassed the set deadline and will be not triggered", flush=True)
                   continue
 
                 # Obtain information about the event

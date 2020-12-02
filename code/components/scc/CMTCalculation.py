@@ -88,34 +88,27 @@ class CMTInputs(microServiceABC.MicroServiceABC):
         self.db = config.database
         
     # Service's entry point definition
+    @config.safeRun
     def entryPoint(self, body):
         """
         Generate a CMT input for a posterior CMT calculation
         """
-        try:
-            # TODO: This part should be done by the workflow manager
-            # For each new incomming event 
-            inputParameters = self.setup        
-                
-            # Retrieve the event's complete information 
-            event = self.db.EQEvents.find_one({"_id": ObjectId(body['event'])})
+        # TODO: This part should be done by the workflow manager
+        # For each new incomming event 
+        inputParameters = self.setup        
             
-            # Add the current event
-            inputParameters.update({
-                                    "event": {
-                                        "_id": body['event'],
-                                        "alerts": event['alerts'],
-                                        }
-                                   })
-            
-            return jsonify(result = inputParameters, response = 201)
+        # Retrieve the event's complete information 
+        event = self.db.EQEvents.find_one({"_id": ObjectId(body['event'])})
         
-        except Exception as error:
-            # Error while trying to create the resource
-            config.printException()
-
-            # Return error code and message
-            return jsonify(result = str(error), response = 501)
+        # Add the current event
+        inputParameters.update({
+                                "event": {
+                                    "_id": body['event'],
+                                    "alerts": event['alerts'],
+                                    }
+                               })
+        
+        return jsonify(result = inputParameters, response = 201)
 
 class CMTCalculation(microServiceABC.MicroServiceABC):
     
@@ -133,40 +126,33 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         self.cat = obspy.read_events(catalog)
         
     # Service's entry point definition
+    @config.safeRun
     def entryPoint(self, body):
         """
         Calculate a CMT approximation from historical earthquake events
         """
-        try:
-            # Configure the component
-            self.setup = body['setup']
+        # Configure the component
+        self.setup = body['setup']
+        
+        # Check input parameters 
+        if self.setup['k']['min'] > self.setup['k']['max']:
+            raise Exception('k-min value must be >= k-max')
             
-            # Check input parameters 
-            if self.setup['k']['min'] > self.setup['k']['max']:
-                raise Exception('k-min value must be >= k-max')
-                
-            if self.setup['distance']['growthrate'] <= 1:
-                raise Exception('The growthrate value must be > 1')
-            
-            if self.setup['distance']['threshold'] <= 0:
-                raise Exception('Threshold must be > 0')
-            
-            # Set an input event with an unknown CMT
-            e = body['event']
-            self.event = Event(e['latitude'], 
-                               e['longitude'], 
-                               e['depth'], 
-                               e['magnitude']
-                              )
+        if self.setup['distance']['growthrate'] <= 1:
+            raise Exception('The growthrate value must be > 1')
+        
+        if self.setup['distance']['threshold'] <= 0:
+            raise Exception('Threshold must be > 0')
+        
+        # Set an input event with an unknown CMT
+        e = body['event']
+        self.event = Event(e['latitude'], 
+                           e['longitude'], 
+                           e['depth'], 
+                           e['magnitude']
+                          )
 
-            return jsonify(result = self._getFocalMechanism(), response = 201)
-                    
-        except Exception as error:
-            # Error while trying to create the resource
-            config.printException()
-
-            # Return error code and message
-            return jsonify(result = str(error), response = 501)
+        return jsonify(result = self._getFocalMechanism(), response = 201)
                         
     def _getFocalMechanism(self):
         """
