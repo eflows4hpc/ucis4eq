@@ -26,6 +26,7 @@ import sys
 import traceback
 import json
 import requests
+import math
 
 from shapely.geometry import mapping, shape
 from shapely.prepared import prep
@@ -197,12 +198,68 @@ class EventCountry(microServiceABC.MicroServiceABC):
           point = Point(lon, lat)
           for country, geom in countries.items():
               if geom.contains(point):
-                  return country
-          
+                  return country         
         
         
         return get_country(lon, lat).upper()
+      
+      
+class EventEPSG(microServiceABC.MicroServiceABC):
 
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the eventDispatcher component implementation    
+        """
+
+    # Service's entry point definition
+    @config.safeRun
+    def entryPoint(self, body):
+        """
+        Figure out the country which the incoming EQ event belong 
+        """
+        
+        alert = body['alerts'][0];
+        epsg = self._getEPSG(alert['longitude'],alert['latitude'])
+        print(epsg, flush = True)
+        # Return list of Id of the newly created item
+        return jsonify(result = epsg, response = 201)
+        
+    def _getEPSG(self, longitude, latitude):   
+      
+    
+      # Special zones for Svalbard and Norway
+      # Source: https://gis.stackexchange.com/questions/365584/convert-utm-zone-into-epsg-code
+        def getZones(longitude, latitude) :
+            
+            if (latitude >= 72.0 and latitude < 84.0 ) :
+                if (longitude >= 0.0  and longitude <  9.0) :
+                      return 31              
+            if (longitude >= 9.0  and longitude < 21.0):
+                  return 33
+            if (longitude >= 21.0 and longitude < 33.0):
+                  return 35
+            if (longitude >= 33.0 and longitude < 42.0) :
+                  return 37
+            return (math.floor((longitude + 180) / 6) ) + 1 
+    
+
+        def findEPSG(longitude, latitude) :
+            
+            zone = getZones(longitude, latitude)
+            #zone = (math.floor((longitude + 180) / 6) ) + 1  # without special zones for Svalbard and Norway         
+            epsg_code = 32600
+            epsg_code += int(zone)
+            if (latitude < 0): # South
+                epsg_code += 100    
+            return epsg_code
+              
+              
+        return(findEPSG(longitude,latitude))
+      
+      
+        
+        
         
       
       

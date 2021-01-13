@@ -3,13 +3,12 @@
     "todo": "Add a URL for download historical events repository"
   },
   "setup": {
-    "magnitudethreshold": 5.0,
+    "magnitudethreshold": 4.6,
     "k": {
-      "min": 4,
-      "max": 20
+      "min": 1
     },
     "distance":{
-      "threshold": 300000.0,
+      "threshold": 70.0,
       "growthrate": 1.1
     },
     "output":{
