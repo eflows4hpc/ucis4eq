@@ -187,9 +187,9 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         for e in self.cat:
             if  e.magnitudes[0]['mag'] >= self.setup['magnitudethreshold']:
                 fm = e.focal_mechanisms[0]['nodal_planes'].nodal_plane_1 
-                hEvents.append(Event(e.origins[0]['latitude'],
-                                     e.origins[0]['longitude'],
-                                     e.origins[0]['depth'],
+                hEvents.append(Event(e.origins[1]['latitude'],
+                                     e.origins[1]['longitude'],
+                                     e.origins[1]['depth'],
                                      e.magnitudes[0]['mag'],
                                      fm.strike, 
                                      fm.dip,
@@ -211,11 +211,12 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
 
         # Calculate Euclidean distances
         i = 0
-        for e in hEvents:
-
+        #print('self.event.depth',self.event.depth,flush=True)
+        for e in hEvents:             
+            #print('i=',i,flush=True)
             sphereDist = haversine((e.lat, e.lon), (self.event.lat, self.event.lon)) * 1000
-            depthDist = (e.depth - self.event.depth)
-                        
+            #print('e.depth',e.depth,flush=True)  ## TODOOOOOOO Check UNITS
+            depthDist = (e.depth - self.event.depth)                          
             euclideanDist = np.sqrt(sphereDist**2 + depthDist**2)
             # Store the calculated information
             vectorDistances[i, :] = [i, euclideanDist, sphereDist, depthDist, e.strike, e.dip, e.rake,  e.mag, e.depth, e.lat, e.lon]
@@ -232,9 +233,9 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         while True:
 
             # Sort and filter with the new threshold value
-            # print('distSorted[:,1] <= threshold',distSorted[:,1],' <= ' ,threshold)
+            #print('distSorted[:,1] <= threshold',distSorted[:,1],' <= ' ,threshold)
             distFiltered = distSorted[np.where(distSorted[:,1] <= threshold)]
-                  
+            #print("distFiltered", distFiltered)      
             # distFiltered = distFiltered[0:self.setup['k']['max'], :]
             
             k = len(distFiltered)
@@ -282,8 +283,9 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         X_results = np.zeros((k,4))
         distancesEvents = np.zeros(k)
         cont = -1
-        dataCoordinatesCentroidEvent = (self.event.lon, self.event.lat) 
+        dataCoordinatesCentroidEvent = (self.event.lat,self.event.lon) 
         profEvent = self.event.depth
+        #print('profEvent',profEvent,flush=True)
         hEventsCluster = []
          
         for kk in range(0,k):
@@ -292,10 +294,14 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                 X_results[cont,0] = vecStrikeNeig[kk]
                 X_results[cont,1] = vecDipNeig[kk]
                 X_results[cont,2] = vecRakeNeig[kk]                  
-                distEpicentral =  haversine(dataCoordinatesCentroidEvent, (vecLatNeig[kk],vecLonNeig[kk]))*1000
-               # print('vecDepNeig[kk]',vecDepNeig[kk])
-                distancesEvents[cont] = np.sqrt(distEpicentral**2 + (profEvent - vecDepNeig[kk])**2)
+                distEpicentral =  haversine(dataCoordinatesCentroidEvent, (vecLatNeig[kk],vecLonNeig[kk]))
+                #print('distEpicentral',distEpicentral)
+                #print('vecDepNeig[kk]',vecDepNeig[kk])
+                #print('profEvent/1000',profEvent/1000,flush=True)
+                distancesEvents[cont] = np.sqrt(distEpicentral**2 + ((profEvent/1000) - (vecDepNeig[kk]/1000))**2)
+                #print('distancesEvents[cont]',distancesEvents[cont],flush=True)
                 X_results[cont, 3] = distancesEvents[cont] 
+                #print('X_results[cont,:]',  X_results[cont,:],flush=True)
         
         ## DBSCAN hyperparameters 
         nearest_neighbors = NearestNeighbors(n_neighbors=2)
@@ -306,10 +312,11 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         knee = KneeLocator(i, distances, S=1, curve='convex', direction='increasing', interp_method='polynomial')
         clustering = DBSCAN(eps = distances[knee.knee], min_samples=2).fit(X_results[0:cont+1,:])
         labels = clustering.labels_
+        #print('labels',labels,flush=True)
         counts = np.bincount(labels[labels >= 0])
         top_labels = np.argsort(-counts)[:2]
         n_clusters_ = len(set(labels)) 
-       # print('n_clusters_',n_clusters_)
+        #print('n_clusters_',n_clusters_,flush=True)
         X_resultsCluster = np.zeros((cont+1,9))
         X_resultsCluster[:,0:4] = X_results[0:cont+1,:]
         X_resultsCluster[:,4] = clustering.labels_        
@@ -356,6 +363,10 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             #print('jj',jj)
             contTmpIni = int(contTmp + 1)
             contTmpFin = int(contTmpIni + vecNumElementsCluster[jj]-1)
+            #print('contTmpIni',contTmpIni,flush=True)
+            #print('contTmpFin',contTmpFin,flush=True)  
+            #for ij in np.arange(contTmpIni,contTmpFin+1):
+            #  print('X_resultsSortCluster[int(ij),:]',X_resultsSortCluster[int(ij),:],flush=True) 
             VecTempClusterMean[jj,0] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,0])  #mean Strike,Dip,Rake Cluster
             VecTempClusterStd[jj,0] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,0])  #mean Strike,Dip,Rake Cluster
             VecTempClusterMedian[jj,0] = np.percentile(X_resultsSortCluster[contTmpIni:contTmpFin+1,0], 50, interpolation = 'midpoint')
@@ -400,8 +411,8 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             e = hEventsCluster[int(contClustMean)]
             #print("[" + name + "]"+ " --> " + str(e))
             cmts.update({name: e.toJSON()})               
-            print('cmts',cmts)     
-            
+          
+        print('cmts',cmts,flush=True)               
            
         # Return the JSON file!!!!
         
