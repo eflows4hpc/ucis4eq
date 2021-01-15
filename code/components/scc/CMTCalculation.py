@@ -38,6 +38,7 @@ from sklearn.preprocessing import normalize
 from sklearn.decomposition import PCA 
 from sklearn.neighbors import NearestNeighbors
 from kneed import KneeLocator
+from obspy.imaging.beachball import aux_plane
 
 # Internal
 from ucis4eq.misc import config
@@ -266,17 +267,26 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         self.event.dip = np.percentile(distFiltered[0:k, 5], 50, interpolation = 'midpoint')
         self.event.rake = np.percentile(distFiltered[0:k, 6], 50, interpolation = 'midpoint')
         
-        
+        AuxNodalPlanes = []
+        contNodalPlanes = -1
         # Build the list of CMTs for the current events
         cmts = {"Median": self.event.toJSON()}
-        #print("[Median] --> " + str(self.event))
-        
+        aux_plane_median = aux_plane(self.event.strike, self.event.dip, self.event.rake)
+        AuxNodalPlanes.append(Event(0.0,0.0,0.0,0.0,aux_plane_median[0],aux_plane_median[1],aux_plane_median[2]))  
+        contNodalPlanes += 1
+        e = AuxNodalPlanes[contNodalPlanes]
+        cmts.update({"Median_AuxPlane" : e.toJSON()})
         for i in range(0,self.setup['output']['focalmechanisms']):
             #hEvents[distFiltered[0:self.setup['output']['focalmechanisms'], 0]]:
-            name = "k-" + str(i+1) +  ""
+            name = "k-" + str(i+1) +  ""             
             e = hEvents[int(distFiltered[i, 0])]
             #print("[" + name + "]"+ " --> " + str(e))
-            cmts.update({name: e.toJSON()})                  
+            cmts.update({name: e.toJSON()})
+            aux_plane_k = aux_plane(distFiltered[i, 4],distFiltered[i, 5],distFiltered[i, 6])
+            AuxNodalPlanes.append(Event(distFiltered[i,9],distFiltered[i,10],distFiltered[i,8],distFiltered[i,7],aux_plane_k[0],aux_plane_k[1],aux_plane_k[2]))  
+            contNodalPlanes += 1
+            e = AuxNodalPlanes[contNodalPlanes]
+            cmts.update({"k-" + str(i+1) + "_AuxPlane" : e.toJSON()})           
             
         ########################################    
         # Cluster results 
@@ -382,21 +392,25 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             VecCentroidesStd[jj,0] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,6]) #Latitude
             VecCentroidesStd[jj,1] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,7]) #Longitude
             VecCentroidesStd[jj,2] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,8]) #Depth  
-            contTmp = contTmpFin            
-            contClustMean = contClustMean + 1
-            hEventsCluster.append(Event(VecCentroides[jj,0],
-                                 VecCentroides[jj,1],
-                                 VecCentroides[jj,2],    
-                                 0.0,
-                                 VecTempClusterMean[jj,0],
-                                 VecTempClusterMean[jj,1],
-                                 VecTempClusterMean[jj,2]
-                                 )
-                             )
-            name = "ClustMean-" + str(jj+1) +  ""
-            e = hEventsCluster[int(contClustMean)]
+            contTmp = contTmpFin 
+            ## Mean Clustering Solutions
+            #contClustMean = contClustMean + 1
+            #hEventsCluster.append(Event(VecCentroides[jj,0],
+             #                    VecCentroides[jj,1],
+             #                   VecCentroides[jj,2],    
+             #                   0.0,
+             #                    VecTempClusterMean[jj,0],
+             #                    VecTempClusterMean[jj,1],
+             #                    VecTempClusterMean[jj,2]
+             #                    )
+             #                )
+            #name = "ClustMean-" + str(jj+1) +  ""
+            #e = hEventsCluster[int(contClustMean)]            
             #print("[" + name + "]"+ " --> " + str(e))
-            cmts.update({name: e.toJSON()})                                   
+            #cmts.update({name: e.toJSON()})        
+            #######
+            
+            ## Median Clustering Solution
             contClustMean = contClustMean + 1
             hEventsCluster.append(Event(VecCentroides[jj,0],
                                  VecCentroides[jj,1],
@@ -410,7 +424,14 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             name = "ClustMedian-" + str(jj+1) +  ""
             e = hEventsCluster[int(contClustMean)]
             #print("[" + name + "]"+ " --> " + str(e))
-            cmts.update({name: e.toJSON()})               
+            cmts.update({name: e.toJSON()})    
+            
+            ## AuxPlanes_Median Clustering Solution
+            aux_plane_Clust = aux_plane(VecTempClusterMedian[jj,0],VecTempClusterMedian[jj,1],VecTempClusterMedian[jj,2])
+            AuxNodalPlanes.append(Event(VecCentroides[jj,0],VecCentroides[jj,1],VecCentroides[jj,2],0.0,aux_plane_Clust[0],aux_plane_Clust[1],aux_plane_Clust[2]))             
+            contNodalPlanes += 1
+            e = AuxNodalPlanes[contNodalPlanes]
+            cmts.update({"ClustMedian-" + str(jj+1) + "_AuxPlane" : e.toJSON()})
           
         print('cmts',cmts,flush=True)               
            
