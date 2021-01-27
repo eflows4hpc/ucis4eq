@@ -134,22 +134,22 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         dataPGAlocal = np.loadtxt(path + self.setup["dataPGA"]+'1Degree-PGA_db'+str(nflag)+'.DAT')
         print(path + self.setup["dataPGA"]+'1Degree-PGA_db-'+str(nflag)+'.DAT')
         df2 = pd.DataFrame()
-        df2['Longitude'] = dataPGAlocal[:,0]
-        df2['Latitude'] = dataPGAlocal[:,1]
+        df2['Longitude'] = dataPGAlocal[:,1]
+        df2['Latitude'] = dataPGAlocal[:,0]
         df2['PGA'] = dataPGAlocal[:,2]        
         print('df2', df2)
         dataPGAlocalP = np.loadtxt(path + self.setup["dataPGA"]+'1Degree-PGA_db'+str(nflagP)+'.DAT')
         print(path + self.setup["dataPGA"]+'1Degree-PGA_db-'+str(nflagP)+'.DAT')
         df3 = pd.DataFrame()
-        df3['Longitude'] = dataPGAlocalP[:,0]
-        df3['Latitude'] = dataPGAlocalP[:,1]
+        df3['Longitude'] = dataPGAlocalP[:,1]
+        df3['Latitude'] = dataPGAlocalP[:,0]
         df3['PGA'] = dataPGAlocalP[:,2] 
         print('df3', df3)
         dataPGAlocalL = np.loadtxt(path + self.setup["dataPGA"]+'1Degree-PGA_db'+str(nflagL)+'.DAT')
         print(path + self.setup["dataPGA"]+'1Degree-PGA_db-'+str(nflagL)+'.DAT')
         df4 = pd.DataFrame()
-        df4['Longitude'] = dataPGAlocalL[:,0]
-        df4['Latitude'] = dataPGAlocalL[:,1]
+        df4['Longitude'] = dataPGAlocalL[:,1]
+        df4['Latitude'] = dataPGAlocalL[:,0]
         df4['PGA'] = dataPGAlocalL[:,2]
         print('df4', df4)
         frames = [df3, df2, df4]
