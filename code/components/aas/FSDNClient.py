@@ -32,6 +32,9 @@ import obspy
 import datetime
 #import psutil
 
+from ucis4eq.dal import staticDataMap
+from ucis4eq.misc import config
+
 ################################################################################
 # Methods and classes
 
@@ -39,7 +42,7 @@ import datetime
 class WSGeneral:
 
     # Methods
-    def __init__(self, config):
+    def __init__(self):
 
         # Wait for the process to finish
         #if( 'opid' in config['listener'] ):
@@ -58,8 +61,22 @@ class WSGeneral:
         # Object UUID
         #self.uuid = uuid.uuid1()
 
-        # Store the configuration parameters
-        self.config = config
+        # Initialize DAL
+        r = requests.post("http://127.0.0.1:5000/dal", json={})
+        config.checkPostRequest(r)
+        
+        # Index documents with regard this component
+        self.fileMapping = staticDataMap.StaticDataMap(self.__class__.__name__)
+            
+    # Start client
+    def start(self, file):
+        
+        # Read the configuration file    
+        with open(self.fileMapping[file], 'r') as f:
+            self.config = json.load(f)
+            
+        print(self.config, flush=True)
+            
         # Check if an output directory was provided
         if( not "outputdir" in self.config["listener"] ):
             self.config["listener"]["outputdir"] = self.outdir
@@ -73,13 +90,13 @@ class WSGeneral:
         self.s = sched.scheduler(time.time, time.sleep)
 
         # Config such scheduler
-        self.s.enter(0, 1, self.exploreRepositories, ())
+        self.s.enter(0, 1, self._exploreRepositories, ())
 
         # Start the AAS service
         self.s.run()
 
     # Explore the set of input repositories
-    def exploreRepositories(self, pool = None):
+    def _exploreRepositories(self, pool = None):
 
         # Variables
         output = {}
@@ -88,8 +105,6 @@ class WSGeneral:
         # Prepare the pool of processes
         np = len(self.config['repositories'])
         ws = self.config['webservice']
-
-        # print("Creating pool with", str(np), "processes")
 
         # Create the processes pool just one
         if not pool:
@@ -103,10 +118,12 @@ class WSGeneral:
         self.query = query.strip('&')
 
         # For each provided repository
-        tasks = [(self.requestRepository,
+        tasks = [(self._requestRepository,
                  (r, self.config['repositories'][r]+self.query))
                     for r in self.config['repositories'].keys()]
-        imap_unordered_it = pool.imap_unordered(self.runtask, tasks)
+        imap_unordered_it = pool.imap_unordered(self._runtask, tasks)
+
+        print("All ready!", flush=True)
 
         # Wait the tasks to finish
         for name, nelems, result in imap_unordered_it:
@@ -115,7 +132,7 @@ class WSGeneral:
                 dump[name] = nelems
 
         # Store the current timestamp
-        output = self.postprocess_actions()
+        output = self._postprocess_actions()
         
         # If there are elements, write them and trigger the set action
         if( output ):
@@ -148,21 +165,21 @@ class WSGeneral:
         interval = self.config['listener']['interval']
         if( interval > 0 ):
             #print("Next report in ", interval, "seconds")
-            self.s.enter(interval, 1, self.exploreRepositories, kwargs={'pool': pool})
+            self.s.enter(interval, 1, self._exploreRepositories, kwargs={'pool': pool})
 
     # Do the REST-GET petition
-    def requestRepository(self, name, url):
+    def _requestRepository(self, name, url):
         # Request data
         #print("Requesting info from '" + url + "'")
         self.r = requests.get(url, stream=True)
 
-        nelems, result = self.process_data(self.r, name)
+        nelems, result = self._process_data(self.r, name)
 
         # Process data
         return (name, nelems, result)
 
     # Process obtained data
-    def process_data(self, results, name):
+    def _process_data(self, results, name):
         # Variables
         file = self.tmpdata+name+self.config['listener']['data_ext']
         # Write file to disk
@@ -173,7 +190,7 @@ class WSGeneral:
         return file
 
     # Post-process actions
-    def postprocess_actions(self):
+    def _postprocess_actions(self):
         pass
 
     # For parallel computing
@@ -181,36 +198,36 @@ class WSGeneral:
         result = func(*args)
         return result
 
-    def runtask(self, args):
+    def _runtask(self, args):
         return self.__execute(*args)
 
 class WSEvents(WSGeneral):
 
+    def __init__(self):
 
-    def __init__(self, config):
         # Attributes
         self.currenttime = None
         self.events = []
 
         #WSGeneral.__init__(self,config)
-        super(WSEvents, self).__init__(config)
+        super(WSEvents, self).__init__()
         #self.uuid = uuid.uuid1()
 
-    def process_data(self, results, name):
+    def _process_data(self, results, name):
         # Variables
         params = self.config['webservice']['parameters']
 
         # Write the original file to disk
-        file = super(WSEvents, self).process_data(results, name)
+        file = super(WSEvents, self)._process_data(results, name)
 
         # Check the requested format
         if( 'format' in params.keys() and params['format'] == "xml"):
-            return self.process_xml_data(results, file, name)
+            return self._process_xml_data(results, file, name)
 
         return 0
 
     # Process a QuakeML data
-    def process_xml_data(self, results, file, name):
+    def _process_xml_data(self, results, file, name):
         # Variables
         now = None
         delay = None
@@ -275,7 +292,7 @@ class WSEvents(WSGeneral):
                              'events' : events}
 
     # Post-process actions
-    def postprocess_actions(self):
+    def _postprocess_actions(self):
         # Variables
         tth = self.config['listener']['timethreshold']
         output = {'sources':{}, 'events':{}}

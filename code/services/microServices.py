@@ -40,7 +40,9 @@ from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs
 from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource 
 from ucis4eq.scc.inputBuilder import InputParametersBuilder
 from ucis4eq.scc.indexPriority import IndexPriority
-
+import ucis4eq
+import ucis4eq.dal as dal
+from ucis4eq.dal import dynamicDataAccess
 
 ################################################################################
 # Dispatcher App creation
@@ -71,31 +73,13 @@ def postRequest(fn):
 # Task to run before first request
 @microServicesApp.before_first_request
 def initializeDALData():
-    
-    # Check the input directory for collections 
-    DALdir = "/root/DALdata/";
-    
-    # For each collection found, add to the DAL if there was not added yet
-    for file in os.listdir(DALdir):
-        if file.endswith(".json"):
-            collection = config.database[os.path.splitext(file)[0]]
+    dynamicDataAccess.DAL().entryPoint()
 
-            with open(os.path.join(DALdir, file), "r", encoding="utf-8") as f:
-                fdata = json.load(f)
-            
-            # Get the set of collections set in DAL
-            list = collection.distinct( "id" )
-                
-            # Insert the new ones
-            for item in fdata['documents']:
-                if not item['id'] in list:
-                    print(item['id'], flush=True)
-                    collection.insert_one(item)
-        
 # Base root of the micro-services Hub
 @microServicesApp.route("/")
 def get_initial_response():
     """Welcome message for the API."""
+        
     # Message to the user
     message = {
         'apiVersion': 'v1.0',
@@ -112,6 +96,16 @@ def get_initial_response():
 # Services definition
 ################################################################################
 
+# Initialize DAL Data
+@microServicesApp.route("/dal", methods=['POST'])
+@postRequest
+def initializeDALService(body):
+    """
+    Call component implementing this micro service
+    """
+
+    return dynamicDataAccess.DAL().entryPoint()
+
 # CMT Input generation
 @microServicesApp.route("/precmt", methods=['POST'])
 @postRequest
@@ -119,10 +113,8 @@ def CMTInputsService(body):
     """
     Call component implementing this micro service
     """
-    
-    setup = "/root/data/configCMT.json"
-    
-    return CMTInputs(setup).entryPoint(body)
+
+    return CMTInputs().entryPoint(body)
 
 # CMT Aproximation
 @microServicesApp.route("/cmt", methods=['POST'])
@@ -132,8 +124,7 @@ def CMTCalculationService(body):
     Call component implementing this micro service
     """
     
-    catalog = "/root/data/historicalEvents.xml"
-    return CMTCalculation(catalog).entryPoint(body)
+    return CMTCalculation().entryPoint(body)
     
 
 # Index Priority
@@ -143,10 +134,8 @@ def indexPriorityService(body):
     """
     Call component implementing this micro service
     """
-    
-    setup = "/root/data/config_indexPriority.json"
-    
-    return IndexPriority(setup).entryPoint(body)
+        
+    return IndexPriority().entryPoint(body)
 
 # Determine the kind of source for the simulation
 @microServicesApp.route("/sourceType", methods=['POST'])

@@ -6,6 +6,7 @@ EXPOSE 5001
 
 # Install dependencies
 RUN apt-get update && apt-get install -y lzma
+RUN pip install webdavclient3
 
 # Install Dask
 # TODO: Experimental

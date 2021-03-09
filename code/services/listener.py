@@ -39,14 +39,10 @@ def parser():
     parser = argparse.ArgumentParser(
         prog='listener',
         description='FDSN-WS Listener')
-    parser.add_argument('config', help='JSON configuration file')
+    parser.add_argument('config', help='Remote JSON configuration file')
     parser.add_argument('-p', dest='opid',
         help='Wait for a given PID before start')
     args = parser.parse_args()
-
-    # Check the arguments
-    if not os.path.isfile(args.config):
-      raise Exception("The configuration file '"+args.config+ "' doesn't exist")
 
     # Return them
     return args
@@ -57,17 +53,10 @@ def main():
         # Call the parser
         args = parser()
 
-        # Read the configuration file
-        with open(args.config, 'r') as f:
-            config = json.load(f)
-
-        if( args.opid ):
-            config['listener']['opid'] = args.opid
-
-        if( config['webservice']['interface'] == "event" ):
-            ws = FSDNClient.WSEvents(config)
+        if( args.config == "config_events" ):
+            ws = FSDNClient.WSEvents().start(args.config)
         else:
-            ws = FSDNClient.WSGeneral(config)
+            ws = FSDNClient.WSGeneral().start(args.config)
 
     except Exception as error:
         print("Exception in code:")

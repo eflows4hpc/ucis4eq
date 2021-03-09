@@ -1,0 +1,11 @@
+{
+  "B2DROP": {
+    "user": "",
+    "pass": "",
+    "url": "https://b2drop.bsc.es/remote.php/webdav/",
+    "path": "ChEESE/PD1/StaticDataMapping.json"
+  },
+  "local": {
+    "path": "/workspace/"
+  }
+}

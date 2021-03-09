@@ -32,52 +32,52 @@ from bson.json_util import dumps
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config
-from ucis4eq.scc import microServiceABC
+from ucis4eq.misc import config, microServiceABC
+import ucis4eq as ucis4eq
 
 ################################################################################
 # Methods and classes
 
 class InputParametersBuilder(microServiceABC.MicroServiceABC):
-    
+
     # Initialization method
     def __init__(self):
         """
         Initialize the CMT statistical component implementation
         """
-        
+
         # Select the database
-        self.db = config.database
-        
+        self.db = ucis4eq.dal.database
+
         # Set input parameters for the wrapper categories
         self.general = {}
         self.source = {}
         self.geometry = {}
         self.rupture = {}
         self.receivers = {}
-        
+
     # Service's entry point definition
     @config.safeRun
     def entryPoint(self, body):
         """
         Build the set of simulation parameters
         """
-        # Initialize inputP dict 
+        # Initialize inputP dict
         inputP = {}
-        
-        # Obtain information from the DB            
+
+        # Obtain information from the DB
         # Notice that more than one results can be returned.
         # We always take the first one
         receivers = self.db["Receivers"].find_one({"id": body['region']['id']})
-        
+
         #print({str(k).encode("utf-8"): v for k,v in receivers["infrastructures"].items()}, flush=True)
         region = self.db["Regions"].find_one({"id": body['region']['id']})
-                    
+
         # Build the set of parameters in a YAML
         # TODO
         self.general['simulation_length'] = region['parameters']['simulation_length']
         self.general['model_id'] = region['model']['name']
-        
+
         self.source['magnitude'] = body["event"]["magnitude"]
         self.source['longitude'] = body["event"]["longitude"]
         self.source['latitude'] = body["event"]["latitude"]
@@ -87,20 +87,20 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         self.source['dip'] = body["event"]["CMT"]["dip"]
         self.source['corner_freq'] = region['parameters']['corner_freq']
         self.source['freq_max'] = region['parameters']['freq_max']
-        
+
         self.geometry = region['model']['geometry']
-        
+
         self.rupture['rupture'] = body["rupture"]
-        
+
         self.receivers["infrastructures"] = receivers["infrastructures"]
-        self.receivers["seismic_stations"] = receivers["seismic_stations"]
-        
+        self.receivers["towns"] = receivers["towns"]
+
         # Prepare YAML sections
         inputP["general"] = self.general
         inputP["source"] = self.source
         inputP["geometry"] = self.geometry
         inputP["receivers"] = self.receivers
         inputP["rupture"] = "\n".join(self.rupture['rupture'])
-            
+
         # Return list of Id of the newly created item
         return jsonify(result = inputP, response = 201)

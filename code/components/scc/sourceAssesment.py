@@ -30,8 +30,8 @@ from bson.json_util import dumps
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config
-from ucis4eq.scc import microServiceABC
+import ucis4eq
+from ucis4eq.misc import config, microServiceABC
 
 ################################################################################
 # Methods and classes
@@ -43,9 +43,6 @@ class SourceType(microServiceABC.MicroServiceABC):
         """
         Initialize the sourceType component implementation    
         """
-        
-        # Select the database
-        self.db = config.database
 
     # Service's entry point definition
     @config.safeRun

@@ -40,33 +40,21 @@ from sklearn.svm import SVC
 from haversine import haversine
 
 # Internal
-from ucis4eq.misc import config, principalComponents
-from ucis4eq.scc import microServiceABC
+from ucis4eq.misc import config, principalComponents, microServiceABC
+import ucis4eq.dal as dal
+from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
 
+@staticDataMap.build
 class IndexPriority(microServiceABC.MicroServiceABC):
 
     # Initialization method
-    def __init__(self, setup):
+    def __init__(self):
         """
         Initialize the eventDispatcher component implementation    
         """
-        # TODO: @Marisol, remember that data is the path to the data you need
-        # Use like that:
-    
-        # 1- Read the JSON file in "data+*json"
-        with open(setup, 'r') as f:
-            self.setup = json.load(f)
-            
-        
-        # 2- For each file in JSON
-        # 3- Load the file data 
-        # 3.1- self.classifiers = data + "Classifier_svm.sav"
-            
-        # Select the database
-        self.db = config.database
 
     # Service's entry point definition
     @config.safeRun
@@ -74,7 +62,6 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         """
         This method will figure out the index priority for a given event
         """
-        print(body)
         
         alertPriority = []
         
@@ -93,7 +80,7 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         # TODO: Unify the decision in one value considering the different agencies 
         
         # Return list of Id of the newly created item
-        return jsonify(result = alertPriority[0], response = 201)            
+        return jsonify(result = alertPriority[0], response = 201)   
 
     def _indexPriorityCalculation(self):
         """
@@ -103,15 +90,15 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         # TODO: Put your code here @Marisol
         
         # load databases
-        path = "/root/data/indexPriority/"
-        classifierSVM_file = path + self.setup["classifierSVM"]
-        classifierRF_file = path + self.setup["classifierRF"]
-        classifierXGB_file = path + self.setup["classifierXGB"]
-        # dataPGA_folder = path + self.setup["dataPGA"]
-        fullDB_file = path + self.setup["fullDB"]
-        fullPGA_file = path + self.setup["fullPGA"]
-        countryDB_file = path + self.setup["countryDB"]
-        latlonDB_file = path + self.setup["latlonDB"]
+        classifierSVM_file = "Classifier_SVM1990-6"
+        classifierRF_file = "Classifier_RF1990-6"
+        classifierXGB_file = "Classifier_XGB1990-6"
+        dataPGA = "dataPGA"
+        # dataPGA_folder = dataPGAPath
+        fullDB_file = "Full_DataBase"
+        fullPGA_file = "VecKPGA_FULL_DataBase"
+        countryDB_file = "UnionFiles_Total_File_Filled"
+        latlonDB_file = "DataBase_LatLon"
                 
         dfNewEarthquake = pd.DataFrame()
         dfNewEarthquake['Country'] = [self.country]
@@ -130,23 +117,25 @@ class IndexPriority(microServiceABC.MicroServiceABC):
                 nflagP = latVec[i-1]
                 nflagL = latVec[i+1]                
                 break
-        print(self.setup["dataPGA"])
-        dataPGAlocal = np.loadtxt(path + self.setup["dataPGA"]+'1Degree-PGA_db'+str(nflag)+'.DAT')
-        print(path + self.setup["dataPGA"]+'1Degree-PGA_db-'+str(nflag)+'.DAT')
+                
+        dataPGAPath = self.fileMapping[dataPGA] + "/"
+        
+        dataPGAlocal = np.loadtxt(dataPGAPath +'1Degree-PGA_db'+str(nflag)+'.DAT')
+        print(dataPGAPath+'1Degree-PGA_db-'+str(nflag)+'.DAT')
         df2 = pd.DataFrame()
         df2['Longitude'] = dataPGAlocal[:,0]
         df2['Latitude'] = dataPGAlocal[:,1]
         df2['PGA'] = dataPGAlocal[:,2]        
         print('df2', df2)
-        dataPGAlocalP = np.loadtxt(path + self.setup["dataPGA"]+'1Degree-PGA_db'+str(nflagP)+'.DAT')
-        print(path + self.setup["dataPGA"]+'1Degree-PGA_db-'+str(nflagP)+'.DAT')
+        dataPGAlocalP = np.loadtxt(dataPGAPath+'1Degree-PGA_db'+str(nflagP)+'.DAT')
+        print(dataPGAPath+'1Degree-PGA_db-'+str(nflagP)+'.DAT')
         df3 = pd.DataFrame()
         df3['Longitude'] = dataPGAlocalP[:,0]
         df3['Latitude'] = dataPGAlocalP[:,1]
         df3['PGA'] = dataPGAlocalP[:,2] 
         print('df3', df3)
-        dataPGAlocalL = np.loadtxt(path + self.setup["dataPGA"]+'1Degree-PGA_db'+str(nflagL)+'.DAT')
-        print(path + self.setup["dataPGA"]+'1Degree-PGA_db-'+str(nflagL)+'.DAT')
+        dataPGAlocalL = np.loadtxt(dataPGAPath+'1Degree-PGA_db'+str(nflagL)+'.DAT')
+        print(dataPGAPath+'1Degree-PGA_db-'+str(nflagL)+'.DAT')
         df4 = pd.DataFrame()
         df4['Longitude'] = dataPGAlocalL[:,0]
         df4['Latitude'] = dataPGAlocalL[:,1]
@@ -182,8 +171,8 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         
         print('VecKPGA', VecKPGA, flush = True)
         
-        dfFull = pd.read_pickle(fullDB_file)
-        PGAFull = np.loadtxt(fullPGA_file)
+        dfFull = pd.read_pickle(self.fileMapping[fullDB_file])
+        PGAFull = np.loadtxt(self.fileMapping[fullPGA_file])
         df = pd.DataFrame()
         df['PGAMean'] = PGAFull[:,0]
         df['PGAStd'] = PGAFull[:,1]
@@ -200,7 +189,7 @@ class IndexPriority(microServiceABC.MicroServiceABC):
           
           
         print('Z', Z, flush = True)  
-        dfCountry = pd.read_table(countryDB_file)
+        dfCountry = pd.read_table(self.fileMapping[countryDB_file])
         print(dfCountry['Country'])
         A = dfCountry.index[dfCountry['Country'].values == CountryNewEQ.values].tolist()
         print('A', A)
@@ -214,7 +203,7 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         dfNewEarthquake['PGAMean'] = [VecKPGA[j,0]]
         dfNewEarthquake['PGAStd'] = [VecKPGA[j,1]]
         print('dfNewEarthquake', dfNewEarthquake, flush = True)
-        dfLatLon = pd.read_pickle(latlonDB_file)
+        dfLatLon = pd.read_pickle(self.fileMapping[latlonDB_file])
         dfLatLon = dfLatLon.append(dfNewEarthquake,sort=False)
       
         dfLatLon = dfLatLon.drop(['Country'],axis=1)
@@ -267,15 +256,15 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         dfTest['IndexQuality'] = [df_Sca.iloc[-1]['IndexQuality']]
         print(dfTest, flush=True)
         
-        modelRF = pickle.load(open(classifierRF_file, 'rb'))
+        modelRF = pickle.load(open(self.fileMapping[classifierRF_file], 'rb'))
         UrgencyIndexRF = modelRF.predict(dfTest)
         PredRF = modelRF.predict_proba(dfTest)
         
-        modelXGB = pickle.load(open(classifierXGB_file, 'rb'))
+        modelXGB = pickle.load(open(self.fileMapping[classifierXGB_file], 'rb'))
         UrgencyIndexXGB = modelXGB.predict(dfTest)
         PredXGB = modelXGB.predict_proba(dfTest)
         
-        modelSVM = pickle.load(open(classifierSVM_file, 'rb'))
+        modelSVM = pickle.load(open(self.fileMapping[classifierSVM_file], 'rb'))
         UrgencyIndexSVM = modelSVM.predict(dfTest)
         PredSVM = modelSVM.predict_proba(dfTest)
         

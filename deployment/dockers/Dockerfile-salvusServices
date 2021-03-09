@@ -30,7 +30,7 @@ RUN /root/miniconda3/bin/conda init bash
 RUN echo "conda activate salvus" >> ~/.bashrc
 
 # Install UCIS4EQ
-RUN pip3 install --upgrade setuptools; pip3 install numpy flask pymongo pyyaml requests; pip3 install obspy; pip3 install ucis4eq 
+RUN pip3 install --upgrade setuptools; pip3 install numpy flask pymongo pyyaml requests; pip3 install obspy webdavclient3; pip3 install ucis4eq 
 
 # Install Salvus (except salvus-compute)
 ARG SALVUS_USERNAME

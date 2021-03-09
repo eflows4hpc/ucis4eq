@@ -11,7 +11,7 @@ WORKDIR /workspace
 #RUN cd bbp-19.4.0/setup; ./easy_install_bbp_19.4.0.sh
 
 # Install FFTW3
-RUN apt-get update && apt-get install -y fftw3
+RUN apt-get update && apt-get install -y fftw3 libfftw3-dev gfortran
 
 # Install Python dependencies
 RUN pip install numpy matplotlib;
@@ -20,7 +20,7 @@ RUN pip install numpy matplotlib;
 RUN apt-get -qq update && apt-get -qq install -y python3-pip wget vim > /dev/null
 
 # Install UCIS4EQ
-RUN pip3 install --upgrade setuptools; pip3 install numpy flask pymongo requests; pip3 install obspy; pip3 install ucis4eq 
+RUN pip3 install --upgrade setuptools; pip3 install numpy flask pymongo requests; pip3 install obspy webdavclient3; pip3 install ucis4eq 
 
 # Copy and decompress the slip generator code into /root directory
 ADD deployment/dockers/thirdparties/gp-slip-gen.tar.gz /root/

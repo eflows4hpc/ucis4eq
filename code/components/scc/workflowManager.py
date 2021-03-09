@@ -29,8 +29,9 @@ import json
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config
-from ucis4eq.scc import microServiceABC
+from ucis4eq.misc import config, microServiceABC
+import ucis4eq.dal as dal
+
 
 ################################################################################
 # Methods and classes
@@ -44,7 +45,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         """
         
         # Select the database
-        self.db = config.database
+        self.db = dal.database
         self.eid = None
 
     # Service's entry point definition
@@ -53,20 +54,21 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         """
         Temporal workflow manager emulator
         """
+        
         # Just a naming convention
         event = body
         
         # Obtain the Event Id. (useful during all the workflow livecycle)
         # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
 
-        r = requests.post("http://127.0.0.1:5000/eventCountry", json=event)
-        config.checkPostRequest(r)
-        event['country'] = r.json()['result']
-        
+        #r = requests.post("http://127.0.0.1:5000/eventCountry", json=event)
+        #config.checkPostRequest(r)
+        #event['country'] = r.json()['result']
+                
         # Calculate the event priority
         # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
-        r = requests.post("http://127.0.0.1:5000/indexPriority", json=event)
-        config.checkPostRequest(r)   
+        #r = requests.post("http://127.0.0.1:5000/indexPriority", json=event)
+        #config.checkPostRequest(r)   
         #print(r.json()['result'],flush=True)
              
         # Obtain the Event Id. (useful during all the workflow livecycle)
@@ -86,7 +88,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         # Calculate the CMT input parameters
         r = requests.post("http://127.0.0.1:5000/precmt", json={'event': self.eid})
         config.checkPostRequest(r)
-
+    
         precmt = r.json()['result']
             
         event = precmt['event']
@@ -99,10 +101,8 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
             input.update({"event": a})
             r = requests.post("http://127.0.0.1:5000/cmt", json=input)
             config.checkPostRequest(r)
-
-            cmt = r.json()['result']
-            #print(cmt, flush=True)
             
+            cmt = r.json()['result']        
             a.update({"CMT":cmt})
             
             #alert = event['alerts'][a]
@@ -112,7 +112,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
             # TODO: Define the input parameters that we need for this step 
             r = requests.post("http://127.0.0.1:5000/sourceType", json={})
             config.checkPostRequest(r)
-
+            
             sourceType  = r.json()['result']
                 
             # Compute source
@@ -136,7 +136,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                 config.checkPostRequest(r)
 
                 input["rupture"] = r.json()['result']['slipmodel']
-
+                                
                 #   Option 2:  Punctual source (Tensors plain text file)
                 # TODO: The call is right but no results are returned yet 
                 #r = requests.post("http://127.0.0.1:5000/punctualSource", json=alert)
@@ -162,14 +162,15 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                 sim["input"] = stage2InputP
                 r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
                 config.checkPostRequest(r)
-                outputPath = r.json()['result']
-                
                 
                 # Post-process output by generating:
                 #   - Spectral acceleration (By ranges calculated)
                 #   - Rot50 (calculated from two orthogonal horizontal components, 
-                #     and azimuthally independent)                    
-                r = requests.post("http://127.0.0.1:5003/SalvusPost", json=outputPath)
+                #     and azimuthally independent)
+                post = {}
+                post["opath"] = r.json()['result']
+                post["uuid"] = input["uuid"]
+                r = requests.post("http://127.0.0.1:5003/SalvusPost", json=post)
                 config.checkPostRequest(r)
                             
         # Return list of Id of the newly created item

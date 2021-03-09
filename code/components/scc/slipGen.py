@@ -33,12 +33,14 @@ from bson.json_util import dumps
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config
-from ucis4eq.scc import microServiceABC
+import ucis4eq
+from ucis4eq.misc import config, microServiceABC
+from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
 
+@staticDataMap.build
 class SlipGenGP(microServiceABC.MicroServiceABC):
 
     # Service's entry point definition
@@ -47,34 +49,38 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         """
         Call the Graves-Pitarka slip generator
         """
-
+        # Initialization
         result = {}
-        path = "/workspace/scratch/outdata/"
-        cmt = body['CMT']   
-        
-        # Create the input parameter for slip-gen
-        # TODO: Generate the setup according to received event alert
-        
+
         # Generate an UUID for the current slip generation
         result['id'] = str(uuid.uuid1())
         
+        path =  ucis4eq.workSpace + "/scratch/outdata/" + result['id'] + "/"
+        cmt = body['CMT']
+        
+        # Create data directories
+        os.makedirs(path, exist_ok=True)
+        
+        # Create the input parameter for slip-gen
+        # TODO: Generate the setup according to received event alert
+            
         # Define Source file
         source = path + result['id'] + ".src "
         
         # Start running the triggering system
-        args = "/root/inputs/test_ice21june.src " + source + str(cmt['strike']) + " " + str(cmt['rake']) + " " + str(cmt['dip'])
-        os.system("/bin/bash -c '/root/inputs/slipgen_inputs.sh " + args + "'")
+           
+        args = self.fileMapping["test_ice21june.src"] + " " + source + str(cmt['strike']) + " " + str(cmt['rake']) + " " + str(cmt['dip'])
+        os.system("/bin/bash -c '/root/scripts/slipgen_inputs.sh " + args + "'")
 
         # TODO: Generate the input parameters in real time (whenever possible)
-        args = "-o " + result['id'] + " -v /root/inputs/Iceland-vs500.fk1d -s " + source + " -i /root/inputs/init_slip_21june2000_Perdersen2003.txt -a 0.99 > /dev/null 2>&1"
+        args = "-o " + result['id'] + " -v " + self.fileMapping["Iceland-vs500.fk1d"] + " -s " + source + " -i " + self.fileMapping["initSlip21june2000"] + " -a 0.99 > /dev/null 2>&1"
         os.system("/bin/bash -c '/root/scripts/launcher.sh " + args + "'")
         
         # Read the generated SRF
-        with open(path + result['id'] + "/" + result['id'] + ".srf", encoding="utf-8") as f:
+        with open(path + result['id'] + ".srf", encoding="utf-8") as f:
             #result['slipmodel'] = f.readlines();
             result['slipmodel'] = f.read().splitlines()
-                
+                        
         # Return list of Id of the newly created item
         # TODO: Return the SRF in plain text 
         return jsonify(result = result, response = 201)
-                

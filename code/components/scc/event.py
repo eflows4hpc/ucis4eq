@@ -23,6 +23,7 @@
 # Module imports
 # System
 import sys
+import os
 import traceback
 import json
 import requests
@@ -39,12 +40,12 @@ from urllib.request import urlopen
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config
-from ucis4eq.scc import microServiceABC
+from ucis4eq.misc import config, microServiceABC
+import ucis4eq as ucis4eq
+from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
-
 class EventRegistration(microServiceABC.MicroServiceABC):
 
     # Initialization method
@@ -54,7 +55,7 @@ class EventRegistration(microServiceABC.MicroServiceABC):
         """
         
         # Select the database
-        self.db = config.database
+        self.db = ucis4eq.dal.database
 
     # Service's entry point definition
     @config.safeRun
@@ -85,7 +86,7 @@ class EventRegion(microServiceABC.MicroServiceABC):
         """
         
         # Select the database
-        self.db = config.database
+        self.db = ucis4eq.dal.database
         
         # Initialize output results
         self.regions = {}
@@ -123,7 +124,7 @@ class EventRegion(microServiceABC.MicroServiceABC):
             # Build the pipeline for obtaining the regon from a concrete given 
             # event
             regionPipeline = [
-               { 
+               {
                  "$project" : {
                     "_id" : {
                         "$toString": "$_id"
@@ -157,6 +158,7 @@ class EventRegion(microServiceABC.MicroServiceABC):
         # Return list of Id of the newly created item
         return jsonify(result = region, response = 201)
 
+@staticDataMap.build
 class EventCountry(microServiceABC.MicroServiceABC):
 
     # Initialization method
@@ -164,7 +166,7 @@ class EventCountry(microServiceABC.MicroServiceABC):
         """
         Initialize the eventDispatcher component implementation    
         """
-
+         
     # Service's entry point definition
     @config.safeRun
     def entryPoint(self, body):
@@ -174,7 +176,7 @@ class EventCountry(microServiceABC.MicroServiceABC):
         
         alert = body['alerts'][0];
         country = self._getPlace(alert['latitude'], alert['longitude'])
-        print(country, flush = True)
+
         # Return list of Id of the newly created item
         return jsonify(result = country, response = 201)
         
@@ -182,9 +184,10 @@ class EventCountry(microServiceABC.MicroServiceABC):
         
         # TODO: Download the countries.geojson to save in local 
         # data = requests.get("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").json()
-        with open("/root/data/countries.geojson", 'r', encoding='utf-8') as f:
+        with open(self.fileMapping["countries"], 'r', encoding='utf-8') as f:
             data = json.load(f)
-                
+        
+        print(data)
         
         countries = {}
         for feature in data["features"]:
@@ -198,11 +201,12 @@ class EventCountry(microServiceABC.MicroServiceABC):
           for country, geom in countries.items():
               if geom.contains(point):
                   return country
-          
         
-        
-        return get_country(lon, lat).upper()
-
+        country = get_country(lon, lat)
+        if not country: 
+          raise Exception("Ouch! No country was found")
+              
+        return country.upper()
         
       
       

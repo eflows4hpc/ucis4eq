@@ -34,8 +34,9 @@ from flask import jsonify
 from haversine import haversine
 
 # Internal
-from ucis4eq.misc import config
-from ucis4eq.scc import microServiceABC
+import ucis4eq
+from ucis4eq.misc import config, microServiceABC
+from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
@@ -67,7 +68,7 @@ class Event():
                 "dip": str(self.dip),
                 "rake": str(self.rake)}
         
-
+@staticDataMap.build
 class CMTInputs(microServiceABC.MicroServiceABC):
     
     # Attibutes 
@@ -75,17 +76,10 @@ class CMTInputs(microServiceABC.MicroServiceABC):
     event = None           # Input event
     
     # Initialization method
-    def __init__(self, setup):
+    def __init__(self):
         """
         Initialize the CMT Preprocess component implementation
         """
-            
-        # Read the input catalog from file
-        with open(setup, 'r') as f:
-            self.setup = json.load(f)
-                        
-        # Select the database
-        self.db = config.database
         
     # Service's entry point definition
     @config.safeRun
@@ -93,12 +87,14 @@ class CMTInputs(microServiceABC.MicroServiceABC):
         """
         Generate a CMT input for a posterior CMT calculation
         """
+        # Read the input catalog from file
+        with open(self.fileMapping["configCMT"], 'r') as f:
+            inputParameters = json.load(f)
+
         # TODO: This part should be done by the workflow manager
-        # For each new incomming event 
-        inputParameters = self.setup        
-            
+                    
         # Retrieve the event's complete information 
-        event = self.db.EQEvents.find_one({"_id": ObjectId(body['event'])})
+        event = ucis4eq.dal.database.EQEvents.find_one({"_id": ObjectId(body['event'])})
         
         # Add the current event
         inputParameters.update({
@@ -110,6 +106,7 @@ class CMTInputs(microServiceABC.MicroServiceABC):
         
         return jsonify(result = inputParameters, response = 201)
 
+@staticDataMap.build
 class CMTCalculation(microServiceABC.MicroServiceABC):
     
     # Attibutes 
@@ -117,20 +114,22 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
     event = None           # Input event
     
     # Initialization method
-    def __init__(self, catalog):
+    def __init__(self):
         """
         Initialize the CMT statistical component implementation
         """
-            
-        # Read the input catalog from file
-        self.cat = obspy.read_events(catalog)
-        
+                    
     # Service's entry point definition
     @config.safeRun
     def entryPoint(self, body):
         """
         Calculate a CMT approximation from historical earthquake events
         """
+        
+        # Read the input catalog from file
+        catalogName="SPUD_QUAKEML_bundle_2019-10-31"
+        self.cat = obspy.read_events(self.fileMapping[catalogName])
+                
         # Configure the component
         self.setup = body['setup']
         

@@ -34,22 +34,21 @@ from bson.json_util import dumps
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config
-from ucis4eq.scc import microServiceABC
+from ucis4eq.misc import config, microServiceABC
+import ucis4eq.dal as dal
+from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
 
+@staticDataMap.build
 class SalvusRun(microServiceABC.MicroServiceABC):
 
     # Initialization method
-    def __init__(self, input):
+    def __init__(self):
         """
         Initialize SalvusRun instance
         """
-        
-        # Select the database
-        self.input = input
 
     # Service's entry point definition
     @config.safeRun
@@ -68,14 +67,21 @@ class SalvusRun(microServiceABC.MicroServiceABC):
 
         yaml.add_representer(str, repr_str, Dumper=yaml.SafeDumper)
         
-        # Create the drectory for the current execution
+        # Create the directory for the current execution
         workSpace = "/workspace/runs/" + body["uuid"]
         os.makedirs(workSpace, exist_ok=True)
         os.chdir(workSpace)
-        
+
         # Create symbolic link to the model
         modelName =  body["input"]["general"]["model_id"] + ".bm"
-        #os.symlink(self.input + "/" + modelName, workSpace + "/" + modelName)
+        tpath =  workSpace + "/" + modelName
+        
+        try:
+            os.remove(tpath)
+        except OSError:
+            pass
+
+        os.symlink(self.fileMapping[modelName], tpath)
               
         # Write the YAML file
         inputPyaml = yaml.safe_dump(body["input"])
@@ -94,7 +100,6 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         args = site + " " + str(nprocs) + " " + str(wtime) + " " + pfile + " " + workSpace + "/output"
          
         # Run it!
-        print("python /root/salvusWrapper/trial_configuration.py " + args, flush=True)
         os.system("/bin/bash -c 'python /root/salvusWrapper/trial_configuration.py " + args + "'")
 
         # Return list of Id of the newly created item
@@ -111,9 +116,33 @@ class SalvusPost(microServiceABC.MicroServiceABC):
         """
        
         # Run postprocess
-        os.system("/bin/bash -c 'python /root/salvusWrapper/plot_pgd_pgv_pga.py " + body + "'")
+        #os.system("/bin/bash -c 'python /root/salvusWrapper/plot_pgd_pgv_pga.py " + body["opath"] + "'")
+        
+        # Upload results to B2DROP
+        # TODO: Select a random repository
+        b2drop = dal.repositories.create('B2DROP', **dal.config)
+        
+        rpath = "ChEESE/PD1/Runs/" + body["uuid"] + "/"
+        lpath = "/workspace/runs/" + body["uuid"] + "/"
+        
+        # Create remote path
+        input = "/input/"
+        output = "/output/"
+        b2drop.mkdir(rpath)
+        b2drop.mkdir(rpath + input)
+        b2drop.mkdir(rpath + output)
+        
+        # Upload input parameters file
+        file = body["uuid"] + ".yaml"
+        b2drop.uploadFile(rpath + input + file, lpath + file)
+        
+        files = ["PGA.png", "PGD.png", "PGV.png"]
+        rpath += output
+        lpath += output
+        for file in files:
+            b2drop.uploadFile(rpath + file, lpath + file)
        
         # Return list of Id of the newly created item
         # TODO: Return the SRF in plain text 
-        return jsonify(result = {}, response = 201)        
+        return jsonify(result = {}, response = 201)
                 

@@ -88,10 +88,7 @@ def SalvusRunService(body):
     Call component implementing this service
     """
     
-    # Data's input directory
-    input = "/root/inputs/";
-    
-    return SalvusRun(input).entryPoint(body)
+    return SalvusRun().entryPoint(body)
 
 # Call Salvus post-processing
 @salvusServiceApp.route("/SalvusPost", methods=['POST'])

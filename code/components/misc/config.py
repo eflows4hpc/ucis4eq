@@ -21,7 +21,6 @@
 
 ################################################################################
 # Module imports
-from pymongo import MongoClient
 import json
 import traceback
 import sys
@@ -29,12 +28,6 @@ from bson import ObjectId
 
 # Third parties
 from flask import jsonify
-
-# DB client
-client = MongoClient('localhost', 27017)
-
-# Database name
-database = client['UCIS4EQ']
 
 # Class for convert ObjectId to string        
 class JSONEncoder(json.JSONEncoder):
