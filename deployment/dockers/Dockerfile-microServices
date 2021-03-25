@@ -2,7 +2,7 @@
 FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
 
 # Install dependencies
-RUN pip install haversine shapely pandas scikit-learn pickle-mixin xgboost webdavclient3
+RUN pip install haversine shapely pandas scikit-learn pickle-mixin xgboost kneed webdavclient3
 
 # Expose the Flask application port
 EXPOSE 5000

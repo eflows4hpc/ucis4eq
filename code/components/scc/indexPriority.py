@@ -65,7 +65,57 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         
         alertPriority = []
         
-        self.country = body['country'] 
+        def _getPlace(lat, lon):
+    
+          dfFull = pd.read_pickle("Full_DataBase")
+          dfFullVec = dfFull["Country"].unique()
+          country_Name = ""
+
+        
+        # data = requests.get("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").json()
+          with open(self.fileMapping[Countries_OShore], 'r', encoding='utf-8') as f:
+              data = json.load(f)
+              countries = {}
+              for feature in data["features"]:
+                  geom = feature["geometry"]
+                  country = feature["properties"]["ADMIN"] # countries.geojson
+                  countries[country] = prep(shape(geom))
+                
+              def get_country(lon, lat):
+                  point = Point(lon, lat)
+                  for country, geom in countries.items():
+                      if geom.contains(point):
+                          return country    
+                      
+              country_Name = get_country(lon, lat)        
+              print("country_Name_OnShore", country_Name)
+              if country_Name and country_Name.upper() in dfFullVec:                          
+                  return country_Name.upper()
+                            
+              if not country_Name:
+                  with open(self.fileMapping[Countries_OffShore], 'r', encoding='utf-8') as f:
+                      data = json.load(f)               
+
+                      properties = ["TERRITORY1", "SOVEREIGN1", "SOVEREIGN2", "TERRITORY2", "GEONAME"]
+                      for proper in properties:
+                          print("proper",proper)
+                          countries = {}   
+                          for feature in data["features"]:                            
+                              geom = feature["geometry"]
+                              country = feature["properties"][proper] # eez_v11.json  #JAPAN
+                              countries[country] = prep(shape(geom))        
+                          def get_country(lon, lat):
+                              point = Point(lon, lat)
+                              for country, geom in countries.items():
+                                  if geom.contains(point):
+                                      return country             
+                          country_Name = get_country(lon, lat)                   
+                          print("country_Name",country_Name)
+                          if country_Name and country_Name.upper() in dfFullVec:                          
+                              return country_Name.upper()
+                              break  
+            
+        self.country = _getPlace(alert['latitude'], alert['longitude'])
         
         # TODO: Loop for each agency 
         alert = body['alerts'][0]
@@ -123,22 +173,22 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         dataPGAlocal = np.loadtxt(dataPGAPath +'1Degree-PGA_db'+str(nflag)+'.DAT')
         print(dataPGAPath+'1Degree-PGA_db-'+str(nflag)+'.DAT')
         df2 = pd.DataFrame()
-        df2['Longitude'] = dataPGAlocal[:,0]
-        df2['Latitude'] = dataPGAlocal[:,1]
+        df2['Longitude'] = dataPGAlocal[:,1]
+        df2['Latitude'] = dataPGAlocal[:,0]
         df2['PGA'] = dataPGAlocal[:,2]        
         print('df2', df2)
         dataPGAlocalP = np.loadtxt(dataPGAPath+'1Degree-PGA_db'+str(nflagP)+'.DAT')
         print(dataPGAPath+'1Degree-PGA_db-'+str(nflagP)+'.DAT')
         df3 = pd.DataFrame()
-        df3['Longitude'] = dataPGAlocalP[:,0]
-        df3['Latitude'] = dataPGAlocalP[:,1]
+        df3['Longitude'] = dataPGAlocalP[:,1]
+        df3['Latitude'] = dataPGAlocalP[:,0]
         df3['PGA'] = dataPGAlocalP[:,2] 
         print('df3', df3)
         dataPGAlocalL = np.loadtxt(dataPGAPath+'1Degree-PGA_db'+str(nflagL)+'.DAT')
         print(dataPGAPath+'1Degree-PGA_db-'+str(nflagL)+'.DAT')
         df4 = pd.DataFrame()
-        df4['Longitude'] = dataPGAlocalL[:,0]
-        df4['Latitude'] = dataPGAlocalL[:,1]
+        df4['Longitude'] = dataPGAlocalL[:,1]
+        df4['Latitude'] = dataPGAlocalL[:,0]
         df4['PGA'] = dataPGAlocalL[:,2]
         print('df4', df4)
         frames = [df3, df2, df4]
