@@ -32,21 +32,33 @@ RUN echo "conda activate salvus" >> ~/.bashrc
 # Install UCIS4EQ
 RUN pip3 install --upgrade setuptools; pip3 install numpy flask pymongo pyyaml requests; pip3 install obspy webdavclient3; pip3 install ucis4eq 
 
-# Install Salvus (except salvus-compute)
-ARG SALVUS_USERNAME
-ARG SALVUS_PASSWORD
-
 ARG CACHEBUST=1    
 
-# Prepare Salvus
+# Pass the SSH key (both public and private)
+ARG SSH_PUB
+ARG SSH_PRV
+
+RUN mkdir -m 700 /root/.ssh; \
+  touch /root/.ssh/known_hosts; \
+  ssh-keyscan github.com mn1.bsc.es > /root/.ssh/known_hosts
+  
+# Add the keys and set permissions
+RUN echo "$SSH_PRV" > /root/.ssh/id_rsa && \
+echo "$SSH_PUB" > /root/.ssh/id_rsa.pub && \
+chmod 600 /root/.ssh/id_rsa && \
+chmod 600 /root/.ssh/id_rsa.pub
+
+# Prepare and install Salvus
+ADD data/environment.source /root/env.source
 ADD deployment/dockers/thirdparties/salvus.tar.gz .
-RUN Salvus/install.sh    
+
+RUN Salvus/install.sh
     
 # Obtain Marta Pienkowska-Cote's Salvus wrapper for UCIS4EQ
-RUN mkdir -m 700 /root/.ssh; \
-  touch -m 600 /root/.ssh/known_hosts; \
-  ssh-keyscan github.com > /root/.ssh/known_hosts
 RUN --mount=type=ssh git clone git@github.com:martapien/salvus_urgent_simulations_setup.git /root/salvusWrapper
+
+# Remove .ssh directory
+RUN rm -fr /root/.ssh/
     
 # Expose the Flask application port
 EXPOSE 5003

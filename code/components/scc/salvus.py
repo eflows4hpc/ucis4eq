@@ -92,8 +92,8 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         # TODO: Retrieve the model path from the DB or something similar
     
         # TODO: Obtain this information from the DB or whatever other mechanism
-        site = "demo"
-        nprocs = 4
+        site = "mn4"
+        nprocs = 48
         wtime = 1800
 
         # Build the arguments for the wrapper
@@ -114,9 +114,8 @@ class SalvusPost(microServiceABC.MicroServiceABC):
         """
         Call the Salvus-Flow Marta's wrapper
         """
-       
         # Run postprocess
-        #os.system("/bin/bash -c 'python /root/salvusWrapper/plot_pgd_pgv_pga.py " + body["opath"] + "'")
+        os.system("/bin/bash -c 'python /root/salvusWrapper/plot_pgd_pgv_pga.py " + body["opath"] + "'")
         
         # Upload results to B2DROP
         # TODO: Select a random repository

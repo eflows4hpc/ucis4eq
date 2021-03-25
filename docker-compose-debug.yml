@@ -20,10 +20,9 @@ services:
   salvus:
     image: registry.gitlab.com/cheese-coe/ucis4eq/salvus
     network_mode: "host"
-    environment:
-      SALVUS_USERNAME: ${SALVUS_USERNAME}
-      SALVUS_PASSWORD: ${SALVUS_PASSWORD}
     volumes:
+      - ~/.ssh:/root/.ssh
+      - ${UCIS4EQ_ENV}:/root/env.source
       - ${UCIS4EQ_DAL}:/root/DAL.json
       - ${UCIS4EQ_HOME}/code/services/salvusService.py:/root/services/salvusService.py
       - ${UCIS4EQ_HOME}/code/components/:/root/miniconda3/envs/salvus/lib/python3.7/site-packages/ucis4eq
@@ -48,8 +47,9 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
     network_mode: "host"
     depends_on:
-      - slipGen
       - microServices
+      - slipGen
+      - salvus      
     volumes:
       - ${UCIS4EQ_DAL}:/root/DAL.json   
       - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.7/site-packages/ucis4eq

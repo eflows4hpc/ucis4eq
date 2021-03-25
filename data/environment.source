@@ -1,0 +1,12 @@
+
+# Salvus license username and password
+export SALVUS_USERNAME=<username>
+export SALVUS_PASSWORD=<password>
+
+# Marenostrum IV Username, QoS and paths
+export MN4_USERNAME=cns41424
+export MN4_QOS=debug
+
+export MN4_SALVUS_PATH=/gpfs/projects/cns41/Salvus/
+export MN4_SALVUS_RUN_PATH=/gpfs/projects/cns41/UCIS4EQ/Salvus/runs
+export MN4_SALVUS_TMP_PATH=/gpfs/projects/cns41/UCIS4EQ/Salvus/scratch
