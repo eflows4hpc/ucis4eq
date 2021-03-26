@@ -45,8 +45,8 @@ build_slipgen:
   only:
     - tags
     
-build_salvus:
-  stage: build_tools_ext
+.build_salvus:
+  stage: build_tools
   variables:
     DOCKER_BUILDKIT: 1
     COMPOSE_DOCKER_CLI_BUILD: 1
