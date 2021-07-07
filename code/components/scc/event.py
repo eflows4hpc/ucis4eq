@@ -78,7 +78,7 @@ class EventRegistration(microServiceABC.MicroServiceABC):
         # Return list of Id of the newly created item
         return jsonify(result = str(event), response = 201)            
             
-class EventRegion(microServiceABC.MicroServiceABC):
+class EventDomains(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
@@ -90,13 +90,13 @@ class EventRegion(microServiceABC.MicroServiceABC):
         self.db = ucis4eq.dal.database
         
         # Initialize output results
-        self.regions = {}
+        self.domains = {}
 
     # Service's entry point definition
     @config.safeRun
     def entryPoint(self, body):
         """
-        Figure out the region which the incoming EQ event belong 
+        Figure out the set of domains which the incoming EQ event belong
         """                    
         # Retrieve the event's complete information 
         eid = body['event']
@@ -131,6 +131,7 @@ class EventRegion(microServiceABC.MicroServiceABC):
                         "$toString": "$_id"
                     },
                     "id": 1,
+                    "region": 1,
                     "mlat" : "$model.geometry.min_latitude",
                     "Mlat" : "$model.geometry.max_latitude",
                     "mlon" : "$model.geometry.min_longitude",
@@ -150,14 +151,14 @@ class EventRegion(microServiceABC.MicroServiceABC):
             ]
             
             #for region in self.db['Regions'].aggregate(regionPipeline): 
-            self.regions = list(self.db['Regions'].aggregate(regionPipeline))
-        
+            self.domains = list(self.db['Domains'].aggregate(regionPipeline))
+                
         region = None
-        if self.regions:
-            region = self.regions[0]
+        if self.domains:
+            region = self.domains[0]
         
         # Return list of Id of the newly created item
-        return jsonify(result = region, response = 201)
+        return jsonify(result = self.domains, response = 201)
 
 @staticDataMap.build
 class EventCountry(microServiceABC.MicroServiceABC):
@@ -182,6 +183,10 @@ class EventCountry(microServiceABC.MicroServiceABC):
         return jsonify(result = country, response = 201)
         
     def _getPlace(self, lat, lon):
+                
+        ###################################################
+        # TODO: This is not a good solution at all, please check!!!!!!!!!1
+        ###################################################
         
         # TODO: Download the countries.geojson to save in local 
         # data = requests.get("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").json()

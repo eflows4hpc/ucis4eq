@@ -68,15 +68,16 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         # Obtain information from the DB
         # Notice that more than one results can be returned.
         # We always take the first one
-        receivers = self.db["Receivers"].find_one({"id": body['region']['id']})
+        receivers = self.db["Receivers"].find_one({"id": body['domain']['region']})
 
         #print({str(k).encode("utf-8"): v for k,v in receivers["infrastructures"].items()}, flush=True)
-        region = self.db["Regions"].find_one({"id": body['region']['id']})
+        domain = self.db["Domains"].find_one({"id": body['domain']['id']})
+        print(domain, flush=True)
 
         # Build the set of parameters in a YAML
         # TODO
-        self.general['simulation_length'] = region['parameters']['simulation_length']
-        self.general['model_id'] = region['model']['name']
+        self.general['simulation_length'] = domain['parameters']['simulation_length']
+        self.general['model_id'] = domain['model']['name']
 
         self.source['magnitude'] = body["event"]["magnitude"]
         self.source['longitude'] = body["event"]["longitude"]
@@ -85,10 +86,11 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         self.source['strike'] = body["event"]["CMT"]["strike"]
         self.source['rake'] = body["event"]["CMT"]["rake"]
         self.source['dip'] = body["event"]["CMT"]["dip"]
-        self.source['corner_freq'] = region['parameters']['corner_freq']
-        self.source['freq_max'] = region['parameters']['freq_max']
+        self.source['corner_freq'] = domain['mesh']['corner_freq']
+        self.source['freq_max'] = domain['mesh']['freq_max']
+        self.source['mesh'] = domain['mesh']['paths']
 
-        self.geometry = region['model']['geometry']
+        self.geometry = domain['model']['geometry']
 
         self.rupture['rupture'] = body["rupture"]
 

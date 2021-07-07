@@ -35,11 +35,12 @@ from flask import Flask, request, jsonify
 
 # Load micro-services implemented components
 from ucis4eq.misc import config
-from ucis4eq.scc.event import EventRegistration, EventRegion, EventCountry
+from ucis4eq.scc.event import EventRegistration, EventDomains, EventCountry
 from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs 
 from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource 
 from ucis4eq.scc.inputBuilder import InputParametersBuilder
 from ucis4eq.scc.indexPriority import IndexPriority
+from ucis4eq.scc.resources import ComputeResources
 import ucis4eq
 import ucis4eq.dal as dal
 from ucis4eq.dal import dynamicDataAccess
@@ -177,14 +178,14 @@ def eventDispatcherService(body):
     """
     return EventRegistration().entryPoint(body)
 
-# Event region detection
-@microServicesApp.route("/eventRegion", methods=['POST'])
+# Event domains detection
+@microServicesApp.route("/eventDomains", methods=['POST'])
 @postRequest
-def eventRegionService(body):
+def eventDomainsService(body):
     """
     Call component implementing this micro service
     """
-    return EventRegion().entryPoint(body)
+    return EventDomains().entryPoint(body)
 
 # Event region detection
 @microServicesApp.route("/eventCountry", methods=['POST'])
@@ -194,6 +195,15 @@ def eventCountryService(body):
     Call component implementing this micro service
     """
     return EventCountry().entryPoint(body)
+    
+# Computing resources service
+@microServicesApp.route("/computeResources", methods=['POST'])
+@postRequest
+def computeResourcesService(body):
+    """
+    Call component implementing this micro service
+    """
+    return ComputeResources().entryPoint(body)    
 
 ################################################################################
 # Start the micro-services aplication

@@ -45,9 +45,9 @@ class DAL(microServiceABC.MicroServiceABC):
 
     # Service's entry point definition
     @config.safeRun
-    def entryPoint(self):
+    def entryPoint(self, repositoryName = 'B2DROP'):
             
-        b2drop = dal.repositories.create('B2DROP', **dal.config)
+        repository = dal.repositories.create(repositoryName, **dal.config)
         
         # Create a directory for DAL documents 
         workSpace = ucis4eq.workSpace + "/DAL/"
@@ -58,7 +58,7 @@ class DAL(microServiceABC.MicroServiceABC):
         rfile = os.path.basename(rpath)
         lpath = workSpace + rfile
         
-        b2drop.downloadFile(rpath, lpath)
+        repository.downloadFile(rpath, lpath)
 
         # Alias for the static data mapping and DB
         db = dal.database
@@ -80,7 +80,7 @@ class DAL(microServiceABC.MicroServiceABC):
                 
             # Download the file from the repository
             if not os.path.exists(lpath):        
-                b2drop.downloadFile(rpath, lpath)
+                repository.downloadFile(rpath, lpath)
 
             # Create collection
             col = self._createCollection(db, lpath)

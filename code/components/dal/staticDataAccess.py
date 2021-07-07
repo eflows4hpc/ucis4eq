@@ -49,7 +49,12 @@ class SDAFactory:
         # TODO: Add some mechanism for choosing a repository,
         #       load balancing, etc...
         
-        return 'BSC_B2DROP', repositories['BSC_B2DROP']
+        if len(repositories.keys()) == 1:
+            name = list(repositories)[0]
+        else:
+            name = 'BSC_B2DROP'
+            
+        return name, repositories[name]
 
     # Method for look and returning the correct builder for a concrete repository
     def create(self, key, **kwargs):

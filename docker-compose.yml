@@ -9,9 +9,9 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/root/DAL.json   
+      - ${UCIS4EQ_DAL}:/opt/DAL.json   
 
-    entrypoint: ["/bin/bash", "/root/services/start.sh"]
+    entrypoint: ["/bin/bash", "/opt/services/start.sh"]
     depends_on:
       - DAL    
 

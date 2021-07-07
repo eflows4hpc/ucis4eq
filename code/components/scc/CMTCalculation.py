@@ -95,9 +95,9 @@ class CMTInputs(microServiceABC.MicroServiceABC):
         Generate a CMT input for a posterior CMT calculation
         """
         # Read the input catalog from file
-        with open(self.fileMapping["configCMT"], 'r') as f:
-            inputParameters = json.load(f)
-
+        region = ucis4eq.dal.database.Regions.find_one({"id": body['region']})
+        inputParameters = region['cmtSetup']
+        
         # TODO: This part should be done by the workflow manager
                     
         # Retrieve the event's complete information 
@@ -125,6 +125,9 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         """
         Initialize the CMT statistical component implementation
         """
+        
+        # Load the DB
+        self.db = ucis4eq.dal.database
                     
     # Service's entry point definition
     @config.safeRun
@@ -132,16 +135,16 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         """
         Calculate a CMT approximation from historical earthquake events
         """
+
         # Read the input catalog from file
-        catalogName="SPUD_QUAKEML_bundle_2019-10-31"
-        self.cat = obspy.read_events(self.fileMapping[catalogName])
+        self.cat = obspy.read_events(self.fileMapping[body['catalog']])
                 
         # Configure the component
         self.setup = body['setup']
         
         # Check input parameters 
-        if self.setup['k']['min'] > self.setup['k']['max']:
-            raise Exception('k-min value must be >= k-max')
+        #if self.setup['k']['min'] > self.setup['k']['max']:
+        #    raise Exception('k-min value must be >= k-max')
             
         if self.setup['distance']['growthrate'] <= 1:
             raise Exception('The growthrate value must be > 1')
@@ -416,10 +419,7 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             contNodalPlanes += 1
             e = AuxNodalPlanes[contNodalPlanes]
             cmts.update({"ClustMedian-" + str(jj+1) + "_AuxPlane" : e.toJSON()})
-          
-        print('cmts',cmts,flush=True)               
-           
-        # Return the JSON file!!!!
-        
+                     
+        # Return the JSON file!!!!        
         return cmts
       

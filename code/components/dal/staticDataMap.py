@@ -35,10 +35,13 @@ from ucis4eq.misc import config, microServiceABC
 class StaticDataMap():
     "Static data file mapping"
     
-    def __init__(self, name):
+    def __init__(self, name, quiet = False):
         """
         Initialization
         """
+        
+        # Quiet mode
+        self.quiet = quiet
         
         # Obtain data from an external repository
         col = dal.database[dal.StaticDataMappingDocument]
@@ -56,19 +59,23 @@ class StaticDataMap():
         # Base path for downloads
         self.workSpace = ucis4eq.workSpace + name + "/"
         
-        # Create a directory where download data
-        os.makedirs(self.workSpace, exist_ok=True)
+        if not self.quiet:
+            # Create a directory where download data
+            os.makedirs(self.workSpace, exist_ok=True)
         
 
     def __getitem__(self, name):
-        
+
         # Select the document to obtain
-        doc = self._values[name]
+        if name in self._values.keys():
+            doc = self._values[name]
+        else:
+            raise Exception("File '" + name +"' was not found on the repositories")
                 
         # Check if the current repository was created
         repoName, repoSettings = dal.repositories.selectFrom(doc['repositories'])
-        
-        if not repoName in self.repos.keys():                            
+                
+        if not repoName in self.repos.keys():                   
             # Find the repository type
             col = dal.database["Repositories"]
             query = { "id": {"$eq": repoName} } 
@@ -83,11 +90,13 @@ class StaticDataMap():
 
         # Download the file from the repository (only if it doesn't exist)
 #        if not os.path.exists(lpath):            
-        # Download the file            
-        self.repos[repoName].downloadFile(rpath, lpath)
+        if not self.quiet:
+            self.repos[repoName].downloadFile(rpath, lpath)
             
-        # Return the file path
-        return lpath
+            # Return the file path
+            return lpath
+        else:
+            return rpath            
 
     def __iter__(self):
         return iter(self._values)
@@ -115,6 +124,8 @@ def build(cls):
                                 
             # Build the file mapping
             self.fileMapping = StaticDataMap(className)
-        
+            
+            # Creating file Ping
+            self.filePing = StaticDataMap(className, quiet=True)
 
     return BuildStaticDataMap

@@ -39,8 +39,11 @@ build_base:
 
 build_slipgen:
   stage: build_tools
+  variables:
+    DOCKER_BUILDKIT: 1
+    COMPOSE_DOCKER_CLI_BUILD: 1  
   script:
-    - docker build -f deployment/dockers/Dockerfile-slipGen -t registry.gitlab.com/cheese-coe/ucis4eq/slipgen .
+    - docker build --ssh default -f deployment/dockers/Dockerfile-slipGen -t registry.gitlab.com/cheese-coe/ucis4eq/slipgen .
     - docker push registry.gitlab.com/cheese-coe/ucis4eq/slipgen
   only:
     - tags

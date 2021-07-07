@@ -64,61 +64,11 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         """
         
         alertPriority = []
-        
-        def _getPlace(lat, lon):
-    
-          dfFull = pd.read_pickle("Full_DataBase")
-          dfFullVec = dfFull["Country"].unique()
-          country_Name = ""
-
-        
-        # data = requests.get("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").json()
-          with open(self.fileMapping[Countries_OShore], 'r', encoding='utf-8') as f:
-              data = json.load(f)
-              countries = {}
-              for feature in data["features"]:
-                  geom = feature["geometry"]
-                  country = feature["properties"]["ADMIN"] # countries.geojson
-                  countries[country] = prep(shape(geom))
-                
-              def get_country(lon, lat):
-                  point = Point(lon, lat)
-                  for country, geom in countries.items():
-                      if geom.contains(point):
-                          return country    
-                      
-              country_Name = get_country(lon, lat)        
-              print("country_Name_OnShore", country_Name)
-              if country_Name and country_Name.upper() in dfFullVec:                          
-                  return country_Name.upper()
-                            
-              if not country_Name:
-                  with open(self.fileMapping[Countries_OffShore], 'r', encoding='utf-8') as f:
-                      data = json.load(f)               
-
-                      properties = ["TERRITORY1", "SOVEREIGN1", "SOVEREIGN2", "TERRITORY2", "GEONAME"]
-                      for proper in properties:
-                          print("proper",proper)
-                          countries = {}   
-                          for feature in data["features"]:                            
-                              geom = feature["geometry"]
-                              country = feature["properties"][proper] # eez_v11.json  #JAPAN
-                              countries[country] = prep(shape(geom))        
-                          def get_country(lon, lat):
-                              point = Point(lon, lat)
-                              for country, geom in countries.items():
-                                  if geom.contains(point):
-                                      return country             
-                          country_Name = get_country(lon, lat)                   
-                          print("country_Name",country_Name)
-                          if country_Name and country_Name.upper() in dfFullVec:                          
-                              return country_Name.upper()
-                              break  
             
-        self.country = _getPlace(alert['latitude'], alert['longitude'])
+        alert = body['alerts'][0]
+        self.country = self._getPlace(alert['latitude'], alert['longitude'])
         
         # TODO: Loop for each agency 
-        alert = body['alerts'][0]
         self.latitude = alert['latitude']
         self.longitude = alert['longitude']
         self.depth = alert['depth']
@@ -330,4 +280,53 @@ class IndexPriority(microServiceABC.MicroServiceABC):
 
                       
         return {'priorityIndex':highPriorityIndex, 'similarEarthquakes': dfSE.to_dict()} 
-      
+
+    def _getPlace(self, lat, lon):
+
+      dfFull = pd.read_pickle(self.fileMapping["Full_DataBase"])
+      dfFullVec = dfFull["Country"].unique()
+      country_Name = ""
+
+    
+    # data = requests.get("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").json()
+      with open(self.fileMapping["Countries_OnShore"], 'r', encoding='utf-8') as f:
+          data = json.load(f)
+          countries = {}
+          for feature in data["features"]:
+              geom = feature["geometry"]
+              country = feature["properties"]["ADMIN"] # countries.geojson
+              countries[country] = prep(shape(geom))
+            
+          def get_country(lon, lat):
+              point = Point(lon, lat)
+              for country, geom in countries.items():
+                  if geom.contains(point):
+                      return country    
+                  
+          country_Name = get_country(lon, lat)        
+          print("country_Name_OnShore", country_Name)
+          if country_Name and country_Name.upper() in dfFullVec:                          
+              return country_Name.upper()
+                        
+          if not country_Name:
+              with open(self.fileMapping["Countries_OffShore"], 'r', encoding='utf-8') as f:
+                  data = json.load(f)               
+
+                  properties = ["TERRITORY1", "SOVEREIGN1", "SOVEREIGN2", "TERRITORY2", "GEONAME"]
+                  for proper in properties:
+                      print("proper",proper)
+                      countries = {}   
+                      for feature in data["features"]:                            
+                          geom = feature["geometry"]
+                          country = feature["properties"][proper] # eez_v11.json  #JAPAN
+                          countries[country] = prep(shape(geom))        
+                      def get_country(lon, lat):
+                          point = Point(lon, lat)
+                          for country, geom in countries.items():
+                              if geom.contains(point):
+                                  return country             
+                      country_Name = get_country(lon, lat)                   
+                      print("country_Name",country_Name)
+                      if country_Name and country_Name.upper() in dfFullVec:                          
+                          return country_Name.upper()
+                          break        
