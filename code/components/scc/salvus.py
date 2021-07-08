@@ -34,12 +34,155 @@ from bson.json_util import dumps
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config, microServiceABC
+from ucis4eq.misc import config, microServiceABC,scriptABC
 import ucis4eq.dal as dal
 from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
+
+class SalvusPrepareSubmision(scriptABC.ScriptABC):
+    
+    # Build the submission script
+    def build(self, binary, path, args, resources, additional = []):
+        # Obtain Header 
+        self._getHeader()
+
+        # Obtain Slurm rules
+        r = resources
+        
+        # TODO: Change this depending of the target environment queue system
+        self._getSlurmRules(r['wtime'], r["nodes"], r["tasks"], 
+                            r["tasks-per-node"], r["qos"])
+
+        # Additional instructions
+        self.lines.append("set -e")        
+        self.lines.append("module load python/3.6.1")
+        for line in additional:
+            self.lines.append(line)   
+
+        # Build command
+        cmd = []
+        cmd.append(binary + " " + args)
+
+        self.lines.append(" ".join(cmd))
+
+        # Save the script to disk
+        return self._saveScript(path)
+
+@staticDataMap.build
+class SalvusPrepare(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize SalvusRun instance
+        """
+
+    # Service's entry point definition
+    @config.safeRun
+    def entryPoint(self, body):
+        """
+        Call the Salvus-Flow Marta's wrapper
+        """
+        
+        # Initialization
+        result = {}        
+
+        # Creating the repository instance for data transfer    
+        # TODO: Select the repository from the DB 'Resources' document
+        dataRepo = dal.repositories.create('BSCDT', **dal.config)
+
+        # Enable multiline writting
+        yaml.SafeDumper.org_represent_str = yaml.SafeDumper.represent_str
+
+        def repr_str(dumper, data):
+            if '\n' in data:
+                return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
+            return dumper.org_represent_str(data)
+
+        yaml.add_representer(str, repr_str, Dumper=yaml.SafeDumper)
+        
+        # Create the directory for the current execution
+        workSpace = "/workspace/runs/" + body["trial"] + "/"
+        os.makedirs(workSpace, exist_ok=True)
+              
+        # Write the YAML file
+        inputPyaml = yaml.safe_dump(body["input"])
+        pfile = workSpace + "/" + "salvus_input.yaml"
+        with open(pfile, "w") as f:
+           f.write(inputPyaml)
+
+        # Prepare script's arguments
+        binary = "python "  + self.filePing['salvus_wrapper']
+        args = "salvus_input.yaml " + self.filePing['salvus_setup']
+
+        # Generate Submission script
+        # TODO: This is hardcoded by right now but should be parametrized
+        resources = {'wtime': 1800, 'nodes': 1, 'tasks': 1, 'tasks-per-node': 1, 
+                     'qos': 'debug'}
+                     
+        # Solver dependencies 
+        additional = []
+        additional.append("export PYTHON_PATH=" +\
+                           os.path.dirname(self.filePing['salvus_wrapper']) +\
+                           ":$PYTHON_PATH")
+                                   
+        script = SalvusPrepareSubmision().build(binary, workSpace, args,
+                                             resources, additional)
+    
+        # Create the remote working directory
+        rworkpath = body['trial'] + "/" + "salvus_wrapper"
+        dataRepo.mkdir(rworkpath)
+
+        # Transfer input parameter file and script
+        dataRepo.uploadFile(rworkpath, script)
+        dataRepo.uploadFile(rworkpath, pfile)
+        
+        # TODO:
+        # Submit and wait for finish
+
+        # Get the path to the Salvus input parameters
+        result['salvus_input'] = dataRepo.path + "/" + rworkpath + "/salvus_input.toml"
+        
+        # Return list of Id of the newly created item
+        return jsonify(result = result['salvus_input'], response = 201)
+
+class SalvusRunSubmision(scriptABC.ScriptABC):
+    
+    # Build the submission script
+    def build(self, binary, path, args, resources, additional = []):
+        # Obtain Header 
+        self._getHeader()
+
+        # Obtain Slurm rules
+        r = resources
+        
+        # TODO: Change this depending of the target environment queue system
+        self._getSlurmRules(r['wtime'], r["nodes"], r["tasks"], 
+                            r["tasks-per-node"], r["qos"])
+
+        # Additional instructions
+        self.lines.append("set -e")        
+        self.lines.append("module load fabric")
+        for line in additional:
+            self.lines.append(line)
+        self.lines.append("echo $SLURM_JOB_ID >> jobfile.txt")
+
+        # Build command
+        cmd = []
+        cmd.append("/usr/bin/srun")
+        cmd.append("--ntasks=$SLURM_NTASKS")
+        cmd.append("--ntasks-per-node=$SLURM_NTASKS_PER_NODE")
+        cmd.append(binary + " compute " + args)
+
+        self.lines.append(" ".join(cmd))
+        
+        self.lines.append("")        
+        self.lines.append("touch SUCCESS")
+
+        # Save the script to disk
+        return self._saveScript(path)
 
 @staticDataMap.build
 class SalvusRun(microServiceABC.MicroServiceABC):
@@ -54,57 +197,44 @@ class SalvusRun(microServiceABC.MicroServiceABC):
     @config.safeRun
     def entryPoint(self, body):
         """
-        Call the Salvus-Flow Marta's wrapper
+        Call the Salvus-Compute on the remote machine
         """
-
-        # Enable multiline writting
-        yaml.SafeDumper.org_represent_str = yaml.SafeDumper.represent_str
-
-        def repr_str(dumper, data):
-            if '\n' in data:
-                return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
-            return dumper.org_represent_str(data)
-
-        yaml.add_representer(str, repr_str, Dumper=yaml.SafeDumper)
+        
+        # Initialization
+        result = {}
+        
+        print(body, flush=True)
+        
+        # Creating the repository instance for data transfer    
+        # TODO: Select the repository from the DB 'Resources' document
+        dataRepo = dal.repositories.create('BSCDT', **dal.config)
         
         # Create the directory for the current execution
-        workSpace = "/workspace/runs/" + body["uuid"]
+        workSpace = "/workspace/runs/" + body["trial"] + "/"
         os.makedirs(workSpace, exist_ok=True)
-        os.chdir(workSpace)
-
-        # Create symbolic link to the model
-        modelName =  body["input"]["general"]["model_id"] + ".bm"
-        tpath =  workSpace + "/" + modelName
         
-        try:
-            os.remove(tpath)
-        except OSError:
-            pass
-
-        os.symlink(self.fileMapping[modelName], tpath)
-              
-        # Write the YAML file
-        inputPyaml = yaml.safe_dump(body["input"])
-        pfile = workSpace + "/" + body["uuid"] + ".yaml"
-        with open(pfile, "w") as f:
-           f.write(inputPyaml)
-
-        # TODO: Retrieve the model path from the DB or something similar
+        # Obtain remote location of Salvus binary
+        binary = self.filePing['salvus_compute']        
+        
+        # Prepare script's arguments
+        args = body['input']
+        
+        # Generate Submission script
+        # TODO: This is hardcoded by right now but should be parametrized
+        resources = {'wtime': 1800, 'nodes': 1, 'tasks': 1, 'tasks-per-node': 1, 
+                     'qos': 'debug'}        
+        
+        script = SalvusRunSubmision().build(binary, workSpace, args, resources)
     
-        # TODO: Obtain this information from the DB or whatever other mechanism
-        site = "mn4"
-        nprocs = 48
-        wtime = 1800
+        # Create the remote working directory
+        rworkpath = body['trial'] + "/" + "salvus"
+        dataRepo.mkdir(rworkpath)
 
-        # Build the arguments for the wrapper
-        args = site + " " + str(nprocs) + " " + str(wtime) + " " + pfile + " " + workSpace + "/output"
-         
-        # Run it!
-        os.system("/bin/bash -c 'python /root/salvusWrapper/trial_configuration.py " + args + "'")
+        # Transfer input parameter file and script
+        dataRepo.uploadFile(rworkpath, script)
 
         # Return list of Id of the newly created item
         return jsonify(result = workSpace + "/output", response = 201)
-        
 
 class SalvusPost(microServiceABC.MicroServiceABC):
 

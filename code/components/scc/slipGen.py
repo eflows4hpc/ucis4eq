@@ -66,15 +66,12 @@ class SlipGenSubmision(scriptABC.ScriptABC):
                    + args)
 
         self.lines.append(" ".join(cmd))
+        
+        # Additional instructions
+        self.lines.append("")        
 
         # Save the script to disk
         return self._saveScript(path)
-
-class SlipGenSubmision():
-         
-    # Job submission
-    def submit(self):
-        pass
 
 @staticDataMap.build
 class SlipGenGP(microServiceABC.MicroServiceABC):
@@ -108,13 +105,9 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
         dataRepo = dal.repositories.create('BSCDT', **dal.config)
-        
-        # Generate an UUID for the current slip generation
-        self.uuid = str(uuid.uuid1())
-        result['id'] = self.uuid
-        
+            
         # Create local directories
-        path =  ucis4eq.workSpace + "/scratch/outdata/" + result['id'] + "/"
+        path =  ucis4eq.workSpace + "/scratch/outdata/" + body['trial'] + "/"
         cmt = body['CMT']
         
         os.makedirs(path, exist_ok=True)
@@ -127,7 +120,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         setup = region['GPSetup']
             
         # Define Source file
-        source = path + result['id'] + ".src"
+        source = path + "inputs.src"
         
         # Generate GP source file
         srcParams = self._MaiBerozaRelations(body['magnitude'], body['latitude'], 
@@ -148,39 +141,43 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
             for key in srcParams.keys():
                 fd.write(key + ' = ' + str(srcParams[key]) + '\n')
         
-        # Include an initial slip distribution
+        # Prepare script's arguments
         initSlip = ""
         if "initSlip" in cmt.keys():
             initSlip = " -i " + \
                         os.path.basename(self.fileMapping[cmt['initSlip']]) \
                         + " -a 1.0"
                 
-        # Start running the triggering system 
         #args = "-o " + result['id'] + " -v " + self.fileMapping[setup['model']] + " -s " + source + " -i " + self.fileMapping["initSlip21june2000"] + " -a 0.99 > /dev/null 2>&1"
-        args = "-o . " + " -v " \
+        args = "-o rupture " + " -v " \
                 + os.path.basename(self.fileMapping[setup['model']]) \
-                + " -s " + os.path.basename(source) + initSlip \
-                + "> /dev/null 2>&1"
+                + " -s " + os.path.basename(source) + initSlip
         
 
         # Generate Submission script
         # TODO: This is hardcoded by right now but should be parametrized
         resources = {'wtime': 360, 'nodes': 1, 'tasks': 1, 'tasks-per-node': 1, 
-                     'qos': 'debug'}             
+                     'qos': 'debug'}
                      
-        script = SlipGenSubmision(uuid=self.uuid).build(image, path, args, resources)
+        script = SlipGenSubmision().build(image, path, args, resources)
     
         # Create the remote working directory
-        workpath = self.uuid + "/" + "slipgen"
-        dataRepo.mkdir(workpath)
+        rworkpath = body['trial'] + "/" + "slipgen"
+        dataRepo.mkdir(rworkpath)
         
         # Transfer source, script, model and init slip (if there is one)
-        dataRepo.uploadFile(workpath, script)
-        dataRepo.uploadFile(workpath, source)
+        dataRepo.uploadFile(rworkpath, script)
+        dataRepo.uploadFile(rworkpath, source)
         if "initSlip" in cmt.keys():        
-            dataRepo.uploadFile(workpath, self.fileMapping[cmt['initSlip']])
+            dataRepo.uploadFile(rworkpath, self.fileMapping[cmt['initSlip']])
             
-        dataRepo.uploadFile(workpath, self.fileMapping[setup['model']])
+        dataRepo.uploadFile(rworkpath, self.fileMapping[setup['model']])
+        
+        # TODO:
+        # Submit and wait for finish
+
+        # Get the path to the generated rupture
+        result['rupture'] = dataRepo.path + "/" + rworkpath + "/outdata/rupture/rupture.srf"
                             
         # Return list of Id of the newly created item
         # TODO: Return the SRF in plain text 

@@ -21,7 +21,6 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/salvus
     network_mode: "host"
     volumes:
-      - ~/.ssh:/root/.ssh
       - ${UCIS4EQ_ENV}:/root/env.source
       - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_HOME}/code/services/salvusService.py:/root/services/salvusService.py

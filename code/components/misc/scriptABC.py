@@ -38,12 +38,11 @@ class ScriptABC(ABC):
     #@abstractmethod
 
     # Initialization method
-    def __init__(self, type='slurm', uuid=''):
+    def __init__(self, type='slurm'):
         self.lines = []
         self.type = type
         self.time = 1
-        self.uuid = uuid
-
+        
     # Method for defining the "buildScript" required method
     def build(self):
         raise NotImplementedError("Error: 'build' method should be implemented")
@@ -83,7 +82,7 @@ class ScriptABC(ABC):
     def _saveScript(self, path=""):
 
         # Generate the specific script
-        file = path + self._className() + "." + self.uuid + "." + self.type
+        file = path + self._className() + "." + self.type
         with open(file, 'w') as f:
             for item in self.lines:
                 f.write("%s\n" % item)

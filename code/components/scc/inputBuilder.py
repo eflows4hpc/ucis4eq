@@ -34,10 +34,12 @@ from flask import jsonify
 # Internal
 from ucis4eq.misc import config, microServiceABC
 import ucis4eq as ucis4eq
+from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
 
+@staticDataMap.build
 class InputParametersBuilder(microServiceABC.MicroServiceABC):
 
     # Initialization method
@@ -72,13 +74,21 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
 
         #print({str(k).encode("utf-8"): v for k,v in receivers["infrastructures"].items()}, flush=True)
         domain = self.db["Domains"].find_one({"id": body['domain']['id']})
-        print(domain, flush=True)
 
         # Build the set of parameters in a YAML
         # TODO
-        self.general['simulation_length'] = domain['parameters']['simulation_length']
-        self.general['model_id'] = domain['model']['name']
-
+        self.general['simulation_length_in_s'] = domain['parameters']['simulation_length']
+        self.general['fmax_in_hz'] = domain['parameters']['freq_max']
+        self.general['generate_mesh'] = "no"
+        
+        self.geometry['coordinates'] = domain['model']['geometry']
+        self.geometry['region_ID'] = domain['region']
+                
+        paths = {}
+        for file in domain['files']:
+            paths[file] = self.filePing[domain['files'][file]]
+        self.geometry['filepaths'] = paths
+    
         self.source['magnitude'] = body["event"]["magnitude"]
         self.source['longitude'] = body["event"]["longitude"]
         self.source['latitude'] = body["event"]["latitude"]
@@ -86,23 +96,21 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         self.source['strike'] = body["event"]["CMT"]["strike"]
         self.source['rake'] = body["event"]["CMT"]["rake"]
         self.source['dip'] = body["event"]["CMT"]["dip"]
-        self.source['corner_freq'] = domain['mesh']['corner_freq']
-        self.source['freq_max'] = domain['mesh']['freq_max']
-        self.source['mesh'] = domain['mesh']['paths']
 
-        self.geometry = domain['model']['geometry']
+        self.rupture['filename'] = body["rupture"]
 
-        self.rupture['rupture'] = body["rupture"]
-
-        self.receivers["infrastructures"] = receivers["infrastructures"]
-        self.receivers["towns"] = receivers["towns"]
+        self.receivers["seismic_stations"] = receivers["infrastructures"]
+        self.receivers["seismic_stations"].update(receivers["towns"])
 
         # Prepare YAML sections
-        inputP["general"] = self.general
-        inputP["source"] = self.source
+        inputP = self.general
         inputP["geometry"] = self.geometry
+        inputP["CMT_source"] = self.source
+        inputP["rupture"] = self.rupture
         inputP["receivers"] = self.receivers
-        inputP["rupture"] = "\n".join(self.rupture['rupture'])
+        
+        print(inputP, flush=True)
+        
 
         # Return list of Id of the newly created item
         return jsonify(result = inputP, response = 201)

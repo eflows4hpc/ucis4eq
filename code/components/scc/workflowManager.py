@@ -24,6 +24,7 @@
 # System
 import requests
 import json
+import uuid
 
 # Third parties
 from flask import jsonify
@@ -137,7 +138,6 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                     # Create a local alert
                     lalert = a.copy()
                     lalert['CMT'] = a['CMT'][cmt]
-                    
                     lalert['region'] = domain['region']
                     
                     input["event"] = lalert
@@ -153,34 +153,43 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                     config.checkPostRequest(r)
                     compResources = r.json()['result']
                     
-                    lalert["resources"] = compResources                    
+                    lalert["resources"] = compResources   
                     
                     # For each GP defined trial
                     for slip in range(1, region['GPSetup']['trials']+1):
+                        # Set the trial path
+                        
+                        tags = ".".join([domain['id'], cmt, "slip"+str(slip)])
+                                                
+                        lalert['trial'] = "event_" + body['uuid'] + "/trial_" + tags
+                        
                         r = requests.post("http://127.0.0.1:5002/Graves-Pitarka", json=lalert)
                         config.checkPostRequest(r)
 
-                        input["rupture"] = r.json()['result']['slipmodel']
-                                        
+                        input["rupture"] = r.json()['result']['rupture']
+                                                                
                         # Generate the input parameter file for phase 2 in YAML format
                         r = requests.post("http://127.0.0.1:5000/inputParametersBuilder", json=input)
                         config.checkPostRequest(r)
                         stage2InputP = r.json()['result']
 
-                        # Add the UUID 
-                        tags = [body['uuid'], domain['id'], cmt, "slip"+str(slip)] 
-                        input["uuid"] = ".".join(tags)
-
                         # TODO:
                         # Call a service in charge of deciding the simulator code (HUB)
-                        # Call Salvus system (or other)
+                        
+                        # Build the Salvus input parameter file (remotely)
                         sim = {}
-                        sim["uuid"] = input["uuid"]
+                        sim["trial"] = lalert['trial']
                         sim["input"] = stage2InputP
                         sim["resources"] = compResources
-                        r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
-                        #config.checkPostRequest(r)
+                        r = requests.post("http://127.0.0.1:5003/SalvusPrepare", json=sim)
+                        config.checkPostRequest(r)
+                        sim["input"] = r.json()['result']
                         
+                        # Call Salvus system (or other)
+                        r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
+                        config.checkPostRequest(r)
+                        sim["input"] = r.json()['result']   
+
                         ## Post-process output by generating:
                         ##   - Spectral acceleration (By ranges calculated)
                         ##   - Rot50 (calculated from two orthogonal horizontal components, 

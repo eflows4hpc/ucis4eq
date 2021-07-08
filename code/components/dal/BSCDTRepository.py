@@ -51,6 +51,15 @@ class BSCDTRepository(RepositoryABC):
         # Perform the operation
         subprocess.run(["ssh", remote, "mkdir -p", 
                        os.path.join(self.path, rpath)])
+                       
+    def mkdir(self, rpath):
+        # Create remote folder
+        print("mkdir " + rpath, flush=True)
+        remote = self.user + "@" + self.url    
+
+        # Perform the operation
+        subprocess.run(["ssh", remote, "mkdir -p", 
+                       os.path.join(self.path, rpath)])                       
                                
     def downloadFile(self, remote, local):
         

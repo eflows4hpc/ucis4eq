@@ -40,7 +40,7 @@ ARG SSH_PRV
 
 RUN mkdir -m 700 /root/.ssh; \
   touch /root/.ssh/known_hosts; \
-  ssh-keyscan github.com mn1.bsc.es > /root/.ssh/known_hosts
+  ssh-keyscan github.com mn1.bsc.es dt01.bsc.es > /root/.ssh/known_hosts
   
 # Add the keys and set permissions
 RUN echo "$SSH_PRV" > /root/.ssh/id_rsa && \
@@ -58,13 +58,13 @@ RUN Salvus/install.sh
 RUN --mount=type=ssh git clone git@github.com:martapien/salvus_urgent_simulations_setup.git /root/salvusWrapper
 
 # Remove .ssh directory
-RUN rm -fr /root/.ssh/
+#RUN rm -fr /root/.ssh/
     
 # Expose the Flask application port
 EXPOSE 5003
 
 # Obtain the SalvusService App
-RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%salvusService.py/raw?ref=master' > /root/services/salvusService.py
+RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2FsalvusService.py/raw?ref=master' > /root/services/salvusService.py
  
 # Start a shell
 ENTRYPOINT ["/bin/bash", "/root/scripts/launcher.sh"]
