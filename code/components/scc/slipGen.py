@@ -36,13 +36,14 @@ from flask import jsonify
 # Internal
 import ucis4eq
 import ucis4eq.dal as dal
-from ucis4eq.misc import config, microServiceABC, scriptABC
+from ucis4eq.misc import config, microServiceABC
+from ucis4eq.launchers.scriptABC import ScriptABC
 from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
 
-class SlipGenSubmision(scriptABC.ScriptABC):
+class SlipGenSubmision(ScriptABC):
     
     # Build the submission script
     def build(self, image, path, args, resources):
@@ -53,7 +54,7 @@ class SlipGenSubmision(scriptABC.ScriptABC):
         r = resources
         
         # TODO: Change this depending of the target environment queue system
-        self._getSlurmRules(r['wtime'], r["nodes"], r["tasks"], 
+        self._getRules(r['wtime'], r["nodes"], r["tasks"], 
                             r["tasks-per-node"], r["qos"])
 
         # Additional instructions
@@ -102,6 +103,9 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         # Initialization
         result = {}
 
+        # Select target machine
+        machine = body['resources']
+
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
         dataRepo = dal.repositories.create('BSCDT', **dal.config)
@@ -116,7 +120,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         image = self.filePing['slipgen.singularity']
 
         # Read the input catalog from file
-        region = ucis4eq.dal.database.Regions.find_one({"id": body['region']})
+        region = ucis4eq.dal.database.Regions.find_one({"id": body['domain']['region']})
         setup = region['GPSetup']
             
         # Define Source file
@@ -158,8 +162,11 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         # TODO: This is hardcoded by right now but should be parametrized
         resources = {'wtime': 360, 'nodes': 1, 'tasks': 1, 'tasks-per-node': 1, 
                      'qos': 'debug'}
-                     
-        script = SlipGenSubmision().build(image, path, args, resources)
+
+        # Submission instance   
+        submission = SlipGenSubmision(machine)          
+
+        script = submission.build(image, path, args, resources)
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "slipgen"
@@ -173,8 +180,8 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
             
         dataRepo.uploadFile(rworkpath, self.fileMapping[setup['model']])
         
-        # TODO:
         # Submit and wait for finish
+        submission.run(dataRepo.path + "/" + rworkpath)
 
         # Get the path to the generated rupture
         result['rupture'] = dataRepo.path + "/" + rworkpath + "/outdata/rupture/rupture.srf"

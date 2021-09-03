@@ -24,22 +24,14 @@
 #from __future__ import annotations
 from abc import ABC, abstractmethod
 
+from ucis4eq.misc.factory import Factory 
+
+
 ################################################################################
 # Methods and classes
 
-class SDAFactory:
-
-    def __init__(self):
-        """
-        Static Data Access Layer factory initialization
-        """
-        self._builders = {}
-        
-    # Method for registering repository builders    
-    def registerBuilder(self, key, builder):
-        #print("Registering builder for '" + key + "' repositories")
-        self._builders[key] = builder
-            
+class SDAFactory(Factory):
+    
     # Method for choosing best repository
     def selectFrom(self, repositories):
         """
@@ -56,19 +48,9 @@ class SDAFactory:
             
         return name, repositories[name]
 
-    # Method for look and returning the correct builder for a concrete repository
-    def create(self, key, **kwargs):
-    
-        builder = self._builders.get(key)
-        
-        if not builder:
-            raise ValueError(key)
-            
-        return builder(**kwargs)
-
 class SDAProvider(SDAFactory):
     def get(self, service_id, **kwargs):
-        return self.create(service_id, **kwargs)  
+        return self.create(service_id, **kwargs)
 
 class RepositoryABC(ABC):
     """

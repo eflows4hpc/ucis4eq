@@ -25,6 +25,8 @@
 import requests
 import json
 import uuid
+import concurrent.futures
+import time
 
 # Third parties
 from flask import jsonify
@@ -37,18 +39,60 @@ import ucis4eq.dal as dal
 
 ################################################################################
 # Methods and classes
-        
+
 class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
         """
-        Initialize the sourceType component implementation    
+        Initialize the sourceType component implementation
         """
-        
+
         # Select the database
         self.db = dal.database
         self.eid = None
+
+
+    @staticmethod
+    def compute(lalert):
+
+        r = requests.post("http://127.0.0.1:5002/Graves-Pitarka", json=lalert)
+        config.checkPostRequest(r)
+        lalert["rupture"] = r.json()['result']['rupture']
+
+        # Generate the input parameter file for phase 2 in YAML format
+        r = requests.post("http://127.0.0.1:5000/inputParametersBuilder", json=lalert)
+        config.checkPostRequest(r)
+        stage2InputP = r.json()['result']
+
+        # TODO:
+        # Call a service in charge of deciding the simulator code (HUB)
+
+        # Build the Salvus input parameter file (remotely)
+        sim = {}
+        sim["trial"] = lalert['trial']
+        sim["input"] = stage2InputP
+        sim["resources"] = lalert['resources']
+        r = requests.post("http://127.0.0.1:5003/SalvusPrepare", json=sim)
+        config.checkPostRequest(r)
+        sim["input"] = r.json()['result']
+
+        ## Call Salvus system (or other)
+        #r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
+        #config.checkPostRequest(r)
+        #sim["input"] = r.json()['result']
+
+        ### Post-process output by generating:
+        ###   - Spectral acceleration (By ranges calculated)
+        ###   - Rot50 (calculated from two orthogonal horizontal components,
+        ###     and azimuthally independent)
+        ##post = {}
+        ##post["opath"] = r.json()['result']
+        ##post["uuid"] = input["uuid"]
+        ##r = requests.post("http://127.0.0.1:5003/SalvusPost", json=post)
+        ##config.checkPostRequest(r)
+
+        return lalert["rupture"]
 
     # Service's entry point definition
     @config.safeRun
@@ -56,149 +100,114 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         """
         Temporal workflow manager emulator
         """
-        
+
         # Just a naming convention
         event = body
-        
+
         # Obtain the Event Id. (useful during all the workflow livecycle)
         # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
 
         #r = requests.post("http://127.0.0.1:5000/eventCountry", json=event)
         #config.checkPostRequest(r)
         #event['country'] = r.json()['result']
-                
+
         # Calculate the event priority
         # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
         #r = requests.post("http://127.0.0.1:5000/indexPriority", json=event)
-        #config.checkPostRequest(r)   
+        #config.checkPostRequest(r)
         #print(r.json()['result'],flush=True)
-             
+
         # Obtain the Event Id. (useful during all the workflow livecycle)
         r = requests.post("http://127.0.0.1:5000/eventRegistration", json=event)
         config.checkPostRequest(r)
         self.eid = r.json()['result']
-        
+
         # Obtain the region where the event occured
         r = requests.post("http://127.0.0.1:5000/eventDomains", json={'event': self.eid})
         config.checkPostRequest(r)
         domains = r.json()['result']
-        
+
         # Check the region
         if not domains:
             raise Exception("There is not enough information for simulating the EQ in region")
 
-        # For each found domain
-        for domain in domains:
-            # Calculate the CMT input parameters
-            r = requests.post("http://127.0.0.1:5000/precmt", json={'event': self.eid, 'region': domain['region']})
-            config.checkPostRequest(r)
-        
-            precmt = r.json()['result']
-                
-            event = precmt['event']
-            setup = {'setup': precmt, 'catalog': domain['region']}
-            region = ucis4eq.dal.database.Regions.find_one({"id": domain['region']})
-            print(region, flush=True)
+        # Creating the pool executor
+        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+            futures = []
 
-            # Compute CMTs for each pair event-alert (earthquake - Agency notification)
-            for a in event['alerts']:
+            # For each found domain
+            for domain in domains:
+                # Calculate the CMT input parameters
+                r = requests.post("http://127.0.0.1:5000/precmt", json={'event': self.eid, 'region': domain['region']})
+                config.checkPostRequest(r)
+
+                precmt = r.json()['result']
+
+                event = precmt['event']
+                setup = {'setup': precmt, 'catalog': domain['region']}
+                region = ucis4eq.dal.database.Regions.find_one({"id": domain['region']})
+
+                r = requests.post("http://127.0.0.1:5000/computeResources", json=domain)
+                config.checkPostRequest(r)
+                compResources = r.json()['result']
+
+                # Compute CMTs for each pair event-alert (earthquake - Agency notification)
                 input = {}
                 input.update(setup)
-                input.update({"event": a})
-                
-                r = requests.post("http://127.0.0.1:5000/cmt", json=input)
-                config.checkPostRequest(r)
-                
-                cmt = r.json()['result']
-                
-                if "cmt" in a.keys():
-                    cmt.update(a["cmt"])
-                        
-                a.update({"CMT":cmt})
-                
-                print(a, flush=True)
-                
-                #alert = event['alerts'][a]
-                #print(json.dumps(alert))
-            
-                # Determine the appropiate source for this event
-                # TODO: Define the input parameters that we need for this step 
-                r = requests.post("http://127.0.0.1:5000/sourceType", json={})
-                config.checkPostRequest(r)
-                
-                sourceType  = r.json()['result']
-                    
-                # Compute source
-                # TODO: Select the correct way according to the received source type 
 
-                # For each CMT in the alert
-                for cmt in a['CMT'].keys():
-                    input = {}
-                                        
-                    # Create a local alert
-                    lalert = a.copy()
-                    lalert['CMT'] = a['CMT'][cmt]
-                    lalert['region'] = domain['region']
-                    
-                    input["event"] = lalert
-                                    
-                    #   Option 1:  Graves-Pitarka generated source  (SRF)
-                    
-                    # Append the region
-                    input["domain"] = domain
-                    
-                    # Calculate the compuational resources and site given the 
-                    # current domain
-                    r = requests.post("http://127.0.0.1:5000/computeResources", json=domain)
+                # Append the region
+                input["domain"] = domain
+                input["resources"] = compResources
+
+                for a in event['alerts']:
+
+                    input['event'] = a
+
+                    r = requests.post("http://127.0.0.1:5000/cmt", json=input)
                     config.checkPostRequest(r)
-                    compResources = r.json()['result']
-                    
-                    lalert["resources"] = compResources   
-                    
-                    # For each GP defined trial
-                    for slip in range(1, region['GPSetup']['trials']+1):
-                        # Set the trial path
-                        
-                        tags = ".".join([domain['id'], cmt, "slip"+str(slip)])
-                                                
-                        lalert['trial'] = "event_" + body['uuid'] + "/trial_" + tags
-                        
-                        r = requests.post("http://127.0.0.1:5002/Graves-Pitarka", json=lalert)
-                        config.checkPostRequest(r)
 
-                        input["rupture"] = r.json()['result']['rupture']
-                                                                
-                        # Generate the input parameter file for phase 2 in YAML format
-                        r = requests.post("http://127.0.0.1:5000/inputParametersBuilder", json=input)
-                        config.checkPostRequest(r)
-                        stage2InputP = r.json()['result']
+                    cmt = r.json()['result']
 
-                        # TODO:
-                        # Call a service in charge of deciding the simulator code (HUB)
-                        
-                        # Build the Salvus input parameter file (remotely)
-                        sim = {}
-                        sim["trial"] = lalert['trial']
-                        sim["input"] = stage2InputP
-                        sim["resources"] = compResources
-                        r = requests.post("http://127.0.0.1:5003/SalvusPrepare", json=sim)
-                        config.checkPostRequest(r)
-                        sim["input"] = r.json()['result']
-                        
-                        # Call Salvus system (or other)
-                        r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
-                        config.checkPostRequest(r)
-                        sim["input"] = r.json()['result']   
+                    if "cmt" in a.keys():
+                        cmt.update(a["cmt"])
 
-                        ## Post-process output by generating:
-                        ##   - Spectral acceleration (By ranges calculated)
-                        ##   - Rot50 (calculated from two orthogonal horizontal components, 
-                        ##     and azimuthally independent)
-                        #post = {}
-                        #post["opath"] = r.json()['result']
-                        #post["uuid"] = input["uuid"]
-                        #r = requests.post("http://127.0.0.1:5003/SalvusPost", json=post)
-                        #config.checkPostRequest(r)
-                            
+                    input['event'].update({"CMT":cmt})
+
+                    #alert = event['alerts'][a]
+                    #print(json.dumps(alert))
+
+                    # Determine the appropiate source for this event
+                    # TODO: Define the input parameters that we need for this step
+                    r = requests.post("http://127.0.0.1:5000/sourceType", json={})
+                    config.checkPostRequest(r)
+
+                    sourceType  = r.json()['result']
+
+                    # Compute source
+                    # TODO: Select the correct way according to the received source type
+
+                    # For each CMT in the alert
+                    for cmt in input['event']['CMT'].keys():
+
+                        # For each GP defined trial
+                        for slip in range(1, region['GPSetup']['trials']+1):
+                            # Set the trial path
+                            tags = ".".join([domain['id'], cmt, "slip"+str(slip)])
+
+                            # Create a local alert
+                            lalert = {}
+                            lalert = input['event'].copy()
+                            lalert['trial'] = "event_" + body['uuid'] + "/trial_" + tags
+                            lalert['CMT'] = input['event']['CMT'][cmt]
+                            lalert['domain'] = input['domain']
+                            lalert['resources'] = input['resources']
+
+                            futures.append(executor.submit(WorkflowManagerEmulator.compute, lalert))
+
+            print("Waitting for results", flush=True)
+            for future in concurrent.futures.as_completed(futures):
+                data = future.result()
+                print(data, flush=True)
+
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']) + " notified for region " + str(domain['region']), response = 201)

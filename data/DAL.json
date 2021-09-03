@@ -7,5 +7,10 @@
   },
   "local": {
     "path": "/workspace/"
+  },
+  "BSCDT":{
+    "user": "pr1ejg11",
+    "url": "dt01.bsc.es",
+    "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ/"    
   }
 }

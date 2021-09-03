@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Input builder (Interphasing phase 1 and phase 2)
+# Abstract Base Class for Launchers
 # This module is part of the Smart Center Control (SSC) solution
 #
 # Author:  Juan Esteban Rodríguez, Josep de la Puente
@@ -17,46 +17,36 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ################################################################################
 # Module imports
-# System
-import sys
-import traceback
-import json
-import yaml
-from bson.json_util import dumps
-
-# Third parties
-from flask import jsonify
-
-# Internal
-from ucis4eq.misc import config, microServiceABC
-import ucis4eq as ucis4eq
+#from __future__ import annotations
+from abc import ABC, abstractmethod
 
 ################################################################################
 # Methods and classes
 
-class ComputeResources(microServiceABC.MicroServiceABC):
+# Class in charge of running a process either Slurm or bash 
+class RunnerABC():
+
+    # Some attributes
+    type = "sh"
 
     # Initialization method
-    def __init__(self):
-        """
-        Initialize the CMT statistical component implementation
-        """
+    def __init__(self, task):
+        # Task name
+        self.task = task
 
-    # Service's entry point definition
-    @config.safeRun
-    def entryPoint(self, body):
-        """
-        Calculate the computational resources and site
-        """
-        # Decide what site to use among the availables
-        site = "MN4"
+    # Method for defining the "getRules" required method
+    def getRules(self):
+        raise NotImplementedError("Error: 'getRules' method should be implemented")
+
+    # Method for defining the "run" required method
+    def run(self):
+        raise NotImplementedError("Error: 'run' method should be implemented")
+
+
         
         
-        # TODO: Calculate resources (e.g  #nodes and #cores)
-
-        # Return list of Id of the newly created item
-        return jsonify(result = site, response = 201)
+    

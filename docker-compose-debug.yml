@@ -9,7 +9,8 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json   
+      - ${UCIS4EQ_DAL}:/opt/DAL.json
+      - ${UCIS4EQ_SITES}:/opt/Sites.json
       - ${UCIS4EQ_HOME}/code/services/slipGenService.py:/opt/services/slipGenService.py
       - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.7/dist-packages/ucis4eq
 
@@ -23,6 +24,7 @@ services:
     volumes:
       - ${UCIS4EQ_ENV}:/root/env.source
       - ${UCIS4EQ_DAL}:/opt/DAL.json
+      - ${UCIS4EQ_SITES}:/opt/Sites.json      
       - ${UCIS4EQ_HOME}/code/services/salvusService.py:/root/services/salvusService.py
       - ${UCIS4EQ_HOME}/code/components/:/root/miniconda3/envs/salvus/lib/python3.7/site-packages/ucis4eq
     entrypoint: ["/bin/bash", "/root/services/start.sh"]
@@ -35,6 +37,7 @@ services:
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
+      - ${UCIS4EQ_SITES}:/opt/Sites.json      
       - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.7/site-packages/ucis4eq
       - ${UCIS4EQ_HOME}/code/services/microServices.py:/root/services/microServices.py
     depends_on:
@@ -50,7 +53,8 @@ services:
       - slipGen
       - salvus      
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json   
+      - ${UCIS4EQ_DAL}:/opt/DAL.json
+      - ${UCIS4EQ_SITES}:/opt/Sites.json      
       - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.7/site-packages/ucis4eq
       - ${UCIS4EQ_HOME}/code/services/workflowManagerService.py:/root/services/workflowManagerService.py
 
@@ -70,6 +74,7 @@ services:
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
+      - ${UCIS4EQ_SITES}:/opt/Sites.json      
       - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.5/site-packages/ucis4eq
       - ${UCIS4EQ_HOME}/code/services/listener.py:/root/services/listener.py
 

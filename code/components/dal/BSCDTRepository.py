@@ -45,21 +45,13 @@ class BSCDTRepository(RepositoryABC):
     
     def mkdir(self, rpath):
         # Create remote folder
-        print("mkdir " + rpath, flush=True)
+        #print("mkdir " + rpath, flush=True)
         remote = self.user + "@" + self.url    
 
         # Perform the operation
         subprocess.run(["ssh", remote, "mkdir -p", 
                        os.path.join(self.path, rpath)])
-                       
-    def mkdir(self, rpath):
-        # Create remote folder
-        print("mkdir " + rpath, flush=True)
-        remote = self.user + "@" + self.url    
-
-        # Perform the operation
-        subprocess.run(["ssh", remote, "mkdir -p", 
-                       os.path.join(self.path, rpath)])                       
+                 
                                
     def downloadFile(self, remote, local):
         
@@ -67,7 +59,7 @@ class BSCDTRepository(RepositoryABC):
         if not os.path.isabs(remote):
             remote = os.path.join(self.path, remote)
         
-        print("Download: " + remote, flush=True)        
+        #print("Download: " + remote, flush=True)        
         remote = self.user + "@" + self.url + ":" + remote
     
         # Perform the operation
@@ -78,7 +70,7 @@ class BSCDTRepository(RepositoryABC):
         if not os.path.isabs(remote):
             remote = os.path.join(self.path, remote)
             
-        print("Up: " + local, flush=True)
+        #print("Upload: " + local, flush=True)
         
         remote = self.user + "@" + self.url + ":" + remote
     

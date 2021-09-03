@@ -34,7 +34,8 @@ from bson.json_util import dumps
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config, microServiceABC,scriptABC
+from ucis4eq.misc import config, microServiceABC
+from ucis4eq.launchers import scriptABC
 import ucis4eq.dal as dal
 from ucis4eq.dal import staticDataMap
 
@@ -52,14 +53,14 @@ class SalvusPrepareSubmision(scriptABC.ScriptABC):
         r = resources
         
         # TODO: Change this depending of the target environment queue system
-        self._getSlurmRules(r['wtime'], r["nodes"], r["tasks"], 
+        self._getRules(r['wtime'], r["nodes"], r["tasks"], 
                             r["tasks-per-node"], r["qos"])
 
         # Additional instructions
         self.lines.append("set -e")        
         self.lines.append("module load python/3.6.1")
         for line in additional:
-            self.lines.append(line)   
+            self.lines.append(line)
 
         # Build command
         cmd = []
@@ -88,6 +89,9 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         
         # Initialization
         result = {}        
+        
+        # Select target machine
+        machine = body['resources']        
 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
@@ -127,9 +131,12 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         additional.append("export PYTHON_PATH=" +\
                            os.path.dirname(self.filePing['salvus_wrapper']) +\
                            ":$PYTHON_PATH")
-                                   
-        script = SalvusPrepareSubmision().build(binary, workSpace, args,
-                                             resources, additional)
+            
+        
+        # Submission instance   
+        submission = SalvusPrepareSubmision(machine)
+        
+        script = submission.build(binary, workSpace, args, resources, additional)
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "salvus_wrapper"
@@ -139,8 +146,8 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         dataRepo.uploadFile(rworkpath, script)
         dataRepo.uploadFile(rworkpath, pfile)
         
-        # TODO:
         # Submit and wait for finish
+        submission.run(dataRepo.path + "/" + rworkpath)
 
         # Get the path to the Salvus input parameters
         result['salvus_input'] = dataRepo.path + "/" + rworkpath + "/salvus_input.toml"
@@ -159,7 +166,7 @@ class SalvusRunSubmision(scriptABC.ScriptABC):
         r = resources
         
         # TODO: Change this depending of the target environment queue system
-        self._getSlurmRules(r['wtime'], r["nodes"], r["tasks"], 
+        self._getRules(r['wtime'], r["nodes"], r["tasks"], 
                             r["tasks-per-node"], r["qos"])
 
         # Additional instructions
@@ -203,8 +210,9 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         # Initialization
         result = {}
         
-        print(body, flush=True)
-        
+        # Select target machine
+        machine = body['resources']
+                
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
         dataRepo = dal.repositories.create('BSCDT', **dal.config)
@@ -224,7 +232,8 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         resources = {'wtime': 1800, 'nodes': 1, 'tasks': 1, 'tasks-per-node': 1, 
                      'qos': 'debug'}        
         
-        script = SalvusRunSubmision().build(binary, workSpace, args, resources)
+        script = SalvusRunSubmision(machine).build(binary, workSpace, args,
+                                                   resources)
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "salvus"
