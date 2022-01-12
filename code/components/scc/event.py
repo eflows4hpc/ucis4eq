@@ -44,6 +44,7 @@ from flask import jsonify
 from ucis4eq.misc import config, microServiceABC
 import ucis4eq as ucis4eq
 from ucis4eq.dal import staticDataMap
+import ucis4eq.dal as dal
 
 ################################################################################
 # Methods and classes
@@ -65,19 +66,49 @@ class EventRegistration(microServiceABC.MicroServiceABC):
         Deal with a new earthquake event
         """
         # Insert each source
-        record_created = self.db.EQSources.insert(body['sources'])
-        
+        record_created = self.db.TriggerInfo.insert(body['sources'])
         records = []
         # Store the set of events
         field = {}
         field['alerts'] = body['alerts']
         field['sources_id'] = record_created
         field['uuid'] = body['uuid']
-        event = self.db.EQEvents.insert(field)
+        field['state'] = 'LAUNCHED'
+        event = self.db.Requests.insert(field)
+        
+        print("Request Id. [" + str(event) + "] registered for event [" + \
+             field['uuid'] + "]", flush=True)
 
         # Return list of Id of the newly created item
-        return jsonify(result = str(event), response = 201)            
-            
+        return jsonify(result = str(event), response = 201)
+        
+        
+################################################################################
+# Methods and classes
+class EventSetState(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the eventDispatcher component implementation    
+        """
+        
+        # Select the database
+        self.db = ucis4eq.dal.database
+
+    # Service's entry point definition
+    @config.safeRun
+    def entryPoint(self, body):
+        """
+        Update the status of an earthquake event
+        """
+
+        event = self.db.Requests.update({'_id': ObjectId(body['id'])},
+            {'$set': {"state": body['state']}})
+
+        # Return list of Id of the newly created item
+        return jsonify(result = str(event), response = 201)
+
 class EventDomains(microServiceABC.MicroServiceABC):
 
     # Initialization method
@@ -93,19 +124,19 @@ class EventDomains(microServiceABC.MicroServiceABC):
         self.domains = {}
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Figure out the set of domains which the incoming EQ event belong
         """                    
         # Retrieve the event's complete information 
-        eid = body['event']
-
+        rid = body['id']
+        
         # Build the pipeline for obtaining the AVG of the set of alerts
         avgPosPipeline = [
             { 
               "$match" : {
-                "_id": ObjectId(eid)
+                "_id": ObjectId(rid)
               }
             },
             {
@@ -113,7 +144,7 @@ class EventDomains(microServiceABC.MicroServiceABC):
             },
             {
               "$group": {
-                "_id": ObjectId(eid),
+                "_id": ObjectId(rid),
                 "avgLatitude": { "$avg": "$alerts.latitude" },
                 "avgLongitude": { "$avg": "$alerts.longitude" }
               }
@@ -121,7 +152,7 @@ class EventDomains(microServiceABC.MicroServiceABC):
          ]
 
         # It assumed that just one result is obtained
-        for event in self.db['EQEvents'].aggregate(avgPosPipeline):
+        for event in self.db['Requests'].aggregate(avgPosPipeline):
             # Build the pipeline for obtaining the regon from a concrete given 
             # event
             regionPipeline = [
@@ -156,7 +187,7 @@ class EventDomains(microServiceABC.MicroServiceABC):
         region = None
         if self.domains:
             region = self.domains[0]
-        
+                    
         # Return list of Id of the newly created item
         return jsonify(result = self.domains, response = 201)
 
@@ -170,7 +201,7 @@ class EventCountry(microServiceABC.MicroServiceABC):
         """
          
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Figure out the country which the incoming EQ event belong 
@@ -224,7 +255,7 @@ class EventEPSG(microServiceABC.MicroServiceABC):
         """
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Figure out the country which the incoming EQ event belong 

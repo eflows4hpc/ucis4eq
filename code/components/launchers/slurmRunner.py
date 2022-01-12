@@ -70,6 +70,9 @@ class SlurmRunner(RunnerABC):
         lines.append("#SBATCH --error=" + cname + ".e")
         lines.append("#SBATCH --output=" + cname + ".o")
         lines.append("#SBATCH --qos=" + qos)
+        #lines.append("#SBATCH --partition=main")
+        #lines.append("#SBATCH --reservation=ChEESE21_test")
+
         lines.append("")
         lines.append("cd $SLURM_SUBMIT_DIR")
         
@@ -99,8 +102,6 @@ class SlurmRunner(RunnerABC):
         # Obtain the job ID
         jobId = [x.strip() for x in process.stdout.split(' ')][3]
         
-        print("---> " + str(self.uuid) + " [" + jobId + "] '" + path[-30:] + "' Launched", flush=True)
-
         thread = threading.Thread(target=self._waitForSlurmJob, args=(jobId,))
         thread.start()
 
@@ -110,8 +111,6 @@ class SlurmRunner(RunnerABC):
             #print('\r{}'.format(self.message), end='', flush=True)
             pass
             
-        print("---> " + str(self.uuid) + "[" + jobId + "] '" + path[-30:] + "' Finished", flush=True)
-
     # Wait for a Slurm job to finish
     def _waitForSlurmJob(self, jobId):
 

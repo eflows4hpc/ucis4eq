@@ -6,7 +6,7 @@
       "query": "http://service.iris.edu/fdsnws/event/1/query?format=xml&starttime=2020-10-30T00:00:00&endtime=2020-10-31T00:00:00&minmag=7.0"
     }
   },
-  "uuid": "cabc0e50-a0ec-11ea-9ec0-982cbc26f967",
+  "uuid": "cabc0e50-a0ec-11ea-9ec0-982cbc26f925",
   "alerts": [
     {
       "agency": "USER EVENT",
@@ -23,12 +23,6 @@
           "dip": 37,
           "rake": -95,
           "initSlip": "Samos_init_slip_np1.txt"
-        },
-        "GCMT_AuxPlane": {
-          "strike": 96,
-          "dip": 53,
-          "rake": -86,
-          "initSlip": "Samos_init_slip_np2.txt"
         }
       }
     }

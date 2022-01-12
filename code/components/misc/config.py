@@ -48,7 +48,7 @@ def safeRun(func):
     def func_wrapper(*args, **kwargs):
 
         try:
-           return func(*args, **kwargs)
+            return func(*args, **kwargs)
 
         except Exception as e:
 

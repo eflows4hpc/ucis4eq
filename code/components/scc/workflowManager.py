@@ -52,10 +52,8 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         self.db = dal.database
         self.eid = None
 
-
     @staticmethod
     def compute(lalert):
-
         r = requests.post("http://127.0.0.1:5002/Graves-Pitarka", json=lalert)
         config.checkPostRequest(r)
         lalert["rupture"] = r.json()['result']['rupture']
@@ -70,6 +68,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
 
         # Build the Salvus input parameter file (remotely)
         sim = {}
+        sim["id"] = lalert['id']
         sim["trial"] = lalert['trial']
         sim["input"] = stage2InputP
         sim["resources"] = lalert['resources']
@@ -77,22 +76,11 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         config.checkPostRequest(r)
         sim["input"] = r.json()['result']
 
-        ## Call Salvus system (or other)
-        #r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
-        #config.checkPostRequest(r)
-        #sim["input"] = r.json()['result']
+        # Call Salvus system (or other)
+        r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
+        config.checkPostRequest(r)
 
-        ### Post-process output by generating:
-        ###   - Spectral acceleration (By ranges calculated)
-        ###   - Rot50 (calculated from two orthogonal horizontal components,
-        ###     and azimuthally independent)
-        ##post = {}
-        ##post["opath"] = r.json()['result']
-        ##post["uuid"] = input["uuid"]
-        ##r = requests.post("http://127.0.0.1:5003/SalvusPost", json=post)
-        ##config.checkPostRequest(r)
-
-        return lalert["rupture"]
+        return lalert
 
     # Service's entry point definition
     @config.safeRun
@@ -115,30 +103,38 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
         #r = requests.post("http://127.0.0.1:5000/indexPriority", json=event)
         #config.checkPostRequest(r)
-        #print(r.json()['result'],flush=True)
+        #print(r.json()['resgult'],flush=True)
 
         # Obtain the Event Id. (useful during all the workflow livecycle)
         r = requests.post("http://127.0.0.1:5000/eventRegistration", json=event)
         config.checkPostRequest(r)
         self.eid = r.json()['result']
-
+        
         # Obtain the region where the event occured
-        r = requests.post("http://127.0.0.1:5000/eventDomains", json={'event': self.eid})
+        r = requests.post("http://127.0.0.1:5000/eventDomains", json={'id': self.eid})
         config.checkPostRequest(r)
-        domains = r.json()['result']
-
+        domains = r.json()['result']        
+        
         # Check the region
         if not domains:
+            # Set the event with SUCCESS state
+            r = requests.post("http://127.0.0.1:5000/eventSetState", 
+                               json={'id': self.eid, 'state': "REJECTED"})
+            config.checkPostRequest(r)
+            self.eid = r.json()['result']
+                        
             raise Exception("There is not enough information for simulating the EQ in region")
+    
+        # For each found domain
+        for domain in domains:
+            input = {}
+            
+            # Creating the pool executor
+            with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
+                futures = []
 
-        # Creating the pool executor
-        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
-            futures = []
-
-            # For each found domain
-            for domain in domains:
                 # Calculate the CMT input parameters
-                r = requests.post("http://127.0.0.1:5000/precmt", json={'event': self.eid, 'region': domain['region']})
+                r = requests.post("http://127.0.0.1:5000/precmt", json={'id': self.eid, 'region': domain['region']})
                 config.checkPostRequest(r)
 
                 precmt = r.json()['result']
@@ -147,12 +143,12 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                 setup = {'setup': precmt, 'catalog': domain['region']}
                 region = ucis4eq.dal.database.Regions.find_one({"id": domain['region']})
 
-                r = requests.post("http://127.0.0.1:5000/computeResources", json=domain)
+                r = requests.post("http://127.0.0.1:5000/computeResources", json={'id': self.eid, 'domain': domain})
                 config.checkPostRequest(r)
                 compResources = r.json()['result']
 
                 # Compute CMTs for each pair event-alert (earthquake - Agency notification)
-                input = {}
+                input = {'id': self.eid, 'base': "event_" + body['uuid']}
                 input.update(setup)
 
                 # Append the region
@@ -167,7 +163,10 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                     config.checkPostRequest(r)
 
                     cmt = r.json()['result']
-
+                    
+                    # TODO Remove this line for enabling statistical CMTs
+                    cmt = {}
+                    
                     if "cmt" in a.keys():
                         cmt.update(a["cmt"])
 
@@ -178,7 +177,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
 
                     # Determine the appropiate source for this event
                     # TODO: Define the input parameters that we need for this step
-                    r = requests.post("http://127.0.0.1:5000/sourceType", json={})
+                    r = requests.post("http://127.0.0.1:5000/sourceType", json={'id': self.eid})
                     config.checkPostRequest(r)
 
                     sourceType  = r.json()['result']
@@ -197,17 +196,32 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                             # Create a local alert
                             lalert = {}
                             lalert = input['event'].copy()
-                            lalert['trial'] = "event_" + body['uuid'] + "/trial_" + tags
+                            lalert['id'] = self.eid
+                            lalert['trial'] = input['base'] + "/trial_" + tags
                             lalert['CMT'] = input['event']['CMT'][cmt]
                             lalert['domain'] = input['domain']
                             lalert['resources'] = input['resources']
 
                             futures.append(executor.submit(WorkflowManagerEmulator.compute, lalert))
+                            
+                            break  ## Avoid to run 66 times this (swarm runs)
+                        break  ## Avoid to run 66 times this (swarm runs)
+                    break
 
-            print("Waitting for results", flush=True)
-            for future in concurrent.futures.as_completed(futures):
-                data = future.result()
-                print(data, flush=True)
-
+                print("Waitting for results", flush=True)
+                for future in concurrent.futures.as_completed(futures):
+                    data = future.result()
+                                            
+            # Post-process output by generating:
+            input['trial'] = lalert['trial']
+            r = requests.post("http://127.0.0.1:5003/SalvusPost", json=input)
+            config.checkPostRequest(r)
+            
+            # Set the event with SUCCESS state
+            r = requests.post("http://127.0.0.1:5000/eventSetState", 
+                               json={'id': self.eid, 'state': "SUCCESS"})
+            config.checkPostRequest(r)
+            self.eid = r.json()['result']        
+        
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']) + " notified for region " + str(domain['region']), response = 201)

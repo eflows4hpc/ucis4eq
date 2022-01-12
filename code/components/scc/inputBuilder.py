@@ -59,7 +59,7 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         self.receivers = {}
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Build the set of simulation parameters
@@ -80,13 +80,15 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         self.general['simulation_length_in_s'] = domain['parameters']['simulation_length']
         self.general['fmax_in_hz'] = domain['parameters']['freq_max']
         self.general['generate_mesh'] = "no"
+        self.general['overwrite_mesh_path'] = "no"
         
         self.geometry['coordinates'] = domain['model']['geometry']
         self.geometry['region_ID'] = domain['region']
                 
         paths = {}
         for file in domain['files']:
-            paths[file] = self.filePing[domain['files'][file]]
+            if not domain['files'][file] == "":
+                paths[file] = self.filePing[domain['files'][file]]
         self.geometry['filepaths'] = paths
     
         self.source['magnitude'] = body["magnitude"]
@@ -99,16 +101,16 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
 
         self.rupture['filename'] = body["rupture"]
 
-        self.receivers["seismic_stations"] = receivers["infrastructures"]
-        self.receivers["seismic_stations"].update(receivers["towns"])
+        for receiverType in receivers.keys():
+            if not receiverType == "id" and not receiverType == "_id":
+                self.receivers[receiverType] = receivers[receiverType]
 
         # Prepare YAML sections
         inputP = self.general
         inputP["geometry"] = self.geometry
         inputP["CMT_source"] = self.source
         inputP["rupture"] = self.rupture
-        inputP["receivers"] = self.receivers
-            
+        inputP["receivers"] = self.receivers    
 
         # Return list of Id of the newly created item
         return jsonify(result = inputP, response = 201)

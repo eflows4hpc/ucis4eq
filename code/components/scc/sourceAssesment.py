@@ -45,7 +45,7 @@ class SourceType(microServiceABC.MicroServiceABC):
         """
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration            
     def entryPoint(self, body):
         """
         Determine if the type of sources. This is:
@@ -72,6 +72,7 @@ class PunctualSource(microServiceABC.MicroServiceABC):
 
     # Service's entry point definition
     @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration            
     def entryPoint(self, body):
         """
         Deal with a new earthquake event

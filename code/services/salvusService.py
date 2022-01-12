@@ -33,7 +33,7 @@ from functools import wraps
 from flask import Flask, request, jsonify
 
 # Load Salvus service implemented components
-from ucis4eq.scc.salvus import SalvusPrepare, SalvusRun, SalvusPost
+from ucis4eq.scc.salvus import SalvusPrepare, SalvusRun, SalvusPost, SalvusPing
 
 ################################################################################
 # Dispatcher App creation
@@ -109,6 +109,16 @@ def SalvusPostService(body):
     Call component implementing this service
     """
     return SalvusPost().entryPoint(body)
+    
+# Call Salvus post-processing
+@salvusServiceApp.route("/SalvusPing", methods=['POST'])
+@postRequest
+def SalvusPingService(body):
+    """
+    Call component implementing this service
+    """
+    return SalvusPing().entryPoint(body)
+    
 
 ################################################################################
 # Start the micro-services aplication

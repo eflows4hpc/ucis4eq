@@ -1,0 +1,37 @@
+# Obtain a clean Ubuntu distribution
+FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
+
+# Expose the Flask application port
+EXPOSE 6001
+
+# Install dependencies
+RUN pip install pandas dash flask dash_leaflet dash_bootstrap_components
+RUN pip install webdavclient3 shapely dash-cytoscape reverse_geocoder
+
+# Prepare an script able to start the service
+RUN echo "python /root/services/dashboard.py" >> /root/services/start.sh
+
+# Copy and decompress the dashboard minimum files
+ADD deployment/dockers/dashboard/assets /root/services/assets
+
+ARG CACHEBUST=1    
+
+# Pass the SSH key (both public and private)
+ARG SSH_PUB
+ARG SSH_PRV
+
+RUN mkdir -m 700 /root/.ssh; \
+  touch /root/.ssh/known_hosts; \
+  ssh-keyscan dt01.bsc.es > /root/.ssh/known_hosts; \
+  ssh-keyscan mn1.bsc.es >> /root/.ssh/known_hosts; \
+  ssh-keyscan mn2.bsc.es >> /root/.ssh/known_hosts; \
+  ssh-keyscan mn3.bsc.es >> /root/.ssh/known_hosts
+  
+# Add the keys and set permissions
+RUN echo "$SSH_PRV" > /root/.ssh/id_rsa && \
+echo "$SSH_PUB" > /root/.ssh/id_rsa.pub && \
+chmod 600 /root/.ssh/id_rsa && \
+chmod 600 /root/.ssh/id_rsa.pub
+
+# Entry point
+ENTRYPOINT ["sh", "/root/services/start.sh"]

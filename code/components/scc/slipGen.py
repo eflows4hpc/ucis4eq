@@ -54,8 +54,8 @@ class SlipGenSubmision(ScriptABC):
         r = resources
         
         # TODO: Change this depending of the target environment queue system
-        self._getRules(r['wtime'], r["nodes"], r["tasks"], 
-                            r["tasks-per-node"], r["qos"])
+        self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
+                            r["cpus-per-task"], r["qos"])
 
         # Additional instructions
         self.lines.append("module load singularity")
@@ -95,7 +95,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         return relations
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration                
     def entryPoint(self, body):
         """
         Call the Graves-Pitarka slip generator
@@ -153,15 +153,14 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
                         + " -a 1.0"
                 
         #args = "-o " + result['id'] + " -v " + self.fileMapping[setup['model']] + " -s " + source + " -i " + self.fileMapping["initSlip21june2000"] + " -a 0.99 > /dev/null 2>&1"
-        args = "-o rupture " + " -v " \
+        args = "-o rupture "  + "--dt " + str(setup['dt']) + " -v " \
                 + os.path.basename(self.fileMapping[setup['model']]) \
                 + " -s " + os.path.basename(source) + initSlip
-        
 
         # Generate Submission script
         # TODO: This is hardcoded by right now but should be parametrized
-        resources = {'wtime': 360, 'nodes': 1, 'tasks': 1, 'tasks-per-node': 1, 
-                     'qos': 'debug'}
+        resources = {'wtime': 360, 'nodes': 1, 'tasks-per-node': 1,
+                     'cpus-per-task': 48, 'qos': 'debug'}
 
         # Submission instance   
         submission = SlipGenSubmision(machine)          
@@ -184,7 +183,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         submission.run(dataRepo.path + "/" + rworkpath)
 
         # Get the path to the generated rupture
-        result['rupture'] = dataRepo.path + "/" + rworkpath + "/outdata/rupture/rupture.srf"
+        result['rupture'] = dataRepo.path + "/" + rworkpath + "/scratch/outdata/rupture/rupture.srf"
                             
         # Return list of Id of the newly created item
         # TODO: Return the SRF in plain text 

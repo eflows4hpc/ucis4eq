@@ -47,7 +47,7 @@ class ComputeResources(microServiceABC.MicroServiceABC):
         """
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration        
     def entryPoint(self, body):
         """
         Calculate the computational resources and site

@@ -89,7 +89,7 @@ class CMTInputs(microServiceABC.MicroServiceABC):
         """
         
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration    
     def entryPoint(self, body):
         """
         Generate a CMT input for a posterior CMT calculation
@@ -101,12 +101,12 @@ class CMTInputs(microServiceABC.MicroServiceABC):
         # TODO: This part should be done by the workflow manager
                     
         # Retrieve the event's complete information 
-        event = ucis4eq.dal.database.EQEvents.find_one({"_id": ObjectId(body['event'])})
+        event = ucis4eq.dal.database.Requests.find_one({"_id": ObjectId(body['id'])})
         
         # Add the current event
         inputParameters.update({
                                 "event": {
-                                    "_id": body['event'],
+                                    "_id": body['id'],
                                     "alerts": event['alerts'],
                                     }
                                })
@@ -130,7 +130,7 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         self.db = ucis4eq.dal.database
                     
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration    
     def entryPoint(self, body):
         """
         Calculate a CMT approximation from historical earthquake events

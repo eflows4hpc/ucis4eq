@@ -37,15 +37,16 @@ from flask import jsonify
 from ucis4eq.misc import config, microServiceABC
 from ucis4eq.launchers import scriptABC
 import ucis4eq.dal as dal
+import ucis4eq as ucis4eq
 from ucis4eq.dal import staticDataMap
 
 ################################################################################
 # Methods and classes
 
-class SalvusPrepareSubmision(scriptABC.ScriptABC):
+class SalvusWrapperSubmision(scriptABC.ScriptABC):
     
     # Build the submission script
-    def build(self, binary, path, args, resources, additional = []):
+    def build(self, commands, path, resources, additional = []):
         # Obtain Header 
         self._getHeader()
 
@@ -53,20 +54,25 @@ class SalvusPrepareSubmision(scriptABC.ScriptABC):
         r = resources
         
         # TODO: Change this depending of the target environment queue system
-        self._getRules(r['wtime'], r["nodes"], r["tasks"], 
-                            r["tasks-per-node"], r["qos"])
+        self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
+                            r["cpus-per-task"], r["qos"])
 
         # Additional instructions
         self.lines.append("set -e")        
-        self.lines.append("module load python/3.6.1")
+        
+        # TODO: Add those specific directives onto the proper resource 
+        #       definition (JSON).
+        self.lines.append("module load ANACONDA/5.0.1")
+        self.lines.append("source activate cheese")
+        
         for line in additional:
             self.lines.append(line)
 
         # Build command
-        cmd = []
-        cmd.append(binary + " " + args)
+        for command in commands:
+            self.lines.append("")
+            self.lines.append(command[0] + " " + command[1])
 
-        self.lines.append(" ".join(cmd))
 
         # Save the script to disk
         return self._saveScript(path)
@@ -81,7 +87,7 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         """
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration                
     def entryPoint(self, body):
         """
         Call the Salvus-Flow Marta's wrapper
@@ -118,25 +124,29 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
            f.write(inputPyaml)
 
         # Prepare script's arguments
+        commands = []        
         binary = "python "  + self.filePing['salvus_wrapper']
-        args = "salvus_input.yaml " + self.filePing['salvus_setup']
-
+        args = "--ucis4eq salvus_input.yaml " +\
+               "--salvus " + self.filePing['salvus_setup']
+               
+        commands.append((binary, args)) 
+        
         # Generate Submission script
-        # TODO: This is hardcoded by right now but should be parametrized
-        resources = {'wtime': 1800, 'nodes': 1, 'tasks': 1, 'tasks-per-node': 1, 
-                     'qos': 'debug'}
+        # TODO: This is hardcoded by now but should be parametrized
+        resources = {'wtime': 1800, 'nodes': 1, 'tasks-per-node': 1,
+                     'cpus-per-task': 48, 'qos': 'debug'}
                      
         # Solver dependencies 
         additional = []
-        additional.append("export PYTHON_PATH=" +\
+        additional.append("export PYTHONPATH=" +\
                            os.path.dirname(self.filePing['salvus_wrapper']) +\
-                           ":$PYTHON_PATH")
+                           ":$PYTHONPATH")
             
         
         # Submission instance   
-        submission = SalvusPrepareSubmision(machine)
+        submission = SalvusWrapperSubmision(machine)
         
-        script = submission.build(binary, workSpace, args, resources, additional)
+        script = submission.build(commands, workSpace, resources, additional)
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "salvus_wrapper"
@@ -150,7 +160,7 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         submission.run(dataRepo.path + "/" + rworkpath)
 
         # Get the path to the Salvus input parameters
-        result['salvus_input'] = dataRepo.path + "/" + rworkpath + "/salvus_input.toml"
+        result['salvus_input'] = dataRepo.path + "/" + rworkpath + "/salvus_input_rupture.toml"
         
         # Return list of Id of the newly created item
         return jsonify(result = result['salvus_input'], response = 201)
@@ -166,12 +176,15 @@ class SalvusRunSubmision(scriptABC.ScriptABC):
         r = resources
         
         # TODO: Change this depending of the target environment queue system
-        self._getRules(r['wtime'], r["nodes"], r["tasks"], 
-                            r["tasks-per-node"], r["qos"])
+        self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
+                            r["cpus-per-task"], r["qos"])
 
         # Additional instructions
         self.lines.append("set -e")        
         self.lines.append("module load fabric")
+        self.lines.append("export I_MPI_EXTRA_FILESYSTEM_LIST=gpfs")
+        self.lines.append("export I_MPI_EXTRA_FILESYSTEM=on")
+        
         for line in additional:
             self.lines.append(line)
         self.lines.append("echo $SLURM_JOB_ID >> jobfile.txt")
@@ -201,7 +214,7 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         """
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration    
     def entryPoint(self, body):
         """
         Call the Salvus-Compute on the remote machine
@@ -210,7 +223,7 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         # Initialization
         result = {}
         
-        # Select target machine
+        # Select target machinefgetRules
         machine = body['resources']
                 
         # Creating the repository instance for data transfer    
@@ -222,18 +235,20 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         os.makedirs(workSpace, exist_ok=True)
         
         # Obtain remote location of Salvus binary
-        binary = self.filePing['salvus_compute']        
+        binary = self.filePing['salvus_compute']
         
         # Prepare script's arguments
         args = body['input']
         
         # Generate Submission script
         # TODO: This is hardcoded by right now but should be parametrized
-        resources = {'wtime': 1800, 'nodes': 1, 'tasks': 1, 'tasks-per-node': 1, 
-                     'qos': 'debug'}        
+        resources = {'wtime': 1800, 'nodes': 10, 'tasks-per-node': 48,
+                     'cpus-per-task': 1, 'qos': 'debug'}
         
-        script = SalvusRunSubmision(machine).build(binary, workSpace, args,
-                                                   resources)
+        # Submission instance   
+        submission = SalvusRunSubmision(machine)
+        
+        script = submission.build(binary, workSpace, args, resources)
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "salvus"
@@ -241,46 +256,200 @@ class SalvusRun(microServiceABC.MicroServiceABC):
 
         # Transfer input parameter file and script
         dataRepo.uploadFile(rworkpath, script)
+        
+        # Submit and wait for finish
+        submission.run(dataRepo.path + "/" + rworkpath)
 
         # Return list of Id of the newly created item
-        return jsonify(result = workSpace + "/output", response = 201)
-
+        return jsonify(result = workSpace, response = 201)
+    
+@staticDataMap.build
 class SalvusPost(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the CMT statistical component implementation
+        """
+
+        # Select the database
+        self.db = ucis4eq.dal.database
+
+    # Service's entry point definition
+    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration    
+    def entryPoint(self, body):
+        """
+        Call the Salvus-Flow Marta's wrapper (Postprocessing scripts)
+        """
+        
+        # Obtain the domain in DB
+        domain = self.db["Domains"].find_one({"id": body['domain']['id']})
+
+        # Prepare the input parameters file
+        inputP = {}
+        inputP['fmax_in_hz'] = domain['parameters']['freq_max']
+        inputP['geometry'] = {'coordinates': domain['model']['geometry']}
+        
+        # Initialization
+        result = {}
+        
+        # Select target machinefgetRules
+        # TODO Do this in a clever way!
+        machine = body['resources']        
+
+        # Creating the repository instance for data transfer    
+        # TODO: Select the repository from the DB 'Resources' document
+        dataRepo = dal.repositories.create('BSCDT', **dal.config)        
+        
+        # Create the directory for the current execution
+        bpath = body['base'] + "/" + body['domain']['id'] + "/"
+        workSpace = "/workspace/runs/" + bpath
+        os.makedirs(workSpace, exist_ok=True)       
+        
+        # Write the YAML file
+        inputPyaml = yaml.safe_dump(inputP)
+        pfile = workSpace + "/" + "salvus_input.yaml"
+        with open(pfile, "w") as f:
+           f.write(inputPyaml)
+        
+        pattern = "/trial_" + body['domain']['id'] + "*/"
+        root = dataRepo.path + "/"
+        pworkpath = root + bpath + "/" + "salvus_post/"
+        wworkpath = root + body["trial"] +  "/" + "salvus_wrapper/"        
+        sworkpath = root + body['base'] + pattern + "salvus/"
+        
+        # Prepare script's arguments
+        commands = []
+        # ... for postprocessing
+        binary = "python "  + self.filePing['salvus_wrapper_post']
+        args = "--ucis4eq " + pworkpath + "salvus_input.yaml " +\
+               "--salvus "  + self.filePing['salvus_setup'] + " " +\
+               "--coordsdata " +  wworkpath + " " +\
+               "--rawdata " + sworkpath
+        commands.append((binary, args))
+        
+        # ... and plotting
+        binary = "python "  + self.filePing['salvus_wrapper_plot']
+        args = "--processeddata " + sworkpath + " " +\
+               "--topogrid " + self.filePing["SamosIzmir_grid_topo"]
+        commands.append((binary, args))
+        
+        # ... move to proper directory
+        binary = "cd"
+        args = pworkpath
+        commands.append((binary, args))
+        
+        # ... create symbolic link
+        binary = "ln"
+        args = "-s " + root + body['base'] + " " + body['base']
+        commands.append((binary, args))
+        
+        # ... create symbolic link
+        binary = "tar "
+        args = "czvf  " + body['base'] + ".tar.gz " + body['base'] +\
+                pattern + "salvus/*.png"
+        commands.append((binary, args))
+        
+        # ... create symbolic link
+        binary = "rm  "
+        args = "-fr " + body['base']
+        commands.append((binary, args))           
+        
+        # Generate Submission script
+        # TODO: This is hardcoded by now but should be parametrized
+        resources = {'wtime': 1800, 'nodes': 1, 'tasks-per-node': 1,
+                     'cpus-per-task': 48, 'qos': 'debug'}        
+        
+        # Solver dependencies 
+        additional = []
+        additional.append("export PYTHONPATH=" +\
+                           os.path.dirname(self.filePing['salvus_wrapper_post']) +\
+                           ":$PYTHONPATH")
+                           
+        # Submission instance   
+        submission = SalvusWrapperSubmision(machine)     
+        
+        script = submission.build(commands, workSpace, resources, additional)        
+                              
+        # Create the remote working directory
+        rworkpath = bpath + "salvus_post"
+        dataRepo.mkdir(rworkpath)
+
+        # Transfer input parameter file and script
+        dataRepo.uploadFile(rworkpath, script) 
+        dataRepo.uploadFile(rworkpath, pfile)        
+        
+        # Submit and wait for finish
+        submission.run(dataRepo.path + "/" + rworkpath)
+        
+        # Return list of Id of the newly created item
+        #return jsonify(result = {}, response = 201)
+        
+        # Download results from HPC machine
+        dataRepo.downloadFile(rworkpath + "/" + body['base'] + ".tar.gz", 
+                              workSpace + body['base'] + ".tar.gz")
+    
+        # Upload results to B2DROP
+        # TODO: Select a random repository
+        b2drop = dal.repositories.create('B2DROP', **dal.config)
+        
+        rpath = "ChEESE/PD1/Runs/" + body["base"] + "_" + body['domain']['id']  + "/"
+        lpath = workSpace
+        
+        ## Create remote path
+        #input = "/input/"
+        #b2drop.mkdir(rpath + input)
+        b2drop.mkdir(rpath)
+
+        # Upload results        
+        file = body['base'] + ".tar.gz"
+        b2drop.uploadFile(rpath + file, lpath + file)
+        
+        # Return list of Id of the newly created item
+        # TODO: Return the SRF in plain text 
+        return jsonify(result = {}, response = 201)
+                
+class SalvusPing(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize SalvusRun instance
+        """
 
     # Service's entry point definition
     @config.safeRun
     def entryPoint(self, body):
         """
-        Call the Salvus-Flow Marta's wrapper
+        Call the Salvus-Compute on the remote machine
         """
-        # Run postprocess
-        os.system("/bin/bash -c 'python /root/salvusWrapper/plot_pgd_pgv_pga.py " + body["opath"] + "'")
         
-        # Upload results to B2DROP
-        # TODO: Select a random repository
-        b2drop = dal.repositories.create('B2DROP', **dal.config)
+        # Initialization
+        result = {}
         
-        rpath = "ChEESE/PD1/Runs/" + body["uuid"] + "/"
-        lpath = "/workspace/runs/" + body["uuid"] + "/"
-        
-        # Create remote path
-        input = "/input/"
-        output = "/output/"
-        b2drop.mkdir(rpath)
-        b2drop.mkdir(rpath + input)
-        b2drop.mkdir(rpath + output)
-        
-        # Upload input parameters file
-        file = body["uuid"] + ".yaml"
-        b2drop.uploadFile(rpath + input + file, lpath + file)
-        
-        files = ["PGA.png", "PGD.png", "PGV.png"]
-        rpath += output
-        lpath += output
-        for file in files:
-            b2drop.uploadFile(rpath + file, lpath + file)
-       
-        # Return list of Id of the newly created item
-        # TODO: Return the SRF in plain text 
-        return jsonify(result = {}, response = 201)
+        # Select target machinefgetRules
+        machine = body['resources']
                 
+        # Creating the repository instance for data transfer    
+        # TODO: Select the repository from the DB 'Resources' document
+        dataRepo = dal.repositories.create('BSCDT', **dal.config)
+        
+        # Create the directory for the current execution
+        workSpace = "/workspace/runs/" + body["trial"] + "/"
+        os.makedirs(workSpace, exist_ok=True)
+        
+        # Create the remote working directory
+        filename = "progress.json"  
+        rfile = body['trial'] + "/salvus/" + filename
+        lfile = workSpace + filename
+        
+        # Download results from HPC machine
+        dataRepo.downloadFile(rfile, lfile)
+        
+        # Read local json file
+        with open(lfile, 'r') as f:
+            progress = json.load(f)
+
+        # Return list of Id of the newly created item
+        return jsonify(result = progress, response = 201)

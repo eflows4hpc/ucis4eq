@@ -57,7 +57,7 @@ class IndexPriority(microServiceABC.MicroServiceABC):
         """
 
     # Service's entry point definition
-    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         This method will figure out the index priority for a given event

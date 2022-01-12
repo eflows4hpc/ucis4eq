@@ -78,8 +78,10 @@ class DAL(microServiceABC.MicroServiceABC):
             rfile = os.path.basename(rpath)
             lpath = workSpace + rfile
                 
+                
             # Download the file from the repository
-            if not os.path.exists(lpath):        
+            if not os.path.exists(lpath):
+                print("Downloading file: " + lpath, flush=True)
                 repository.downloadFile(rpath, lpath)
 
             # Create collection

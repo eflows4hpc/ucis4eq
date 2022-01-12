@@ -21,11 +21,71 @@
 
 ################################################################################
 # Module imports
+import sys
+from abc import ABC, abstractmethod
+from bson.objectid import ObjectId
+from flask import jsonify
+import datetime
+import ucis4eq.dal as dal
+import ucis4eq.misc.config as config
 
 ################################################################################
 # Methods and classes
-class MicroServiceABC():
+class MicroServiceABC(ABC):
     
     # Method for defining the entry point to the service implementation
+    @abstractmethod    
     def entryPoint(self, body):
         raise NotImplementedError("Error: 'entryPoint' method should be implemented")
+        
+    # Static method for decorating microservices
+    @classmethod
+    def runRegistration(cls, func):
+        def func_wrapper(*args, **kwargs):
+               # Initialize
+               runInfo = {}
+               status = "RUNNING"               
+               serviceRun = None
+               className = args[0].__class__.__bases__[0].__name__               
+               if className == cls.__name__:
+                  className = args[0].__class__.__name__
+               
+               # Check if the request provides a Dict 
+               if isinstance(args[1], dict) and 'id' in args[1].keys():
+                    runInfo['serviceName'] = className
+                    runInfo['requestId'] = args[1]['id'] 
+                    runInfo['status'] = status
+                    runInfo['initTime'] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+                    runInfo['inputs'] = args[1]
+                    serviceRun = dal.database.ServiceRuns.insert_one(runInfo).inserted_id
+               else:
+                    raise Exception("The 'entrypoint' method for the service '" +\
+                    className + "' must define a dictionary with a 'id' key")
+
+               # Protect a service execution
+               try:
+                   results = func(*args, **kwargs)
+                   status = "SUCCESS"
+               except Exception as e:
+                   
+                   config.printException()
+                   
+                   status = "FAILED"
+                   
+                   if runInfo.keys():
+                       dal.database.Requests.update_one(
+                            {'_id': ObjectId(runInfo['requestId'])},
+                            {'$set': {"state": status}})
+                        
+                   # Return error code and message
+                   results = jsonify(result = str(e), response = 501)                                  
+               
+               try:
+                   dal.database.ServiceRuns.update_one({'_id': ObjectId(serviceRun)},
+                   {'$set': {"endTime": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), 
+                   "status": status}})
+               except Exception as e:
+                   config.printException()               
+                                                 
+               return results
+        return func_wrapper

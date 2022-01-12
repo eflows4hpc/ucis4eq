@@ -35,7 +35,7 @@ from flask import Flask, request, jsonify
 
 # Load micro-services implemented components
 from ucis4eq.misc import config
-from ucis4eq.scc.event import EventRegistration, EventDomains, EventCountry
+from ucis4eq.scc.event import EventRegistration, EventDomains, EventCountry, EventSetState
 from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs 
 from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource 
 from ucis4eq.scc.inputBuilder import InputParametersBuilder
@@ -177,6 +177,15 @@ def eventDispatcherService(body):
     Call component implementing this micro service
     """
     return EventRegistration().entryPoint(body)
+    
+# Incomming event registration
+@microServicesApp.route("/eventSetState", methods=['POST'])
+@postRequest
+def eventSetStateService(body):
+    """
+    Call component implementing this micro service
+    """
+    return EventSetState().entryPoint(body)
 
 # Event domains detection
 @microServicesApp.route("/eventDomains", methods=['POST'])
