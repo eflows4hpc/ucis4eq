@@ -103,6 +103,8 @@ external_stylesheets = [
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, "/opt/dashboard/style.css"])
 
+cheeseLogo = base64.b64encode(open("/root/services/assets/Cheese_Logo.png", 'rb').read()).decode('ascii')
+
 app.layout = html.Div(
     children=[
         html.Div(
@@ -122,7 +124,6 @@ app.layout = html.Div(
         html.Div(
             dcc.Tabs(
                 id="tabs-with-classes",
-                value='tab-1',
                 parent_className='custom-tabs',
                 className='custom-tabs-container',
                 children=[
@@ -152,7 +153,10 @@ app.layout = html.Div(
                 ]),
         ),
         
-        html.Div(id='tabs-content-classes', className='wrapper'),  
+        html.Div(id='tabs-content-classes', 
+                 children=[
+                ], 
+                className='wrapper'),
     ]
 )
 
@@ -171,15 +175,18 @@ def render_content(tab):
         submit = triggerEvent()
         new = newEvent()
                 
-        beachball = html.Div(id='tab-beachball-2')
+        #beachball = html.Div(id='tab-beachball-2')
         map_layers = mapLayers()            
         
         content = html.Div(id='tab-content-2')
-        
-        evetAndBB = html.Div(children = [dbc.Row([dbc.Col(new), dbc.Col(beachball)],
+
+                
+        evetAndBB = html.Div(children = [dbc.Row([
+                                            dbc.Col(new), 
+                                            dbc.Col(content)],
                              style = {"width": "100%"} )], className='card')
         
-        return html.Div(children = [submit, evetAndBB, content, map_layers]) 
+        return html.Div(children = [submit, evetAndBB, map_layers]) 
         
     elif tab == 'tab-3':
         content = html.Div(id='tab-table-3')        
@@ -322,8 +329,8 @@ def queryEvents(layer):
                                
                                html.Div(id=GEOTIFF_MARKER_ID)
 
-                           ])
-                    ], className="card"
+                           ], className="card")
+                    ]
                 ),    
     ])
         
@@ -343,7 +350,7 @@ def generateBeachBall(stk, dip, rake):
             
   bb = dbc.Card(
     [dbc.CardImg(src='data:image/png;base64,{}'.format(bbFigure), top=True)],  
-     style={ "padding": "20%"})
+    className="card-bb")
   
   return bb
   
@@ -354,7 +361,7 @@ def generateBeachBall(stk, dip, rake):
 def showEvent(layer, latitude, longitude):
     
     fieldsEQ = {'event location': {
-                    'Origin': 'Event info',
+                    'Origin': 'EQ Epicenter',
                     'Latitude': float(latitude),
                     'Longitude': float(longitude),
                     'Magnitude': 'EarthQuake Event'
@@ -401,41 +408,40 @@ def showEvent(layer, latitude, longitude):
             
             if siteType == 'towns':
                 color = "yellow"
+                type = "Town"
             elif siteType == 'seismic_stations':
-                color = "red"                
+                color = "red"
+                type = "Seismic station"          
             elif siteType == 'accelerometers':
-                color = "green"                  
-                
+                color = "green"       
+                type = "Accelerometer"
 
             siteGroup = sitesTypes[siteType]
             for siteK in siteGroup:
                 site = siteGroup[siteK]
                 sitesMarkers[siteK] = {
-                    'Origin': siteK,
+                    'Origin': type,
                     'Latitude': float(site['latitude']),
                     'Longitude': float(site['longitude']),
                     'Magnitude': siteK,
-                    'Color': color
+                    'Color': color,
                 }
+     
+    # Draw Map
+    eventMap = dl.Map(style={'width': '100%', 'height': '680px'},
+                   center=[float(latitude), float(longitude)],
+                   zoom=8,
+                   children=[
+                       #dl.TileLayer(url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_nolabels/{z}/{x}/{y}.png"),
+                       dl.TileLayer(url="http://www.google.es/maps/vt?lyrs="+layer+"@189&gl=cn&x={x}&y={y}&z={z}"),
+                       dl.GeoTIFFOverlay(id=GEOTIFF_ID, interactive=True),
 
-                             
-    eventMap = html.Div([
-        # Draw Map
-        dl.Map(style={'width': '100%', 'height': '640px'},
-               center=[float(latitude), float(longitude)],
-               zoom=8,
-               children=[
-                   #dl.TileLayer(url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_nolabels/{z}/{x}/{y}.png"),
-                   dl.TileLayer(url="http://www.google.es/maps/vt?lyrs="+layer+"@189&gl=cn&x={x}&y={y}&z={z}"),
-                   dl.GeoTIFFOverlay(id=GEOTIFF_ID, interactive=True),
-
-                   getMarkers(fieldsEQ),
-                   getMarkers(sitesMarkers),
-                   
-                   html.Div(id=GEOTIFF_MARKER_ID)
+                       getMarkers(fieldsEQ),
+                       getMarkers(sitesMarkers),
+                       
+                       html.Div(id=GEOTIFF_MARKER_ID)
 
                ])
-    ], className="card")    
 
     return eventMap    
     
@@ -492,33 +498,39 @@ def newEvent():
                     ]),
                 html.Div([
                         html.H3('Central Moment Tensor (Optional)'),
-                        dbc.Row([                        
-                            dbc.Label('Strike: ', html_for="cmt-strike"), 
-                            dbc.Col(
-                                dcc.Slider(id='cmt-strike', min=0, max=360, value=270,
-                                       step=0.5, tooltip={"placement": "bottom", "always_visible": True})
-                                ),
-                            ],                              
-                        className="mb-3"),
-                        
-                        dbc.Row([                        
-                            dbc.Label('Dip: ', html_for="cmt-dip"), 
-                            dbc.Col(
-                                dcc.Slider(id='cmt-dip', min=0, max=90, value=37,
-                                       step=0.5, tooltip={"placement": "bottom", "always_visible": True})
-                                ),
-                            ],                              
-                        className="mb-3"),   
-                        
-                        dbc.Row([                        
-                            dbc.Label('Rake: ', html_for="cmt-rake"), 
-                            dbc.Col(
-                                dcc.Slider(id='cmt-rake',  min=-180, max=180, value=-86,
-                                       step=0.5, tooltip={"placement": "bottom", "always_visible": True})
-                                ),
-                            ],                              
-                        className="mb-3"),                                                
-
+                        dbc.Row([
+                            dbc.Col([       
+                                dbc.Row([                        
+                                    dbc.Label('Strike: ', html_for="cmt-strike"), 
+                                    dbc.Col(
+                                        dcc.Slider(id='cmt-strike', min=0, max=360, value=270,
+                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True})
+                                        ),
+                                    ],                              
+                                className="mb-3"),
+                                
+                                dbc.Row([                        
+                                    dbc.Label('Dip: ', html_for="cmt-dip"), 
+                                    dbc.Col(
+                                        dcc.Slider(id='cmt-dip', min=0, max=90, value=37,
+                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True})
+                                        ),
+                                    ],                              
+                                className="mb-3"),   
+                                
+                                dbc.Row([                        
+                                    dbc.Label('Rake: ', html_for="cmt-rake"), 
+                                    dbc.Col(
+                                        dcc.Slider(id='cmt-rake',  min=-180, max=180, value=-86,
+                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True})
+                                        ),
+                                    ],                              
+                                className="mb-3"),                                                
+                            ], style = {"width": "70%"}),
+                            dbc.Col([ 
+                                html.Div(id='tab-beachball-2')
+                            ], style = {"width": "30%"}),
+                        ], style = {"width": "100%"}),
                     ]),         
             ])
     
@@ -528,7 +540,7 @@ def mapLayers():
     content= html.Div(
                     children=[
                     
-                    html.H3('Layer selection'),
+                    html.H3('Map layer selection'),
                     dcc.RadioItems(
                         id="layer-selection",
                         options=[
