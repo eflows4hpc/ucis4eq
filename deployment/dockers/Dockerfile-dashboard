@@ -1,5 +1,9 @@
+###############################################################################
+###########################    BUILD STAGE     ################################
+###############################################################################
+
 # Obtain a clean Ubuntu distribution
-FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
+FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest AS build
 
 # Expose the Flask application port
 EXPOSE 6001
@@ -8,16 +12,25 @@ EXPOSE 6001
 RUN pip install pandas dash flask dash_leaflet dash_bootstrap_components
 RUN pip install webdavclient3 shapely dash-cytoscape reverse_geocoder
 
+# Obtain the dashboard service
+RUN curl --request GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2Fdashboard.py/raw?ref=master' > /root/services/dashboard.py
+
 # Prepare an script able to start the service
 RUN echo "python /root/services/dashboard.py" >> /root/services/start.sh
 
 # Copy and decompress the dashboard minimum files
 ADD deployment/dockers/dashboard/assets /root/services/assets
 
-ARG CACHEBUST=1    
+# Entry point
+ENTRYPOINT ["sh", "/root/services/start.sh"]
+
+###############################################################################
+########################### CREDENTIALS STAGE  ################################
+###############################################################################
+
+FROM build AS credentials
 
 # Pass the SSH key (both public and private)
-ARG SSH_PUB
 ARG SSH_PRV
 
 RUN mkdir -m 700 /root/.ssh; \
@@ -25,13 +38,11 @@ RUN mkdir -m 700 /root/.ssh; \
   ssh-keyscan dt01.bsc.es > /root/.ssh/known_hosts; \
   ssh-keyscan mn1.bsc.es >> /root/.ssh/known_hosts; \
   ssh-keyscan mn2.bsc.es >> /root/.ssh/known_hosts; \
-  ssh-keyscan mn3.bsc.es >> /root/.ssh/known_hosts
+  ssh-keyscan mn3.bsc.es >> /root/.ssh/known_hosts  
   
 # Add the keys and set permissions
 RUN echo "$SSH_PRV" > /root/.ssh/id_rsa && \
-echo "$SSH_PUB" > /root/.ssh/id_rsa.pub && \
-chmod 600 /root/.ssh/id_rsa && \
-chmod 600 /root/.ssh/id_rsa.pub
+    chmod 600 /root/.ssh/id_rsa 
 
 # Entry point
 ENTRYPOINT ["sh", "/root/services/start.sh"]

@@ -66,7 +66,7 @@ class EventRegistration(microServiceABC.MicroServiceABC):
         Deal with a new earthquake event
         """
         # Insert each source
-        record_created = self.db.TriggerInfo.insert(body['sources'])
+        record_created = self.db.TriggerInfo.insert_one(body['sources']).inserted_id
         records = []
         # Store the set of events
         field = {}
@@ -74,7 +74,7 @@ class EventRegistration(microServiceABC.MicroServiceABC):
         field['sources_id'] = record_created
         field['uuid'] = body['uuid']
         field['state'] = 'LAUNCHED'
-        event = self.db.Requests.insert(field)
+        event = self.db.Requests.insert_one(field).inserted_id
         
         print("Request Id. [" + str(event) + "] registered for event [" + \
              field['uuid'] + "]", flush=True)
@@ -103,11 +103,11 @@ class EventSetState(microServiceABC.MicroServiceABC):
         Update the status of an earthquake event
         """
 
-        event = self.db.Requests.update({'_id': ObjectId(body['id'])},
+        self.db.Requests.update_one({'_id': ObjectId(body['id'])},
             {'$set': {"state": body['state']}})
 
         # Return list of Id of the newly created item
-        return jsonify(result = str(event), response = 201)
+        return jsonify(result = str(body['id']), response = 201)
 
 class EventDomains(microServiceABC.MicroServiceABC):
 

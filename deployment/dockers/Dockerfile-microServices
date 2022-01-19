@@ -1,5 +1,9 @@
+###############################################################################
+###########################    BUILD STAGE     ################################
+###############################################################################
+
 # Start building the Docker image from the UCIS4EQ base image
-FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
+FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest AS build
 
 # Install dependencies
 RUN pip install haversine shapely pandas scikit-learn pickle-mixin xgboost kneed webdavclient3

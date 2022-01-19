@@ -1,5 +1,9 @@
+###############################################################################
+###########################    BUILD STAGE     ################################
+###############################################################################
+
 # Obtain a clean Ubuntu distribution
-FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest
+FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest AS build
 
 # Expose the Flask application port
 EXPOSE 5001
@@ -13,7 +17,7 @@ RUN pip install webdavclient3
 #RUN python -m pip install "dask[complete]"
 
 # Obtain the EQ Temporal Workflow Manager Emulator
-RUN curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2FworkflowManagerService.py/raw?ref=master' > /root/services/workflowManagerService.py
+RUN curl --request GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2FworkflowManagerService.py/raw?ref=master' > /root/services/workflowManagerService.py
 
 # Prepare an script able to start the service
 RUN echo "python /root/services/workflowManagerService.py" >> /root/services/start.sh

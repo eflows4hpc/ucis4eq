@@ -1,7 +1,7 @@
 {
   "B2DROP": {
-    "user": "",
-    "pass": "",
+    "user": "juan.rodriguez@bsc.es",
+    "pass": "my_amazing_password",
     "url": "https://b2drop.bsc.es/remote.php/webdav/",
     "path": "ChEESE/PD1/StaticDataMapping.json"
   },
@@ -9,7 +9,7 @@
     "path": "/workspace/"
   },
   "BSCDT":{
-    "user": "pr1ejg11",
+    "user": "bsc21253",
     "url": "dt01.bsc.es",
     "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ/"    
   }

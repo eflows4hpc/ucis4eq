@@ -1,15 +1,20 @@
 ###
 ###   Docker file for the ucis4eq services
 ###
-version: '3'
+version: '3.7'
 
 services:
   # UCIS4EQ Slip Generator service  
-  slipGen:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
+  slipgen:
+    build: 
+      context: .
+      target: credentials
+      dockerfile: deployment/dockers/Dockerfile-slipGen
+      args:
+        SSH_PRV: $SSH_PRV    
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json   
+      - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json      
 
     entrypoint: ["/bin/bash", "/opt/services/start.sh"]
@@ -18,12 +23,15 @@ services:
 
   # UCIS4EQ Salvus
   salvus:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/salvus
+    build: 
+      context: .
+      target: credentials
+      dockerfile: deployment/dockers/Dockerfile-salvusServices
+      args:
+        SSH_PRV: $SSH_PRV        
     network_mode: "host"
     volumes:
-      - ~/.ssh:/root/.ssh
-      - ${UCIS4EQ_ENV}:/root/env.source
-      - ${UCIS4EQ_DAL}:/root/DAL.json
+      - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json            
     entrypoint: ["/bin/bash", "/root/services/start.sh"]
     depends_on:
@@ -34,9 +42,8 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/microservices
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/root/DAL.json
+      - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json      
-      
     depends_on:
       - DAL
   
@@ -49,7 +56,7 @@ services:
       - slipGen
       - salvus      
     volumes:
-      - ${UCIS4EQ_DAL}:/root/DAL.json
+      - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json      
     depends_on:
       - DAL
@@ -67,11 +74,23 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/listener
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/root/DAL.json
+      - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json            
-
-    #restart: always
+    ports:
+      - "5000:5000"
+    restart: always
     depends_on:
       - DAL
-      - workflowManager
-      - microServices
+      - microServices      
+      
+  # UCIS4EQ Dashboard service
+  dashboard:
+    build: 
+      context: .
+      target: credentials
+      dockerfile: deployment/dockers/Dockerfile-dashboard
+      args:
+        SSH_PRV: $SSH_PRV
+    network_mode: "host"
+    volumes:
+      - ${UCIS4EQ_DAL}:/opt/DAL.json      
