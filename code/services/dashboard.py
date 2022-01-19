@@ -51,15 +51,15 @@ figureOptions = {
     "Components": {
       "pattern": "[ENZ]",
       "units": {
-        "Centimeters/Sec": "cm_s",
-        "Percentage": "percent"
+        "cm/s²": "cm_s_s",
+        "%g": "percent"
       }
     },
     "Maximum": {
       "pattern": "max",
       "units": {
-        "Centimeters/Sec": "cm_s",
-        "Percentage": "percent"
+        "cm/s²": "cm_s_s",
+        "%g": "percent"
       }
     }
   },
@@ -67,13 +67,13 @@ figureOptions = {
     "Components": {
       "pattern": "[ENZ]",
       "units": {
-        "Centimeters/Sec": "cm_s"
+        "cm/s": "cm_s"
       }
     },
     "Maximum": {
       "pattern": "max",
       "units": {
-        "Centimeters/Sec": "cm_s"
+        "cm/s": "cm_s"
       }
     }
   },
@@ -81,13 +81,41 @@ figureOptions = {
     "Components": {
       "pattern": "[ENZ]",
       "units": {
-        "Percentage": "percent"
+        "%g": "percent"
       }
     },
     "Maximum": {
       "pattern": "max",
       "units": {
-        "Percentage": "percent"
+        "%g": "percent"
+      }
+    }
+  },
+  "Arias": {
+    "Components": {
+      "pattern": "[ENZ]",
+      "units": {
+        "cm/s": "cm_s"
+      }
+    },
+    "Maximum": {
+      "pattern": "max",
+      "units": {
+        "cm/s": "cm_s"
+      }
+    }
+  },
+  "CAV": {
+    "Components": {
+      "pattern": "[ENZ]",
+      "units": {
+        "cm/s": "cm_s"
+      }
+    },
+    "Maximum": {
+      "pattern": "max",
+      "units": {
+        "cm/s": "cm_s"
       }
     }
   }
@@ -104,6 +132,8 @@ external_stylesheets = [
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, "/opt/dashboard/style.css"])
 
 cheeseLogo = base64.b64encode(open("/root/services/assets/Cheese_Logo.png", 'rb').read()).decode('ascii')
+eflowsLogo = base64.b64encode(open("/root/services/assets/eFlows_Logo.png", 'rb').read()).decode('ascii')
+
 
 app.layout = html.Div(
     children=[
@@ -117,7 +147,7 @@ app.layout = html.Div(
                     children="Monitor dashboard provides real-time information"
                              " about urgent computing EQ simulations",
                     className="header-description",
-                ),
+                )                
             ],
             className="header",
         ),
@@ -157,6 +187,13 @@ app.layout = html.Div(
                  children=[
                 ], 
                 className='wrapper'),
+        html.Div(id="logos",
+                 children=[
+                           dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(cheeseLogo)), className="card-logo-cheese"),
+                           dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(eflowsLogo)), className="card-logo-eflows")
+                         ],
+                 style={"position": "absolute", "top": 250, "left": 15, "width": 340},                
+                ),
     ]
 )
 
@@ -190,12 +227,20 @@ def render_content(tab):
         
     elif tab == 'tab-3':
         content = html.Div(id='tab-table-3')        
+        eventsProgress = html.Div(id='tab-progress-3')
         eventsTree = html.Div(id='tab-tree-3')
+        eventsSnap = html.Div(id='tab-snaps-3')        
+
+        
+        eventsInfo = html.Div(children = [dbc.Row([
+                                            dbc.Col([eventsProgress, eventsTree], width=8), 
+                                            dbc.Col(eventsSnap, width=4)])
+                     ])
         
         return html.Div(children = [ 
                             content,
                             getLoading('tab-table-3'),                            
-                            eventsTree
+                            eventsInfo
                             ])
 
     elif tab == 'tab-4':
@@ -292,7 +337,8 @@ def queryEvents(layer):
                             data=df.to_dict('records'),
                             page_size= 5,
                             sort_action="native",
-                            sort_mode='multi',    
+                            sort_mode='multi',
+                            sort_by=[{"column_id": "Elapsed Time (hours)", "direction": "asc"}],  
                             style_data={
                                 'color': 'black',
                                 'backgroundColor': 'white',
@@ -428,7 +474,7 @@ def showEvent(layer, latitude, longitude):
                 }
      
     # Draw Map
-    eventMap = dl.Map(style={'width': '100%', 'height': '680px'},
+    eventMap = dl.Map(style={'width': '100%', 'height': '780px'},
                    center=[float(latitude), float(longitude)],
                    zoom=8,
                    children=[
@@ -531,7 +577,22 @@ def newEvent():
                                 html.Div(id='tab-beachball-2')
                             ], style = {"width": "30%"}),
                         ], style = {"width": "100%"}),
-                    ]),         
+                    ]),   
+                html.Div([
+                        html.H3('Graves-Pitarka (Rupture Generator)'),
+                        dbc.Row([
+                            dbc.Col([       
+                                dbc.Row([                        
+                                    dbc.Label('Seed: ', html_for="cmt-strike"), 
+                                    dbc.Col(
+                                        dcc.Slider(id='gp-seed', min=1, max=9999999, value=2109996,
+                                               step=1, tooltip={"placement": "bottom", "always_visible": True})
+                                        ),
+                                    ],                              
+                                className="mb-3"),                         
+                            ], style = {"width": "70%"}),
+                        ], style = {"width": "100%"}),
+                    ]),                           
             ])
     
     return event
@@ -743,16 +804,17 @@ def triggerEvent():
      Input('depth', 'value'),     
      Input('cmt-strike', 'value'), 
      Input('cmt-dip', 'value'), 
-     Input('cmt-rake', 'value')]
+     Input('cmt-rake', 'value'),
+     Input('gp-seed', 'value')]
 )
-def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake):
+def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake, seed):
     if n_clicks > 0:
         # Preparing job info
         job = {}
         
         euuid = str(uuid.uuid1())
         
-        agency = 'USER EVENT'
+        agency = 'USER_EVENT'
         
         job['sources'] = {agency: {'data': '', 'timestamp': '', 'query': ''}}
         job['uuid'] = euuid
@@ -772,6 +834,7 @@ def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake):
                                       'rake': rake
                                    }
                          }
+        alert['seed'] = seed;
         job['alerts'] = [alert]
                 
         # Create event directory and safe it
@@ -851,6 +914,7 @@ def queryJobs(value):
         className="card",
         children=[
             dcc.Interval(id="progress-interval", n_intervals=0, interval=10000),
+            dcc.Interval(id="progress-interval-snaps", n_intervals=0, interval=30000),            
             # Draw table
             dash_table.DataTable(
                 id='tableRunning',     
@@ -885,6 +949,99 @@ def queryJobs(value):
         
     return table    
 
+@app.callback(Output('tab-progress-3', 'children'),
+              Input("progress-interval", "n_intervals"),
+              Input('tableRunning', "derived_viewport_data"),
+              Input('tableRunning', "derived_virtual_selected_rows"))              
+def executionTree(n, data, idx):
+    
+    if len(idx):
+        progressBar = html.Div(
+                        className = "card",
+                        children = [
+                            dbc.Progress(id="progress", striped=True)
+                        ]
+                     )
+    else:
+        progressBar = html.Div()
+               
+    return progressBar
+    
+@app.callback(Output('tab-snaps-3', 'children'),
+              Input("progress-interval-snaps", "n_intervals"),
+              Input('tableRunning', "derived_viewport_data"),
+              Input('tableRunning', "derived_virtual_selected_rows"))
+def executionSnapshot(n, data, idx):
+
+    fieldsEQ = {}
+    
+    if not idx or len(idx) == 0:
+        return html.Div()
+        
+    col = dal.database["ServiceRuns"]
+    cursor= col.find({"requestId": data[idx[0]]['Run']})
+    
+    service = list(cursor)[-1]
+    map = True
+    if service['serviceName'] == "SalvusRun":
+
+        # Creating the repository instance for data transfer    
+        # TODO: Select the repository from the DB 'Resources' document
+        dataRepo = dal.repositories.create('BSCDT', **dal.config)
+            
+        # Create the directory for the current execution
+        workSpace = "/workspace/runs/" + service['inputs']['trial'] + "/"
+        os.makedirs(workSpace, exist_ok=True)
+
+        # Create the remote working directory
+        filename = "current.png"
+        rfile = service['inputs']['trial'] + "/salvus/snapshots/" +  filename
+        lfile = workSpace + filename
+
+        # Download results from HPC machine
+        dataRepo.downloadFile(rfile, lfile)
+                    
+        try:            
+            currentSnapshot = base64.b64encode(open(lfile, 'rb').read()).decode('ascii')
+            snapshot = dbc.Card(
+                                [dbc.CardImg(src='data:image/png;base64,{}'.format(currentSnapshot)),
+                                 html.H4(
+                                   "A preview of the magnitude of the (unfiltered) velocity field.",
+                                   className="card-text",
+                                 )
+                                ]
+                                )
+            map = False                    
+        except:
+            pass
+    
+    if map:
+        latitude = float(data[idx[0]]['Latitude'])
+        longitude = float(data[idx[0]]['Longitude'])
+        
+        fieldsEQ = {'event location': {
+                        'Origin': 'EQ Epicenter',
+                        'Latitude': latitude,
+                        'Longitude': longitude,
+                        'Magnitude': 'EarthQuake Event'
+                        }
+                   }
+        
+        snapshot = dl.Map(style={'width': '100%', 'height': '480px'},
+                       center=[latitude, longitude],
+                       zoom=6,
+                       children=[
+                           #dl.TileLayer(url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_nolabels/{z}/{x}/{y}.png"),
+                           dl.TileLayer(url="http://www.google.es/maps/vt?lyrs=s,h@189&gl=cn&x={x}&y={y}&z={z}"),
+                           dl.GeoTIFFOverlay(id=GEOTIFF_ID, interactive=True),
+
+                           getMarkers(fieldsEQ),
+                           html.Div(id=GEOTIFF_MARKER_ID)
+
+                   ], className = "card")
+    
+    return html.Div(children=[snapshot])
+
 @app.callback(Output('tab-tree-3', 'children'),
               Input("progress-interval", "n_intervals"),
               Input('tableRunning', "derived_viewport_data"),
@@ -914,45 +1071,36 @@ def executionTree(n, data, idx):
     
     df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
     
-    content= html.Div(
-                    children=[
-                        html.Div(
-                            className = "card",
-                            children = [
-                                dbc.Progress(id="progress", striped=True)
-                            ]
-                        ),
-                        html.Div(
-                            className = "card",
-                            children = [                        
-                                dash_table.DataTable(
-                                    id='table',     
-                                    columns=[{"name": i, "id": i} 
-                                             for i in columns],
-                                    data=df.to_dict('records'),
-                                    sort_action="native",
-                                    sort_mode='multi',
-                                    style_data={
-                                        'color': 'black',
-                                        'backgroundColor': 'white',
-                                        'textAlign': 'center',
-                                        'border': 'none',
-                                    },
-                                    style_data_conditional=[
-                                        {
-                                            'if': {'row_index': 'odd'},
-                                            'backgroundColor': 'rgb(247, 247, 240)',
-                                        }
-                                    ],
-                                    style_header={
-                                        'backgroundColor': 'rgb(227, 98, 9)',
-                                        'color': 'black',
-                                        'fontWeight': 'bold',
-                                        'textAlign': 'center'                
-                                    }
-                                )  
-                            ]
-                        )                                   
+
+    content = html.Div(
+                    className = "card",
+                    children = [                        
+                        dash_table.DataTable(
+                            id='table',     
+                            columns=[{"name": i, "id": i} 
+                                     for i in columns],
+                            data=df.to_dict('records'),
+                            sort_action="native",
+                            sort_mode='multi',
+                            style_data={
+                                'color': 'black',
+                                'backgroundColor': 'white',
+                                'textAlign': 'center',
+                                'border': 'none',
+                            },
+                            style_data_conditional=[
+                                {
+                                    'if': {'row_index': 'odd'},
+                                    'backgroundColor': 'rgb(247, 247, 240)',
+                                }
+                            ],
+                            style_header={
+                                'backgroundColor': 'rgb(227, 98, 9)',
+                                'color': 'black',
+                                'fontWeight': 'bold',
+                                'textAlign': 'center'                
+                            }
+                        )  
                     ]
                 )
     return content 
@@ -980,12 +1128,14 @@ def update_progress(n, data, idx):
     if service['serviceName'] == "SalvusRun":
         r = requests.post("http://127.0.0.1:5003/SalvusPing", json=service['inputs'])
         if r.json()['response'] == 501:
-            raise Exception(r.json()['result'])
-        
-        result = r.json()['result']
-        if len(result['tasks']) == 2:
-            task = result['tasks'][1]
-            value = int(value * (task['current'] / task['total']))
+            #raise Exception(r.json()['result'])
+            value = 0
+        else:
+            result = r.json()['result']
+            if len(result['tasks']) == 2:
+                task = result['tasks'][1]
+                if 'current' in task.keys():
+                    value = int(value * (task['current'] / task['total']))
     else:
         value = 0    
             
@@ -996,6 +1146,11 @@ def update_progress(n, data, idx):
         progress = progressValues[service['serviceName']]['init'] + value
         if service['status'] == "FAILED":
             color = "danger"
+    
+    if data[idx[0]]['Status'] == "REJECTED":
+       color = "warning"
+    elif data[idx[0]]['Status'] == "SUCCESS":
+        color = "success"
     
     # check progress of some background process, in this example we'll just
     # use n_intervals constrained to be in 0-100

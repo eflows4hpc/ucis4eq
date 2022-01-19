@@ -6,25 +6,25 @@
       "query": "http://service.iris.edu/fdsnws/event/1/query?format=xml&starttime=2020-10-30T00:00:00&endtime=2020-10-31T00:00:00&minmag=7.0"
     }
   },
-  "uuid": "cabc0e50-a0ec-11ea-9ec0-982cbc26f925",
+  "uuid": "cabc0e50-a0ec-11ea-9ec0-000000000000",
   "alerts": [
     {
       "agency": "USER EVENT",
-      "time": "30/10/2020, 11:51:27",
+      "time": "18/01/2022, 14:00:00",
       "latitude": 37.918,
       "longitude": 26.79,
       "magnitude": 7,
       "depth": 21000,
-      "elapsedtime": 24621,
-      "description": "Samos EQ Example",
+      "elapsedtime": 2456,
+      "description": "Samos EQ Manual trigger",
       "cmt": {
         "GCMT": {
           "strike": 270,
           "dip": 37,
-          "rake": -95,
-          "initSlip": "Samos_init_slip_np1.txt"
+          "rake": -95
         }
-      }
+      },
+      "seed": 2109996
     }
   ]
 }

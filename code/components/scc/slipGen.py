@@ -84,13 +84,13 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         
         relations = {}
         
-        relations['FAULT_LENGTH'] = 10**(-6.13 + (0.39*log_Mo))
-        relations['FAULT_WIDTH'] = 10**(-5.05 + (0.32*log_Mo))
-        relations['DEPTH_TO_TOP'] =  depth/1000 - (relations['FAULT_WIDTH']/2)
+        relations['FAULT_LENGTH'] = 10**(-6.13 + (0.39*log_Mo)) #32.84
+        relations['FAULT_WIDTH'] =  10**(-5.05 + (0.32*log_Mo)) #27.8
+        relations['DEPTH_TO_TOP'] =  depth/1000 - (relations['FAULT_WIDTH']/2) #10.666
         relations['LAT_TOP_CENTER'] = lat
         relations['LON_TOP_CENTER'] = lon
-        relations['HYPO_ALONG_STK'] = 0.0
-        relations['HYPO_DOWN_DIP'] = relations['FAULT_WIDTH']/2
+        relations['HYPO_ALONG_STK'] = 0.0 #-2.72
+        relations['HYPO_DOWN_DIP'] = relations['FAULT_WIDTH']/2 #16.24
 
         return relations
 
@@ -139,7 +139,10 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         srcParams['DLEN'] = setup['dlen']
         srcParams['CORNER_FREQ'] = setup['corner_freq']
         
-        srcParams['SEED'] = random.randint(1, 9999999)
+        if 'seed' in body.keys():
+            srcParams['SEED'] =  body['seed']
+        else:
+            srcParams['SEED'] =  random.randint(1, 9999999)
 
         with open(source, 'w') as fd:
             for key in srcParams.keys():
@@ -150,7 +153,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         if "initSlip" in cmt.keys():
             initSlip = " -i " + \
                         os.path.basename(self.fileMapping[cmt['initSlip']]) \
-                        + " -a 1.0"
+                        + " -a 0.9"
                 
         #args = "-o " + result['id'] + " -v " + self.fileMapping[setup['model']] + " -s " + source + " -i " + self.fileMapping["initSlip21june2000"] + " -a 0.99 > /dev/null 2>&1"
         args = "-o rupture "  + "--dt " + str(setup['dt']) + " -v " \

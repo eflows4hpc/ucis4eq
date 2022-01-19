@@ -168,7 +168,7 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
 class SalvusRunSubmision(scriptABC.ScriptABC):
     
     # Build the submission script
-    def build(self, binary, path, args, resources, additional = []):
+    def build(self, commands, path, resources, additional = []):
         # Obtain Header 
         self._getHeader()
 
@@ -180,7 +180,11 @@ class SalvusRunSubmision(scriptABC.ScriptABC):
                             r["cpus-per-task"], r["qos"])
 
         # Additional instructions
-        self.lines.append("set -e")        
+        self.lines.append("set -e")
+        
+        self.lines.append("module load ANACONDA/5.0.1")
+        self.lines.append("source activate cheese")
+                
         self.lines.append("module load fabric")
         self.lines.append("export I_MPI_EXTRA_FILESYSTEM_LIST=gpfs")
         self.lines.append("export I_MPI_EXTRA_FILESYSTEM=on")
@@ -190,13 +194,9 @@ class SalvusRunSubmision(scriptABC.ScriptABC):
         self.lines.append("echo $SLURM_JOB_ID >> jobfile.txt")
 
         # Build command
-        cmd = []
-        cmd.append("/usr/bin/srun")
-        cmd.append("--ntasks=$SLURM_NTASKS")
-        cmd.append("--ntasks-per-node=$SLURM_NTASKS_PER_NODE")
-        cmd.append(binary + " compute " + args)
-
-        self.lines.append(" ".join(cmd))
+        for command in commands:
+            self.lines.append("")
+            self.lines.append(command[0] + " " + command[1])
         
         self.lines.append("")        
         self.lines.append("touch SUCCESS")
@@ -237,18 +237,29 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         # Obtain remote location of Salvus binary
         binary = self.filePing['salvus_compute']
         
-        # Prepare script's arguments
+        # Prepare script's arguments 
+        commands = []
+        
+        # ... build command for job monitoring
+        binary = "python "  + self.filePing['salvus_job_tracker']
+        args = body['input'] + " $PWD 10 snapshots &"
+        commands.append((binary, args))
+        
+        # ... build command for the modeling
+        binary = "/usr/bin/srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE " +\
+                  self.filePing['salvus_compute'] + " compute "
         args = body['input']
+        commands.append((binary, args))
         
         # Generate Submission script
         # TODO: This is hardcoded by right now but should be parametrized
-        resources = {'wtime': 1800, 'nodes': 10, 'tasks-per-node': 48,
+        resources = {'wtime': 2400, 'nodes': 10, 'tasks-per-node': 48,
                      'cpus-per-task': 1, 'qos': 'debug'}
         
         # Submission instance   
         submission = SalvusRunSubmision(machine)
         
-        script = submission.build(binary, workSpace, args, resources)
+        script = submission.build(commands, workSpace, resources, [])
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "salvus"
@@ -427,6 +438,7 @@ class SalvusPing(microServiceABC.MicroServiceABC):
         
         # Initialization
         result = {}
+        progress = {}
         
         # Select target machinefgetRules
         machine = body['resources']
@@ -443,10 +455,10 @@ class SalvusPing(microServiceABC.MicroServiceABC):
         filename = "progress.json"  
         rfile = body['trial'] + "/salvus/" + filename
         lfile = workSpace + filename
-        
+
         # Download results from HPC machine
         dataRepo.downloadFile(rfile, lfile)
-        
+    
         # Read local json file
         with open(lfile, 'r') as f:
             progress = json.load(f)

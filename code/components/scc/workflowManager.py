@@ -200,7 +200,10 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                             lalert['trial'] = input['base'] + "/trial_" + tags
                             lalert['CMT'] = input['event']['CMT'][cmt]
                             lalert['domain'] = input['domain']
-                            lalert['resources'] = input['resources']
+                            lalert['resources'] = input['resources']                            
+                            
+                            if 'seed' in a.keys():
+                                lalert['seed'] = a['seed']
 
                             futures.append(executor.submit(WorkflowManagerEmulator.compute, lalert))
                             

@@ -5,9 +5,10 @@ body {
 }
 
 .header {
-    background-color: #222222;
+    background-image: linear-gradient(to right, #F7F7F0 0%, #222222 0%,  #222222 60%, #000000 85%);
     height: 14em;
-    padding: 2em 5em 0 0;
+    padding: 3em 0 0 0;
+    border-bottom: 5px solid rgb(227, 98, 9) !important;    
 }
 
 .header-emoji {
@@ -195,10 +196,23 @@ body {
   align-items: center
 }
 
-.card-logo {
-    height:200px;
-    width: 200px;
+.card-logo-cheese{
+    width: 100%;
+    border-radius: 10px;
+    background-color: #F7F7F0;
     font-family: "system-ui";
     display: flex !important;
-    align-items: center;
+    box-shadow: 1px 1px 1px #F7F7F0;
+    border: 4px #c8d8e4 !important;
+}
+
+.card-logo-eflows{
+    width: 100%;
+    border-radius: 10px;
+    background-color: #F7F7F0;
+    font-family: "system-ui";
+    display: flex !important;
+    box-shadow: 1px 1px 1px #F7F7F0;
+    border: 4px #c8d8e4 !important;
+
 }
