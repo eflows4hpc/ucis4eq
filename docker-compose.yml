@@ -33,7 +33,7 @@ services:
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json            
-    entrypoint: ["/bin/bash", "/root/services/start.sh"]
+    entrypoint: ["/bin/bash", "/opt/services/start.sh"]
     depends_on:
       - DAL    
       
