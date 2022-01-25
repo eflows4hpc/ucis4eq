@@ -8,10 +8,10 @@ services:
   slipgen:
     build: 
       context: .
-      target: credentials
-      dockerfile: deployment/dockers/Dockerfile-slipGen
+      dockerfile: deployment/dockers/Dockerfile-credentials
       args:
-        SSH_PRV: $SSH_PRV    
+        SSH_PRV: $SSH_PRV   
+        IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
@@ -25,10 +25,10 @@ services:
   salvus:
     build: 
       context: .
-      target: credentials
-      dockerfile: deployment/dockers/Dockerfile-salvusServices
+      dockerfile: deployment/dockers/Dockerfile-credentials
       args:
-        SSH_PRV: $SSH_PRV        
+        SSH_PRV: $SSH_PRV   
+        IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/salvus    
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
@@ -86,11 +86,10 @@ services:
   # UCIS4EQ Dashboard service
   dashboard:
     build: 
-      context: .
-      target: credentials
-      dockerfile: deployment/dockers/Dockerfile-dashboard
+      dockerfile: deployment/dockers/Dockerfile-credentials
       args:
-        SSH_PRV: $SSH_PRV
+        SSH_PRV: $SSH_PRV   
+        IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/dashboard
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json      
