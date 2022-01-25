@@ -47,6 +47,9 @@ RUN curl --request GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'htt
 # Prepare an script able to start the slip-generator service
 RUN echo "python3 /opt/services/slipGenService.py" >> /opt/services/start.sh
 
+# Add UCIS4EQ Code
+ADD code/components /usr/local/lib/python2.7/site-packages/ucis4eq
+
 # Start a shell
 ENTRYPOINT ["/bin/bash", "/opt/scripts/launcher.sh"]
 
