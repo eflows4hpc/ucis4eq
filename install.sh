@@ -3,6 +3,7 @@ echo "Welcome to UCIS4EQ instalation"
 
 # Creating the dir structure
 echo "Creating the directories structure"
+mkdir -p deployment/dockers/ data/
 
 # Creating environment file
 echo "Creating environment file ..."
