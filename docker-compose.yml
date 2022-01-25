@@ -63,7 +63,7 @@ services:
 
   # Mongo DataBase 
   DAL:
-    network_mode: "host"
+    #network_mode: "host"
     image: mongo:4.2
     ports:
       - "27017:27017"
@@ -72,7 +72,7 @@ services:
   # UCIS4EQ Listener service
   listener:
     image: registry.gitlab.com/cheese-coe/ucis4eq/listener
-    network_mode: "host"
+    #network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json            
@@ -81,11 +81,13 @@ services:
     restart: always
     depends_on:
       - DAL
-      - microServices      
+      - microServices   
       
   # UCIS4EQ Dashboard service
   dashboard:
+    container_name: ucis4eq_dashboard     
     build: 
+      context: .      
       dockerfile: deployment/dockers/Dockerfile-credentials
       args:
         SSH_PRV: $SSH_PRV   

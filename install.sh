@@ -8,7 +8,7 @@ mkdir -p deployment/dockers/ data/
 # Creating environment file
 echo "Creating environment file ..."
 echo UCIS4EQ_DAL=$PWD/data/DAL.json > .env
-echo UCIS4EQ_SITES=$PWD/data/Sites.json > .env
+echo UCIS4EQ_SITES=$PWD/data/Sites.json >> .env
 
 # Downloading files from repository
 echo "Downloading files from repository ..."
