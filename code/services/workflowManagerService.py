@@ -108,4 +108,4 @@ def workflowManagerEmulatorService(body):
 
 if __name__ == '__main__':
     # Running app in debug mode
-    workflowManagerServiceApp.run(debug=True, port=5001)
+    workflowManagerServiceApp.run(host="0.0.0.0", debug=True, port=5001)

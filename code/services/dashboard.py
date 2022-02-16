@@ -147,7 +147,7 @@ app.layout = html.Div(
                     children="Monitor dashboard provides real-time information"
                              " about urgent computing EQ simulations",
                     className="header-description",
-                )                
+                )
             ],
             className="header",
         ),
@@ -179,20 +179,20 @@ app.layout = html.Div(
                         label='Results',
                         value='tab-4', className='custom-tab',
                         selected_className='custom-tab--selected'
-                    ),                    
+                    ),
                 ]),
         ),
-        
-        html.Div(id='tabs-content-classes', 
+
+        html.Div(id='tabs-content-classes',
                  children=[
-                ], 
+                ],
                 className='wrapper'),
         html.Div(id="logos",
                  children=[
                            dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(cheeseLogo)), className="card-logo-cheese"),
                            dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(eflowsLogo)), className="card-logo-eflows")
                          ],
-                 style={"position": "absolute", "top": 250, "left": 15, "width": 340},                
+                 style={"position": "absolute", "top": 250, "left": 15, "width": 340},
                 ),
     ]
 )
@@ -202,69 +202,69 @@ app.layout = html.Div(
 def render_content(tab):
     if tab == 'tab-1':
         map_layers = mapLayers()
-                    
+
         content = html.Div(id='tab-content-1')
-        
+
         return html.Div(children = [content, map_layers])
-        
+
     elif tab == 'tab-2':
-        
+
         submit = triggerEvent()
         new = newEvent()
-                
+
         #beachball = html.Div(id='tab-beachball-2')
-        map_layers = mapLayers()            
-        
+        map_layers = mapLayers()
+
         content = html.Div(id='tab-content-2')
 
-                
+
         evetAndBB = html.Div(children = [dbc.Row([
-                                            dbc.Col(new), 
+                                            dbc.Col(new),
                                             dbc.Col(content)],
                              style = {"width": "100%"} )], className='card')
-        
-        return html.Div(children = [submit, evetAndBB, map_layers]) 
-        
+
+        return html.Div(children = [submit, evetAndBB, map_layers])
+
     elif tab == 'tab-3':
-        content = html.Div(id='tab-table-3')        
+        content = html.Div(id='tab-table-3')
         eventsProgress = html.Div(id='tab-progress-3')
         eventsTree = html.Div(id='tab-tree-3')
-        eventsSnap = html.Div(id='tab-snaps-3')        
+        eventsSnap = html.Div(id='tab-snaps-3')
 
-        
+
         eventsInfo = html.Div(children = [dbc.Row([
-                                            dbc.Col([eventsProgress, eventsTree], width=8), 
+                                            dbc.Col([eventsProgress, eventsTree], width=8),
                                             dbc.Col(eventsSnap, width=4)])
                      ])
-        
-        return html.Div(children = [ 
+
+        return html.Div(children = [
                             content,
-                            getLoading('tab-table-3'),                            
+                            getLoading('tab-table-3'),
                             eventsInfo
                             ])
 
     elif tab == 'tab-4':
         content = html.Div(id='tab-table-4')
-        domains = html.Div(id='tab-domains-4')           
+        domains = html.Div(id='tab-domains-4')
         plots = html.Div(id='tab-plots-4')
-        
-        return html.Div(children = [ 
+
+        return html.Div(children = [
                             content,
                             getLoading('tab-table-4'),
                             domains,
                             plots,
-                            getLoading('tab-plots-4'),                            
+                            getLoading('tab-plots-4'),
                             ])
-        
+
 def getMarkers(data):
     markers = []
-  
+
     for k in data.keys():
         if 'Color' in data[k].keys():
             color = data[k]['Color']
         else:
             color = "blue"
-            
+
         markers.append(
             dl.Marker(
                 title=data[k]['Origin'],
@@ -276,10 +276,10 @@ def getMarkers(data):
                 ],
             )
         )
-            
+
     cluster = dl.MarkerClusterGroup(id="markers", children=markers)
-    return cluster    
-    
+    return cluster
+
 def getLoading(id):
     lid = "loading-" + id
     return  dcc.Loading(
@@ -291,10 +291,10 @@ def getLoading(id):
 @app.callback(Output('tab-content-1', 'children'),
               Input('layer-selection', 'value'))
 def queryEvents(layer):
-    
+
     #data_url = 'https://raw.githubusercontent.com/plotly/datasets/master/2014_usa_states.csv'
-    #df = pd.read_csv(data_url)    
-        
+    #df = pd.read_csv(data_url)
+
     # Make the query
     fieldsEQ = {}
     i = 0
@@ -302,13 +302,13 @@ def queryEvents(layer):
     cursor= col.find({})
     for event in cursor:
         for a in event['alerts']:
-            
+
             elapsed = str(round(a['elapsedtime']/3600, 2))
             #if a['elapsedtime'] < 86400:
-            #    elapsed = str(round(a['elapsedtime']/3600, 2)) + " hours" 
+            #    elapsed = str(round(a['elapsedtime']/3600, 2)) + " hours"
             #else:
-            #    elapsed = str(round(a['elapsedtime']/86400, 2)) + " days" 
-            
+            #    elapsed = str(round(a['elapsedtime']/86400, 2)) + " days"
+
             fieldsEQ[str(i)] = {
                 'Origin': a['description'],
                 'Source': a['agency'],
@@ -318,27 +318,27 @@ def queryEvents(layer):
                 'Depth (m)': a['depth'],
                 'Time (UTC)': a['time'],
                 'Elapsed Time (hours)': elapsed
-            }  
+            }
             i = i + 1;
-    
+
     columns = ['Origin', 'Source', 'Magnitude', 'Latitude', 'Longitude', 'Depth (m)', 'Time (UTC)', 'Elapsed Time (hours)']
-    
+
     df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
-        
+
     table = html.Div([
                 html.Div(
                     className = "card",
-                    children = [                        
+                    children = [
                         # Draw table
                         dash_table.DataTable(
-                            id='table',     
-                            columns=[{"name": i, "id": i} 
+                            id='table',
+                            columns=[{"name": i, "id": i}
                                      for i in columns],
                             data=df.to_dict('records'),
                             page_size= 5,
                             sort_action="native",
                             sort_mode='multi',
-                            sort_by=[{"column_id": "Elapsed Time (hours)", "direction": "asc"}],  
+                            sort_by=[{"column_id": "Elapsed Time (hours)", "direction": "asc"}],
                             style_data={
                                 'color': 'black',
                                 'backgroundColor': 'white',
@@ -355,13 +355,13 @@ def queryEvents(layer):
                                 'backgroundColor': 'rgb(227, 98, 9)',
                                 'color': 'black',
                                 'fontWeight': 'bold',
-                                'textAlign': 'center'                
-                            }                        
+                                'textAlign': 'center'
+                            }
                         ),
                     ]
                 ),
                 html.Div(
-                    children = [     
+                    children = [
                     # Draw Map
                     dl.Map(style={'width': '100%', 'height': '640px'},
                            center=[25.67492, 28.63586],
@@ -372,40 +372,40 @@ def queryEvents(layer):
                                dl.GeoTIFFOverlay(id=GEOTIFF_ID, interactive=True),
 
                                getMarkers(fieldsEQ),
-                               
+
                                html.Div(id=GEOTIFF_MARKER_ID)
 
                            ], className="card")
                     ]
-                ),    
+                ),
     ])
-        
+
     return table
-    
+
 @app.callback(Output('tab-beachball-2', 'children'),
-              [Input('cmt-strike', 'value'), 
-               Input('cmt-dip', 'value'), 
+              [Input('cmt-strike', 'value'),
+               Input('cmt-dip', 'value'),
                Input('cmt-rake', 'value')])
 def generateBeachBall(stk, dip, rake):
-    
-  beachball([stk, dip, rake], width=400, 
+
+  beachball([stk, dip, rake], width=400,
             linewidth=1, facecolor='blue',outfile = "beachball.png")
 
 
   bbFigure = base64.b64encode(open("beachball.png", 'rb').read()).decode('ascii')
-            
+
   bb = dbc.Card(
-    [dbc.CardImg(src='data:image/png;base64,{}'.format(bbFigure), top=True)],  
+    [dbc.CardImg(src='data:image/png;base64,{}'.format(bbFigure), top=True)],
     className="card-bb")
-  
+
   return bb
-  
+
 @app.callback(Output('tab-content-2', 'children'),
-              [Input('layer-selection', 'value'), 
-               Input('latitude', 'value'), 
+              [Input('layer-selection', 'value'),
+               Input('latitude', 'value'),
                Input('longitude', 'value')])
 def showEvent(layer, latitude, longitude):
-    
+
     fieldsEQ = {'event location': {
                     'Origin': 'EQ Epicenter',
                     'Latitude': float(latitude),
@@ -413,7 +413,7 @@ def showEvent(layer, latitude, longitude):
                     'Magnitude': 'EarthQuake Event'
                     }
                }
-               
+
     regionPipeline = [
        {
          "$project" : {
@@ -425,10 +425,10 @@ def showEvent(layer, latitude, longitude):
             "mlat" : "$model.geometry.min_latitude",
             "Mlat" : "$model.geometry.max_latitude",
             "mlon" : "$model.geometry.min_longitude",
-            "Mlon" : "$model.geometry.max_longitude" 
+            "Mlon" : "$model.geometry.max_longitude"
          }
        },
-       { 
+       {
          "$match" : {
            "$and" : [
             {"mlat": {"$lte": float(latitude)}},
@@ -439,27 +439,27 @@ def showEvent(layer, latitude, longitude):
          }
        }
     ]
-    
+
     #for region in self.db['Regions'].aggregate(regionPipeline):
-    
-    col = dal.database["Domains"] 
+
+    col = dal.database["Domains"]
     domains = list(col.aggregate(regionPipeline))
-    sitesMarkers = {}        
+    sitesMarkers = {}
     if domains:
         col = dal.database["Receivers"]
         sitesTypes = col.find_one({"id": domains[0]['region']})
         for siteType in sitesTypes:
             if not isinstance(sitesTypes[siteType], dict):
                 continue
-            
+
             if siteType == 'towns':
                 color = "yellow"
                 type = "Town"
             elif siteType == 'seismic_stations':
                 color = "red"
-                type = "Seismic station"          
+                type = "Seismic station"
             elif siteType == 'accelerometers':
-                color = "green"       
+                color = "green"
                 type = "Accelerometer"
 
             siteGroup = sitesTypes[siteType]
@@ -472,7 +472,7 @@ def showEvent(layer, latitude, longitude):
                     'Magnitude': siteK,
                     'Color': color,
                 }
-     
+
     # Draw Map
     eventMap = dl.Map(style={'width': '100%', 'height': '780px'},
                    center=[float(latitude), float(longitude)],
@@ -484,123 +484,123 @@ def showEvent(layer, latitude, longitude):
 
                        getMarkers(fieldsEQ),
                        getMarkers(sitesMarkers),
-                       
+
                        html.Div(id=GEOTIFF_MARKER_ID)
 
                ])
 
-    return eventMap    
-    
+    return eventMap
+
 def newEvent():
     event = html.Div([
                 html.Div([
                         html.H3('Event Info'),
-                        dbc.Row([                        
-                            dbc.Label('Location name*: ', html_for="location-name", width=4), 
-                            dbc.Col(        
+                        dbc.Row([
+                            dbc.Label('Location name*: ', html_for="location-name", width=4),
+                            dbc.Col(
                                 dbc.Input(id='location-name', value='Samos EQ Example', type='text'),
                                 width=5,
                                 ),
-                            ], 
+                            ],
                             className="mb-3"),
-                            
-                        dbc.Row([                        
-                            dbc.Label('Magnitude*: ', html_for="magnitude"), 
+
+                        dbc.Row([
+                            dbc.Label('Magnitude*: ', html_for="magnitude"),
                             dbc.Col(
                                 dcc.Slider(id='magnitude', min=2, max=10, value=7,
                              step=0.1, tooltip={"placement": "bottom", "always_visible": True})
                                 ),
-                            ],                              
-                        className="mb-3"),                            
+                            ],
+                        className="mb-3"),
                     ]),
-                    
+
                 html.Div([
                         html.H3('Location'),
-                        
-                        dbc.Row([                        
-                            dbc.Label('Latitude*: ', html_for="latitude", width=4), 
-                            dbc.Col(        
+
+                        dbc.Row([
+                            dbc.Label('Latitude*: ', html_for="latitude", width=4),
+                            dbc.Col(
                                 dbc.Input(id='latitude', value='37.918', type='number'),
                                 width=3,
                                 ),
-                            ], 
+                            ],
                             className="mb-3"),
-                        dbc.Row([                        
-                            dbc.Label('Longitude*: ', html_for="longitude", width=4), 
-                            dbc.Col(        
+                        dbc.Row([
+                            dbc.Label('Longitude*: ', html_for="longitude", width=4),
+                            dbc.Col(
                                 dbc.Input(id='longitude', value='26.79', type='number'),
                                 width=3,
                                 ),
-                            ], 
-                            className="mb-3"),    
-                        dbc.Row([                        
-                            dbc.Label('Depth*: ', html_for="depth", width=4), 
-                            dbc.Col(        
+                            ],
+                            className="mb-3"),
+                        dbc.Row([
+                            dbc.Label('Depth*: ', html_for="depth", width=4),
+                            dbc.Col(
                                 dbc.Input(id='depth', value='21000', type='number'),
                                 width=3,
                                 ),
-                            ], 
-                            className="mb-3"),  
+                            ],
+                            className="mb-3"),
                     ]),
                 html.Div([
                         html.H3('Central Moment Tensor (Optional)'),
                         dbc.Row([
-                            dbc.Col([       
-                                dbc.Row([                        
-                                    dbc.Label('Strike: ', html_for="cmt-strike"), 
+                            dbc.Col([
+                                dbc.Row([
+                                    dbc.Label('Strike: ', html_for="cmt-strike"),
                                     dbc.Col(
                                         dcc.Slider(id='cmt-strike', min=0, max=360, value=270,
                                                step=0.5, tooltip={"placement": "bottom", "always_visible": True})
                                         ),
-                                    ],                              
+                                    ],
                                 className="mb-3"),
-                                
-                                dbc.Row([                        
-                                    dbc.Label('Dip: ', html_for="cmt-dip"), 
+
+                                dbc.Row([
+                                    dbc.Label('Dip: ', html_for="cmt-dip"),
                                     dbc.Col(
                                         dcc.Slider(id='cmt-dip', min=0, max=90, value=37,
                                                step=0.5, tooltip={"placement": "bottom", "always_visible": True})
                                         ),
-                                    ],                              
-                                className="mb-3"),   
-                                
-                                dbc.Row([                        
-                                    dbc.Label('Rake: ', html_for="cmt-rake"), 
+                                    ],
+                                className="mb-3"),
+
+                                dbc.Row([
+                                    dbc.Label('Rake: ', html_for="cmt-rake"),
                                     dbc.Col(
                                         dcc.Slider(id='cmt-rake',  min=-180, max=180, value=-86,
                                                step=0.5, tooltip={"placement": "bottom", "always_visible": True})
                                         ),
-                                    ],                              
-                                className="mb-3"),                                                
+                                    ],
+                                className="mb-3"),
                             ], style = {"width": "70%"}),
-                            dbc.Col([ 
+                            dbc.Col([
                                 html.Div(id='tab-beachball-2')
                             ], style = {"width": "30%"}),
                         ], style = {"width": "100%"}),
-                    ]),   
+                    ]),
                 html.Div([
                         html.H3('Graves-Pitarka (Rupture Generator)'),
                         dbc.Row([
-                            dbc.Col([       
-                                dbc.Row([                        
-                                    dbc.Label('Seed: ', html_for="cmt-strike"), 
+                            dbc.Col([
+                                dbc.Row([
+                                    dbc.Label('Seed: ', html_for="cmt-strike"),
                                     dbc.Col(
                                         dcc.Slider(id='gp-seed', min=1, max=9999999, value=2109996,
                                                step=1, tooltip={"placement": "bottom", "always_visible": True})
                                         ),
-                                    ],                              
-                                className="mb-3"),                         
+                                    ],
+                                className="mb-3"),
                             ], style = {"width": "70%"}),
                         ], style = {"width": "100%"}),
-                    ]),                           
+                    ]),
             ])
-    
+
     return event
-    
+
 def mapLayers():
     content= html.Div(
                     children=[
-                    
+
                     html.H3('Map layer selection'),
                     dcc.RadioItems(
                         id="layer-selection",
@@ -608,22 +608,22 @@ def mapLayers():
                             {'label': 'Hybrid', 'value' : 's,h'},
                             {'label': 'Satellite', 'value' : 's'},
                             {'label': 'Streets', 'value' : 'm'},
-                            {'label': 'Terrain', 'value' : 'p'}            
+                            {'label': 'Terrain', 'value' : 'p'}
                         ],
                         value="s,h",
                     ),
                     ],
                     className='card'
                 )
-                
+
     return content
-    
+
 def dropDownMenus():
-    
+
     options = []
     for key in figureOptions.keys():
         options.append({'label': key, 'value': key})
-        
+
     first = dcc.Dropdown(
             id='first-dropdown',
             options=options,
@@ -641,10 +641,10 @@ def dropDownMenus():
             id='third-dropdown',
             options=[],
             value=None,
-            placeholder="Select metric"            
+            placeholder="Select metric"
         )
-    
-    content = html.Div(children=[html.H3('Plots selection'), dbc.Row([dbc.Col(first), dbc.Col(second), 
+
+    content = html.Div(children=[html.H3('Plots selection'), dbc.Row([dbc.Col(first), dbc.Col(second),
              dbc.Col(third)], style = {"width": "100%"} )], className = "card")
     return content
 
@@ -656,30 +656,30 @@ def dropDownMenus():
 def updateSecondDropdown(value1):
 
     if not value1:
-        return dash.no_update    
-    
-    options = []  
+        return dash.no_update
+
+    options = []
     for type in figureOptions[value1].keys():
         options.append({"label": type, "value": type})
-    
+
     return options
-    
+
 @app.callback(
     Output("third-dropdown", "options"),
     [Input("first-dropdown", "value"),
      Input("second-dropdown", "value")],
 )
 def updateSecondDropdown(value1, value2):
-    
+
     if not (value1 and value2):
         return dash.no_update
-            
-    options = []  
+
+    options = []
     for units in figureOptions[value1][value2]['units'].keys():
         options.append({"label": units, "value": units})
-    
+
     return options
-    
+
 @app.callback(
     Output("plotFigures", "children"),
     [Input("first-dropdown", "value"),
@@ -687,53 +687,53 @@ def updateSecondDropdown(value1, value2):
      Input("third-dropdown", "value")],
 )
 def buildpattern(value1, value2, value3):
-    
-    if not (doneSelectedRow and domainSelectedRow 
+
+    if not (doneSelectedRow and domainSelectedRow
             and value1 and value2 and value3):
         return dash.no_update
-        
+
     if value2 in figureOptions[value1].keys() and value3 in figureOptions[value1][value2]['units'].keys():
-    
+
         # Pattern (    # PGV.*(E|N|Z).*cm_s.*)
         pattern = value1 + "*" + figureOptions[value1][value2]['pattern'] +\
          "*" + figureOptions[value1][value2]['units'][value3] + "*"
-        
+
         # Make the query
         fieldsEQ = {}
         col = dal.database["Requests"]
         request = list(col.find({"_id": ObjectId(doneSelectedRow['Run'])}))[0]
-        
+
         path = "event_" + request['uuid'] + "_" + domainSelectedRow['Model'] + "/"
-        filenames = "event_" + request['uuid'] + "/*/*/" + pattern 
-        
+        filenames = "event_" + request['uuid'] + "/*/*/" + pattern
+
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + path
         os.makedirs(workSpace, exist_ok=True)
-        
+
         files = glob.glob(workSpace + "/" + filenames)
-        
-        images = []        
+
+        images = []
         for file in files:
-            
+
             figure = base64.b64encode(open(file, 'rb').read()).decode('ascii')
-            
+
             item = dbc.Col(dbc.CardImg(src='data:image/png;base64,{}'.format(figure), top=True))
-            
+
             images.append(item)
-        
+
         if images:
             content = dbc.Row(images)
         else:
             content = html.H3('No results found for that inputs combination')
-        
+
     else:
         content = html.H3('Choose a combination for plotting results')
-        
+
     return content
 
 #@app.callback(Output("accordion-contents", "children"), [Input("accordion", "active_item")])
 #def showSecondRadios(value):
-    
+
 #    accordion = []
 #    for key in figureOptions.keys():
 #        item = dbc.AccordionItem([
@@ -742,32 +742,32 @@ def buildpattern(value1, value2, value3):
 #                title=key,
 #                item_id=key,
 #            )
-#        
+#
 #        accordion.append(item)
-#        
+#
 #    content =  html.Div(
 #                id="accordion-contents", children = [
 #                dbc.Accordion(accordion, id="accordion"),
 #              ])
-#            
-#        
+#
+#
 #    return content
-    
+
 #@app.callback(
 #    Output("accordion-contents", "children"),
 #    [Input("accordion", "active_item")],
 #)
 #def change_item(item):
 #    return f"Item selected: {item}"
-    
+
 #@app.callback(Output("accordion-contents", "children"), [Input("accordion", "active_item")])
 #def showSecondRadios(value):
-#    buttons = []  
+#    buttons = []
 #    for type in figureOptions[value]:
 #        #item = dbc.Button(type['name'], id=type['name'], value=type['pattern'], n_clicks=0)
 #        buttons.append({"label": type['name'], "value": type['pattern']})
-#        
-#        
+#
+#
 #
 #    firstRadio= dbc.RadioItems(
 #                    id="first-radios",
@@ -778,32 +778,32 @@ def buildpattern(value1, value2, value3):
 #                    options= buttons,
 #                    value=""
 #                )
-#                
+#
 #    return firstRadio
-    
+
 def triggerEvent():
     content= html.Div(
                     children=[
-                        html.Button('Trigger this event', id='submit-job', n_clicks=0, 
+                        html.Button('Trigger this event', id='submit-job', n_clicks=0,
                         style={'width': '100%', 'height': '100%',
                               'font-family': 'system-ui', 'font-size': '25px'})
                     ],
                     className='card'
                 )
-    return content 
-    
+    return content
+
 @app.callback(
     Output('submit-job', 'children'),
     Output('submit-job', 'disabled'),
     Output('tabs-with-classes', 'value'),
     [Input('submit-job', 'n_clicks'),
-     Input('location-name', 'value'), 
-     Input('magnitude', 'value'),      
-     Input('latitude', 'value'), 
-     Input('longitude', 'value'),    
-     Input('depth', 'value'),     
-     Input('cmt-strike', 'value'), 
-     Input('cmt-dip', 'value'), 
+     Input('location-name', 'value'),
+     Input('magnitude', 'value'),
+     Input('latitude', 'value'),
+     Input('longitude', 'value'),
+     Input('depth', 'value'),
+     Input('cmt-strike', 'value'),
+     Input('cmt-dip', 'value'),
      Input('cmt-rake', 'value'),
      Input('gp-seed', 'value')]
 )
@@ -811,14 +811,14 @@ def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake, seed):
     if n_clicks > 0:
         # Preparing job info
         job = {}
-        
+
         euuid = str(uuid.uuid1())
-        
+
         agency = 'USER_EVENT'
-        
+
         job['sources'] = {agency: {'data': '', 'timestamp': '', 'query': ''}}
         job['uuid'] = euuid
-        
+
         alert = {}
         alert['agency'] = agency
         alert['description'] = ename
@@ -829,35 +829,35 @@ def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake, seed):
         alert['time'] = datetime.datetime.now(datetime.timezone.utc).strftime('%d/%m/%Y, %H:%M:%S')
         alert['elapsedtime'] = 0
         alert['cmt'] = {agency: {
-                                      'strike': stk, 
-                                      'dip': dip, 
+                                      'strike': stk,
+                                      'dip': dip,
                                       'rake': rake
                                    }
                          }
         alert['seed'] = seed;
         job['alerts'] = [alert]
-                
+
         # Create event directory and safe it
         os.makedirs(euuid, exist_ok=True)
-        
+
         file = euuid + "/job.json"
         with open(euuid + "/job.json", "w") as f:
-            json.dump(job, f, indent=4)        
-        
+            json.dump(job, f, indent=4)
+
         # Start running the triggering system
-        subprocess.Popen(["curl", "-X", "POST", "-H", "Content-Type: application/json", "-d", "@"+file, "http://127.0.0.1:5001/WMEmulator"])        
+        subprocess.Popen(["curl", "-X", "POST", "-H", "Content-Type: application/json", "-d", "@"+file, "http://127.0.0.1:5001/WMEmulator"])
         #cmd ="curl -X POST -H 'Content-Type: application/json' -d @%s http://127.0.0.1:5001/WMEmulator"
         #cmd = cmd.replace("%s", file)
         #os.system(cmd.replace("%s", file))
-        
+
         return "Event launched", True, "tab-2"
     else:
-        return dash.no_update, dash.no_update, dash.no_update 
+        return dash.no_update, dash.no_update, dash.no_update
 
 @app.callback(Output('tab-table-3', 'children'),
               Input('tabs-with-classes', 'value'))
 def queryJobs(value):
-    
+
     eventRequests = [
         {
           "$unwind": "$alerts"
@@ -865,66 +865,66 @@ def queryJobs(value):
         {
           "$group": {
             "_id": "$_id",
-            "state": { "$first": "$state"}, 
-            "description": { "$first": "$description"},                 
-            "uuid": { "$first": "$uuid"},                 
+            "state": { "$first": "$state"},
+            "description": { "$first": "$description"},
+            "uuid": { "$first": "$uuid"},
             "latitude": { "$avg": "$alerts.latitude" },
             "longitude": { "$avg": "$alerts.longitude" },
-            "magnitudemin": { "$min": "$alerts.magnitude" },         
-            "magnitudemax": { "$max": "$alerts.magnitude" },       
-            "depthmin": { "$min": "$alerts.depth" },                
-            "depthmax": { "$max": "$alerts.depth" },                
+            "magnitudemin": { "$min": "$alerts.magnitude" },
+            "magnitudemax": { "$max": "$alerts.magnitude" },
+            "depthmin": { "$min": "$alerts.depth" },
+            "depthmax": { "$max": "$alerts.depth" },
             "alerts": { "$sum": 1}
           }
         }
-    ]    
-        
+    ]
+
     # Make the query
     fieldsEQ = {}
-    col = dal.database["Requests"] 
+    col = dal.database["Requests"]
     cursor= col.aggregate(eventRequests)
     for event in cursor:
-                        
+
             lat = round(event['latitude'], 2)
             lon = round(event['longitude'], 2)
 
             id = str(ObjectId(event['_id']))
             place = rg.search((lat, lon))[0]
             fieldsEQ[id] = {
-                'Status': event['state'],            
+                'Status': event['state'],
                 'Origin': place['admin1'],
-                'Site': place['admin2'],                
+                'Site': place['admin2'],
                 'Latitude': lat,
                 'Longitude': lon,
                 'Min. Mw': event['magnitudemin'],
                 'Max. Mw': event['magnitudemax'],
                 'Min. Depth': event['magnitudemin'],
-                'Max. Depth': event['magnitudemax'],                                               
+                'Max. Depth': event['magnitudemax'],
                 '# Alerts': event['alerts'],
                 #'UUID': event['uuid']
                 'Run': id
-            }  
-                
+            }
+
     columns = ['Status', 'Origin', 'Site', 'Latitude', 'Longitude', 'Min. Mw', 'Max. Mw', 'Min. Depth', 'Max. Depth', '# Alerts', 'Run']
 
-    
+
     df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
-        
+
     table = html.Div(
         className="card",
         children=[
             dcc.Interval(id="progress-interval", n_intervals=0, interval=10000),
-            dcc.Interval(id="progress-interval-snaps", n_intervals=0, interval=30000),            
+            dcc.Interval(id="progress-interval-snaps", n_intervals=0, interval=30000),
             # Draw table
             dash_table.DataTable(
-                id='tableRunning',     
-                columns=[{"name": i, "id": i} 
+                id='tableRunning',
+                columns=[{"name": i, "id": i}
                          for i in columns],
                 data=df.to_dict('records'),
                 page_size= 5,
                 sort_action="native",
                 sort_mode='multi',
-                row_selectable='single',             
+                row_selectable='single',
                 style_data={
                     'color': 'black',
                     'backgroundColor': 'white',
@@ -935,26 +935,26 @@ def queryJobs(value):
                     {
                         'if': {'row_index': 'odd'},
                         'backgroundColor': 'rgb(247, 247, 240)',
-                    }         
+                    }
                 ],
                 style_header={
                     'backgroundColor': 'rgb(227, 98, 9)',
                     'color': 'black',
                     'fontWeight': 'bold',
-                    'textAlign': 'center'                
+                    'textAlign': 'center'
                 }
-            
+
         )],
     )
-        
-    return table    
+
+    return table
 
 @app.callback(Output('tab-progress-3', 'children'),
               Input("progress-interval", "n_intervals"),
               Input('tableRunning', "derived_viewport_data"),
-              Input('tableRunning', "derived_virtual_selected_rows"))              
+              Input('tableRunning', "derived_virtual_selected_rows"))
 def executionTree(n, data, idx):
-    
+
     if len(idx):
         progressBar = html.Div(
                         className = "card",
@@ -964,9 +964,9 @@ def executionTree(n, data, idx):
                      )
     else:
         progressBar = html.Div()
-               
+
     return progressBar
-    
+
 @app.callback(Output('tab-snaps-3', 'children'),
               Input("progress-interval-snaps", "n_intervals"),
               Input('tableRunning', "derived_viewport_data"),
@@ -974,21 +974,21 @@ def executionTree(n, data, idx):
 def executionSnapshot(n, data, idx):
 
     fieldsEQ = {}
-    
+
     if not idx or len(idx) == 0:
         return html.Div()
-        
+
     col = dal.database["ServiceRuns"]
     cursor= col.find({"requestId": data[idx[0]]['Run']})
-    
+
     service = list(cursor)[-1]
     map = True
     if service['serviceName'] == "SalvusRun":
 
-        # Creating the repository instance for data transfer    
+        # Creating the repository instance for data transfer
         # TODO: Select the repository from the DB 'Resources' document
         dataRepo = dal.repositories.create('BSCDT', **dal.config)
-            
+
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + service['inputs']['trial'] + "/"
         os.makedirs(workSpace, exist_ok=True)
@@ -1000,8 +1000,8 @@ def executionSnapshot(n, data, idx):
 
         # Download results from HPC machine
         dataRepo.downloadFile(rfile, lfile)
-                    
-        try:            
+
+        try:
             currentSnapshot = base64.b64encode(open(lfile, 'rb').read()).decode('ascii')
             snapshot = dbc.Card(
                                 [dbc.CardImg(src='data:image/png;base64,{}'.format(currentSnapshot)),
@@ -1011,14 +1011,14 @@ def executionSnapshot(n, data, idx):
                                  )
                                 ]
                                 )
-            map = False                    
+            map = False
         except:
             pass
-    
+
     if map:
         latitude = float(data[idx[0]]['Latitude'])
         longitude = float(data[idx[0]]['Longitude'])
-        
+
         fieldsEQ = {'event location': {
                         'Origin': 'EQ Epicenter',
                         'Latitude': latitude,
@@ -1026,7 +1026,7 @@ def executionSnapshot(n, data, idx):
                         'Magnitude': 'EarthQuake Event'
                         }
                    }
-        
+
         snapshot = dl.Map(style={'width': '100%', 'height': '480px'},
                        center=[latitude, longitude],
                        zoom=6,
@@ -1039,7 +1039,7 @@ def executionSnapshot(n, data, idx):
                            html.Div(id=GEOTIFF_MARKER_ID)
 
                    ], className = "card")
-    
+
     return html.Div(children=[snapshot])
 
 @app.callback(Output('tab-tree-3', 'children'),
@@ -1049,35 +1049,35 @@ def executionSnapshot(n, data, idx):
 def executionTree(n, data, idx):
 
     fieldsEQ = {}
-    
+
     if not idx or len(idx) == 0:
         return html.Div()
-        
+
     col = dal.database["ServiceRuns"]
-    cursor= col.find({"requestId": data[idx[0]]['Run']})   
-        
-    i = 0        
+    cursor= col.find({"requestId": data[idx[0]]['Run']})
+
+    i = 0
     for event in cursor:
         fieldsEQ[str(i)] = {
-            'Service': event['serviceName'],            
-            'Status':  event['status'], 
-            'InitTime': event['initTime'], 
+            'Service': event['serviceName'],
+            'Status':  event['status'],
+            'InitTime': event['initTime'],
             'EndTime': event['endTime'] if 'endTime' in event.keys() else ''
-        }  
-        i = i + 1;                
-            
+        }
+        i = i + 1;
+
     columns = ['Service', 'Status', 'InitTime', 'EndTime']
 
-    
+
     df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
-    
+
 
     content = html.Div(
                     className = "card",
-                    children = [                        
+                    children = [
                         dash_table.DataTable(
-                            id='table',     
-                            columns=[{"name": i, "id": i} 
+                            id='table',
+                            columns=[{"name": i, "id": i}
                                      for i in columns],
                             data=df.to_dict('records'),
                             sort_action="native",
@@ -1098,33 +1098,33 @@ def executionTree(n, data, idx):
                                 'backgroundColor': 'rgb(227, 98, 9)',
                                 'color': 'black',
                                 'fontWeight': 'bold',
-                                'textAlign': 'center'                
+                                'textAlign': 'center'
                             }
-                        )  
+                        )
                     ]
                 )
-    return content 
-    
+    return content
+
 @app.callback(
     [Output("progress", "value"), Output("progress", "label"), Output("progress", "color")],
     [Input("progress-interval", "n_intervals"),
      Input('tableRunning', "derived_viewport_data"),
-     Input('tableRunning', "derived_virtual_selected_rows")]    
+     Input('tableRunning', "derived_virtual_selected_rows")]
 )
 def update_progress(n, data, idx):
-    
+
     if not data or not idx:
-        return dash.no_update, dash.no_update, dash.no_update 
-    
+        return dash.no_update, dash.no_update, dash.no_update
+
     color = dash.no_update
-    
+
     col = dal.database["ServiceRuns"]
-    cursor= col.find({"requestId": data[idx[0]]['Run']})       
-    
+    cursor= col.find({"requestId": data[idx[0]]['Run']})
+
     service = list(cursor)[-1]
-    
+
     value = progressValues[service['serviceName']]['value']
-    
+
     if service['serviceName'] == "SalvusRun":
         r = requests.post("http://127.0.0.1:5003/SalvusPing", json=service['inputs'])
         if r.json()['response'] == 501:
@@ -1137,8 +1137,8 @@ def update_progress(n, data, idx):
                 if 'current' in task.keys():
                     value = int(value * (task['current'] / task['total']))
     else:
-        value = 0    
-            
+        value = 0
+
     if service['status'] == "SUCCESS":
         progress = progressValues[service['serviceName']]['init'] +\
                    progressValues[service['serviceName']]['value']
@@ -1146,25 +1146,25 @@ def update_progress(n, data, idx):
         progress = progressValues[service['serviceName']]['init'] + value
         if service['status'] == "FAILED":
             color = "danger"
-    
+
     if data[idx[0]]['Status'] == "REJECTED":
        color = "warning"
     elif data[idx[0]]['Status'] == "SUCCESS":
         color = "success"
-    
+
     # check progress of some background process, in this example we'll just
     # use n_intervals constrained to be in 0-100
     #progress = min(n % 110, 100)
     # only add text after 5% progress to ensure text isn't squashed too much
-    return progress, f"{progress} %" if progress >= 8 else "", color        
-    
-    
+    return progress, f"{progress} %" if progress >= 8 else "", color
+
+
 @app.callback(Output('tab-table-4', 'children'),
               Input('tabs-with-classes', 'value'))
 def queryDoneJobs(value):
-    
+
     eventRequests = [
-        { 
+        {
           "$match" : {
             "state": "SUCCESS"
           }
@@ -1175,63 +1175,63 @@ def queryDoneJobs(value):
         {
           "$group": {
             "_id": "$_id",
-            "description": { "$first": "$description"},                 
-            "uuid": { "$first": "$uuid"},                 
+            "description": { "$first": "$description"},
+            "uuid": { "$first": "$uuid"},
             "latitude": { "$avg": "$alerts.latitude" },
             "longitude": { "$avg": "$alerts.longitude" },
-            "magnitudemin": { "$min": "$alerts.magnitude" },         
-            "magnitudemax": { "$max": "$alerts.magnitude" },       
-            "depthmin": { "$min": "$alerts.depth" },                
-            "depthmax": { "$max": "$alerts.depth" },                
+            "magnitudemin": { "$min": "$alerts.magnitude" },
+            "magnitudemax": { "$max": "$alerts.magnitude" },
+            "depthmin": { "$min": "$alerts.depth" },
+            "depthmax": { "$max": "$alerts.depth" },
             "alerts": { "$sum": 1}
           }
         }
-    ]    
-        
+    ]
+
     # Make the query
     fieldsEQ = {}
-    col = dal.database["Requests"] 
+    col = dal.database["Requests"]
     cursor= col.aggregate(eventRequests)
     for event in cursor:
-                        
+
             lat = round(event['latitude'], 2)
             lon = round(event['longitude'], 2)
 
             id = str(ObjectId(event['_id']))
-            place = rg.search((lat, lon))[0]        
-      
+            place = rg.search((lat, lon))[0]
+
             fieldsEQ[id] = {
                 'Origin': place['admin1'],
-                'Site': place['admin2'],                                
+                'Site': place['admin2'],
                 'Latitude': lat,
                 'Longitude': lon,
                 'Min. Mw': event['magnitudemin'],
                 'Max. Mw': event['magnitudemax'],
                 'Min. Depth': event['magnitudemin'],
-                'Max. Depth': event['magnitudemax'],                                               
+                'Max. Depth': event['magnitudemax'],
                 '# Alerts': event['alerts'],
                 #'UUID': event['uuid']
                 'Run': id
-            }  
-                
+            }
+
     columns = ['Origin', 'Site', 'Latitude', 'Longitude', 'Min. Mw', 'Max. Mw', 'Min. Depth', 'Max. Depth', '# Alerts', 'Run']
 
-    
+
     df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
-        
+
     table = html.Div(
         className="card",
         children=[
             # Draw table
             dash_table.DataTable(
-                id='tableDone',     
-                columns=[{"name": i, "id": i} 
+                id='tableDone',
+                columns=[{"name": i, "id": i}
                          for i in columns],
                 data=df.to_dict('records'),
                 page_size= 5,
                 sort_action="native",
                 sort_mode='multi',
-                row_selectable='single',     
+                row_selectable='single',
                 style_data={
                     'color': 'black',
                     'backgroundColor': 'white',
@@ -1242,33 +1242,33 @@ def queryDoneJobs(value):
                     {
                         'if': {'row_index': 'odd'},
                         'backgroundColor': 'rgb(247, 247, 240)',
-                    }         
+                    }
                 ],
                 style_header={
                     'backgroundColor': 'rgb(227, 98, 9)',
                     'color': 'black',
                     'fontWeight': 'bold',
-                    'textAlign': 'center'                
+                    'textAlign': 'center'
                 }
-            
+
         )],
     )
-        
-    return table     
-    
+
+    return table
+
 @app.callback(Output('tab-domains-4', 'children'),
               Input('tableDone', "derived_viewport_data"),
               Input('tableDone', "derived_virtual_selected_rows"))
 def queryDomains(data, idx):
 
     fieldsEQ = {}
-    
+
     if not idx or len(idx) == 0:
         return html.Div()
-    
+
     global doneSelectedRow
     doneSelectedRow = data[idx[0]]
-    
+
     regionPipeline = [
        {
          "$project" : {
@@ -1282,11 +1282,11 @@ def queryDomains(data, idx):
             "mlon" : "$model.geometry.min_longitude",
             "Mlon" : "$model.geometry.max_longitude",
             "Depth" : "$model.geometry.depth_in_m",
-            "Mfreq" : "$parameters.freq_max",   
+            "Mfreq" : "$parameters.freq_max",
             "Slength" : "$parameters.simulation_length"
          }
        },
-       { 
+       {
          "$match" : {
            "$and" : [
             {"mlat": {"$lte": float(data[idx[0]]['Latitude'])}},
@@ -1297,39 +1297,39 @@ def queryDomains(data, idx):
          }
        }
     ]
-    
+
     #for region in self.db['Regions'].aggregate(regionPipeline):
-    
-    col = dal.database["Domains"] 
+
+    col = dal.database["Domains"]
     domains = list(col.aggregate(regionPipeline))
- 
-    i = 0        
+
+    i = 0
     for domain in domains:
         fieldsEQ[str(i)] = {
             'Region': domain['region'],
-            'Model': domain['id'],    
-            'Max. Frequency (HZs)':  domain['Mfreq'], 
-            'Simulation length (s)': domain['Slength'], 
-        }  
-        i = i + 1;                
-            
+            'Model': domain['id'],
+            'Max. Frequency (HZs)':  domain['Mfreq'],
+            'Simulation length (s)': domain['Slength'],
+        }
+        i = i + 1;
+
     columns = ['Region', 'Model', 'Max. Frequency (HZs)', 'Simulation length (s)']
-    
+
     df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
-    
+
     content= html.Div(
                     children=[
                         html.Div(
                             className = "card",
-                            children = [                        
+                            children = [
                                 dash_table.DataTable(
-                                    id='tableDomains',     
-                                    columns=[{"name": i, "id": i} 
+                                    id='tableDomains',
+                                    columns=[{"name": i, "id": i}
                                              for i in columns],
                                     data=df.to_dict('records'),
                                     sort_action="native",
                                     sort_mode='multi',
-                                    row_selectable='single',  
+                                    row_selectable='single',
                                     style_data={
                                         'color': 'black',
                                         'backgroundColor': 'white',
@@ -1346,59 +1346,59 @@ def queryDomains(data, idx):
                                         'backgroundColor': 'rgb(227, 98, 9)',
                                         'color': 'black',
                                         'fontWeight': 'bold',
-                                        'textAlign': 'center'                
+                                        'textAlign': 'center'
                                     }
-                                )  
+                                )
                             ]
-                        )                                   
+                        )
                     ]
                 )
-    return content 
-    
+    return content
+
 @app.callback(Output('tab-plots-4', 'children'),
               Input('tableDomains', "derived_viewport_data"),
               Input('tableDomains', "derived_virtual_selected_rows"))
 def plotResults(data, idx):
-    
+
     if not (data and idx):
         return dash.no_update
 
     global domainSelectedRow
     domainSelectedRow = data[idx[0]]
-    
+
     # Make the query
     fieldsEQ = {}
     col = dal.database["Requests"]
     request = list(col.find({"_id": ObjectId(doneSelectedRow['Run'])}))[0]
-    
+
     path = "event_" + request['uuid'] + "_" + domainSelectedRow['Model'] + "/"
     filename = "event_" + request['uuid'] + ".tar.gz"
-               
-    # Creating the repository instance for data transfer    
+
+    # Creating the repository instance for data transfer
     # TODO: Select the repository from the DB 'Resources' document
     dataRepo = dal.repositories.create('B2DROP', **dal.config)
-    
+
     # Create the directory for the current execution
     workSpace = "/workspace/runs/" + path
     os.makedirs(workSpace, exist_ok=True)
-    
+
     rpath = "ChEESE/PD1/Runs/" + path + filename
     lpath = workSpace + filename
 
     # Download results from HPC machine
     if not os.path.isfile(lpath):
         dataRepo.downloadFile(rpath, lpath)
-    
+
     # Extract files from tar ball
     tar = tarfile.open(lpath, "r:gz")
     tar.extractall(path=workSpace)
     tar.close()
-    
-    figures = html.Div(id="plotFigures", className="card", 
+
+    figures = html.Div(id="plotFigures", className="card",
                        children=[html.H3('Figures will appear here')])
     return html.Div(children = [dropDownMenus(), figures])
-    
+
 if __name__ == "__main__":
     app.title = "UCIS4EQ Monitor"
-    app.config['suppress_callback_exceptions'] = True    
-    app.run_server(debug=True)
+    app.config['suppress_callback_exceptions'] = True
+    app.run_server(host="0.0.0.0", debug=True)

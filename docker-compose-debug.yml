@@ -5,8 +5,13 @@ version: '3'
 
 services:
   # UCIS4EQ Slip Generator service  
-  slipGen:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
+  slipgen:
+    build: 
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV   
+        IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
@@ -19,7 +24,12 @@ services:
 
   # UCIS4EQ Salvus
   salvus:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/salvus
+    build: 
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV   
+        IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/salvus    
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
@@ -47,17 +57,11 @@ services:
   workflowManager:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
     network_mode: "host"
-    depends_on:
-      - microServices
-      - slipGen
-      - salvus      
+    environment:
+      - UCIS4EQ_LOCATION=${UCIS4EQ_LOCATION}
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json
-      - ${UCIS4EQ_SITES}:/opt/Sites.json      
       - ${UCIS4EQ_HOME}/code/components/:/usr/local/lib/python3.7/site-packages/ucis4eq
       - ${UCIS4EQ_HOME}/code/services/workflowManagerService.py:/root/services/workflowManagerService.py
-
-    #restart: always
 
   # Mongo DataBase 
   DAL:
@@ -85,7 +89,13 @@ services:
       
   # UCIS4EQ Dashboard service
   dashboard:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/dashboard
+    container_name: ucis4eq_dashboard     
+    build: 
+      context: .      
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV   
+        IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/dashboard
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json      

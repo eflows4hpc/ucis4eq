@@ -28,5 +28,8 @@ StaticDataMappingDocument = "StaticDataMapping"
 
 # Load DAL setting for all services so all services can access to repositories
 config = None
-with open("/opt/DAL.json", 'r') as f:
-    config = json.load(f)
+try:
+    with open("/opt/DAL.json", 'r') as f:
+        config = json.load(f)
+except:
+    print("WARNING: There is not information available for accessing data repositories, check /opt/DAL.json file.")

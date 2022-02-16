@@ -27,6 +27,7 @@ import json
 import uuid
 import concurrent.futures
 import time
+import os
 
 # Third parties
 from flask import jsonify
@@ -34,8 +35,6 @@ from flask import jsonify
 # Internal
 import ucis4eq
 from ucis4eq.misc import config, microServiceABC
-import ucis4eq.dal as dal
-
 
 ################################################################################
 # Methods and classes
@@ -48,18 +47,17 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         Initialize the sourceType component implementation
         """
 
-        # Select the database
-        self.db = dal.database
-        self.eid = None
+        # Obtain UCIS4EQ Services URL 
+        self.url = os.getenv("UCIS4EQ_LOCATION", "http://127.0.0.1")
 
     @staticmethod
-    def compute(lalert):
-        r = requests.post("http://127.0.0.1:5002/Graves-Pitarka", json=lalert)
+    def compute(lalert, url):
+        r = requests.post(url + ":5002/Graves-Pitarka", json=lalert)
         config.checkPostRequest(r)
         lalert["rupture"] = r.json()['result']['rupture']
 
         # Generate the input parameter file for phase 2 in YAML format
-        r = requests.post("http://127.0.0.1:5000/inputParametersBuilder", json=lalert)
+        r = requests.post(url + ":5000/inputParametersBuilder", json=lalert)
         config.checkPostRequest(r)
         stage2InputP = r.json()['result']
 
@@ -72,12 +70,12 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         sim["trial"] = lalert['trial']
         sim["input"] = stage2InputP
         sim["resources"] = lalert['resources']
-        r = requests.post("http://127.0.0.1:5003/SalvusPrepare", json=sim)
+        r = requests.post(url + ":5003/SalvusPrepare", json=sim)
         config.checkPostRequest(r)
         sim["input"] = r.json()['result']
 
         # Call Salvus system (or other)
-        r = requests.post("http://127.0.0.1:5003/SalvusRun", json=sim)
+        r = requests.post(url + ":5003/SalvusRun", json=sim)
         config.checkPostRequest(r)
 
         return lalert
@@ -95,30 +93,30 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         # Obtain the Event Id. (useful during all the workflow livecycle)
         # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
 
-        #r = requests.post("http://127.0.0.1:5000/eventCountry", json=event)
+        #r = requests.post(self.url + ":5000/eventCountry", json=event)
         #config.checkPostRequest(r)
         #event['country'] = r.json()['result']
 
         # Calculate the event priority
         # TODO: This task belong to the branch "Urgent computing" (It runs in parallel)
-        #r = requests.post("http://127.0.0.1:5000/indexPriority", json=event)
+        #r = requests.post(self.url + ":5000/indexPriority", json=event)
         #config.checkPostRequest(r)
         #print(r.json()['resgult'],flush=True)
 
         # Obtain the Event Id. (useful during all the workflow livecycle)
-        r = requests.post("http://127.0.0.1:5000/eventRegistration", json=event)
+        r = requests.post(self.url + ":5000/eventRegistration", json=event)
         config.checkPostRequest(r)
         self.eid = r.json()['result']
         
         # Obtain the region where the event occured
-        r = requests.post("http://127.0.0.1:5000/eventDomains", json={'id': self.eid})
+        r = requests.post(self.url + ":5000/eventDomains", json={'id': self.eid})
         config.checkPostRequest(r)
         domains = r.json()['result']        
         
         # Check the region
         if not domains:
             # Set the event with SUCCESS state
-            r = requests.post("http://127.0.0.1:5000/eventSetState", 
+            r = requests.post(self.url + ":5000/eventSetState", 
                                json={'id': self.eid, 'state': "REJECTED"})
             config.checkPostRequest(r)
             self.eid = r.json()['result']
@@ -134,16 +132,19 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                 futures = []
 
                 # Calculate the CMT input parameters
-                r = requests.post("http://127.0.0.1:5000/precmt", json={'id': self.eid, 'region': domain['region']})
+                r = requests.post(self.url + ":5000/precmt", json={'id': self.eid, 'region': domain['region']})
                 config.checkPostRequest(r)
-
                 precmt = r.json()['result']
+                
+                # Obtain region information
+                r = requests.post(self.url + ":5000/eventGetRegion", json={'id': domain['region']})
+                config.checkPostRequest(r)
+                region = r.json()['result']                
 
                 event = precmt['event']
                 setup = {'setup': precmt, 'catalog': domain['region']}
-                region = ucis4eq.dal.database.Regions.find_one({"id": domain['region']})
 
-                r = requests.post("http://127.0.0.1:5000/computeResources", json={'id': self.eid, 'domain': domain})
+                r = requests.post(self.url + ":5000/computeResources", json={'id': self.eid, 'domain': domain})
                 config.checkPostRequest(r)
                 compResources = r.json()['result']
 
@@ -159,7 +160,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
 
                     input['event'] = a
 
-                    r = requests.post("http://127.0.0.1:5000/cmt", json=input)
+                    r = requests.post(self.url + ":5000/cmt", json=input)
                     config.checkPostRequest(r)
 
                     cmt = r.json()['result']
@@ -177,7 +178,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
 
                     # Determine the appropiate source for this event
                     # TODO: Define the input parameters that we need for this step
-                    r = requests.post("http://127.0.0.1:5000/sourceType", json={'id': self.eid})
+                    r = requests.post(self.url + ":5000/sourceType", json={'id': self.eid})
                     config.checkPostRequest(r)
 
                     sourceType  = r.json()['result']
@@ -205,7 +206,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                             if 'seed' in a.keys():
                                 lalert['seed'] = a['seed']
 
-                            futures.append(executor.submit(WorkflowManagerEmulator.compute, lalert))
+                            futures.append(executor.submit(WorkflowManagerEmulator.compute, lalert, self.url))
                             
                             break  ## Avoid to run 66 times this (swarm runs)
                         break  ## Avoid to run 66 times this (swarm runs)
@@ -217,11 +218,11 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                                             
             # Post-process output by generating:
             input['trial'] = lalert['trial']
-            r = requests.post("http://127.0.0.1:5003/SalvusPost", json=input)
+            r = requests.post(self.url + ":5003/SalvusPost", json=input)
             config.checkPostRequest(r)
             
             # Set the event with SUCCESS state
-            r = requests.post("http://127.0.0.1:5000/eventSetState", 
+            r = requests.post(self.url + ":5000/eventSetState", 
                                json={'id': self.eid, 'state': "SUCCESS"})
             config.checkPostRequest(r)
             self.eid = r.json()['result']        

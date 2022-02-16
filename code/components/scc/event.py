@@ -108,6 +108,28 @@ class EventSetState(microServiceABC.MicroServiceABC):
 
         # Return list of Id of the newly created item
         return jsonify(result = str(body['id']), response = 201)
+        
+class EventGetRegion(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the eventDispatcher component implementation    
+        """
+        
+        # Select the database
+        self.db = ucis4eq.dal.database
+
+    # Service's entry point definition
+    @config.safeRun
+    def entryPoint(self, body):
+        """
+        Obtain region information
+        """
+        region = self.db.Regions.find_one({"id": body['id']}, {'_id': False})
+        
+        # Return list of Id of the newly created item
+        return jsonify(result = region, response = 201)
 
 class EventDomains(microServiceABC.MicroServiceABC):
 

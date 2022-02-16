@@ -126,4 +126,4 @@ def SalvusPingService(body):
 
 if __name__ == '__main__':
     # Running app in debug mode
-    salvusServiceApp.run(debug=True, port=5003)
+    salvusServiceApp.run(host="0.0.0.0", debug=True, port=5003)

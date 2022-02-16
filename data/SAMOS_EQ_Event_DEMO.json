@@ -6,7 +6,7 @@
       "query": "http://service.iris.edu/fdsnws/event/1/query?format=xml&starttime=2020-10-30T00:00:00&endtime=2020-10-31T00:00:00&minmag=7.0"
     }
   },
-  "uuid": "cabc0e50-a0ec-11ea-9ec0-000000000000",
+  "uuid": "cabc0e50-a0ec-11ea-9ec0-test",
   "alerts": [
     {
       "agency": "USER EVENT",

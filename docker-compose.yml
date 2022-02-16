@@ -18,6 +18,7 @@ services:
       - ${UCIS4EQ_SITES}:/opt/Sites.json      
 
     entrypoint: ["/bin/bash", "/opt/services/start.sh"]
+    restart: always    
     depends_on:
       - DAL    
 
@@ -34,6 +35,7 @@ services:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json            
     entrypoint: ["/bin/bash", "/opt/services/start.sh"]
+    restart: always    
     depends_on:
       - DAL    
       
@@ -43,23 +45,18 @@ services:
     network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
-      - ${UCIS4EQ_SITES}:/opt/Sites.json      
+      - ${UCIS4EQ_SITES}:/opt/Sites.json    
+    restart: always        
     depends_on:
       - DAL
   
   # UCIS4EQ Workflow Manager service  
   workflowManager:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
+    environment:
+      - UCIS4EQ_LOCATION=${UCIS4EQ_LOCATION}   
     network_mode: "host"
-    depends_on:
-      - microServices
-      - slipGen
-      - salvus      
-    volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json
-      - ${UCIS4EQ_SITES}:/opt/Sites.json      
-    depends_on:
-      - DAL
+    restart: always      
 
   # Mongo DataBase 
   DAL:
@@ -76,8 +73,6 @@ services:
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json            
-    ports:
-      - "5000:5000"
     restart: always
     depends_on:
       - DAL
