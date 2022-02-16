@@ -60,7 +60,7 @@ services:
 
   # Mongo DataBase 
   DAL:
-    #network_mode: "host"
+    network_mode: "host"
     image: mongo:4.2
     ports:
       - "27017:27017"
@@ -69,7 +69,7 @@ services:
   # UCIS4EQ Listener service
   listener:
     image: registry.gitlab.com/cheese-coe/ucis4eq/listener
-    #network_mode: "host"
+    network_mode: "host"
     volumes:
       - ${UCIS4EQ_DAL}:/opt/DAL.json
       - ${UCIS4EQ_SITES}:/opt/Sites.json            
