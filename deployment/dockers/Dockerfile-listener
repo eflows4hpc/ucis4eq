@@ -17,7 +17,7 @@ RUN rm /usr/local/bin/pip; ln -s /usr/local/bin/pip3.5 /usr/local/bin/pip
 RUN pip install webdavclient3 numpy flask pymongo pyyaml; pip install requests obspy #ucis4eq
 
 # Obtain the EQ events listener service
-RUN curl --request GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2Flistener.py/raw?ref=master' > /root/services/listener.py
+ADD code/services/listener.py /root/services/listener.py
 
 # Prepare an script able to start MongoDB and run the events listener service
 RUN echo "python /root/services/listener.py config_events" >> /root/services/start.sh

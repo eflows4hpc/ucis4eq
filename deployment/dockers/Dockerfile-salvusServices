@@ -15,7 +15,7 @@ RUN mkdir -p /opt/services;
 EXPOSE 5003
 
 # Obtain the SalvusService App
-RUN curl --request GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2FsalvusService.py/raw?ref=master' > /opt/services/salvusService.py
+ADD code/services/salvusService.py /opt/services/salvusService.py
 
 # Prepare an script able to start the slip-generator service
 RUN echo "python /opt/services/salvusService.py" >> /opt/services/start.sh

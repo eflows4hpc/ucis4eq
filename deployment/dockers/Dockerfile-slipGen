@@ -42,7 +42,7 @@ RUN mkdir /opt/services;
 EXPOSE 5002
 
 # Obtain the slipGenService App
-RUN curl --request GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/code%2Fservices%2FslipGenService.py/raw?ref=master' > /opt/services/slipGenService.py
+ADD code/services/slipGenService.py /opt/services/slipGenService.py
 
 # Prepare an script able to start the slip-generator service
 RUN echo "python3 /opt/services/slipGenService.py" >> /opt/services/start.sh
