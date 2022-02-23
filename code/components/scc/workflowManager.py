@@ -48,7 +48,11 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         """
 
         # Obtain UCIS4EQ Services URL 
-        self.url = os.getenv("UCIS4EQ_LOCATION", "http://127.0.0.1")
+        localhost = "http://127.0.0.1"
+        self.url = os.getenv("UCIS4EQ_LOCATION", localhost)
+        if self.url == "":
+            self.url = localhost
+            
 
     @staticmethod
     def compute(lalert, url):
@@ -147,6 +151,8 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                 r = requests.post(self.url + ":5000/computeResources", json={'id': self.eid, 'domain': domain})
                 config.checkPostRequest(r)
                 compResources = r.json()['result']
+                
+                print(compResources)
 
                 # Compute CMTs for each pair event-alert (earthquake - Agency notification)
                 input = {'id': self.eid, 'base': "event_" + body['uuid']}

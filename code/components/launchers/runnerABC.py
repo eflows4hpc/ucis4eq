@@ -28,7 +28,7 @@ from abc import ABC, abstractmethod
 # Methods and classes
 
 # Class in charge of running a process either Slurm or bash 
-class RunnerABC():
+class RunnerABC(ABC):
 
     # Some attributes
     type = "sh"
@@ -39,8 +39,19 @@ class RunnerABC():
         self.task = task
 
     # Method for defining the "getRules" required method
-    def getRules(self):
+    @abstractmethod    
+    def getRules(self, cname, tlimit, nodes, tasks, cpus, qos):
         raise NotImplementedError("Error: 'getRules' method should be implemented")
+
+    # Method for obtaining the spefific MPI command (srun, mpirun, etc...)           
+    @abstractmethod    
+    def getMPICommand(self):
+        raise NotImplementedError("Error: 'getMPICommand' method should be implemented")
+        
+    # Method for obtaining environment setup (module loads, PATH, conda environmnet, etc ...)
+    @abstractmethod    
+    def getEnvironmentSetup(self):
+        raise NotImplementedError("Error: 'getMPICommand' method should be implemented")
 
     # Method for defining the "run" required method
     def run(self):

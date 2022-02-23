@@ -52,8 +52,13 @@ class ScriptABC(ABC):
         self.fileName = self._className() + "." + self.type + "." + self.launcher.type        
         
     # Method for defining the "buildScript" required method
+    @abstractmethod        
     def build(self):
         raise NotImplementedError("Error: 'build' method should be implemented")
+
+    # Method for defining the "buildScript" required method
+    def getMPICommand(self):
+        return self.launcher.getMPICommand()
 
     # Just a class method for obtaining the class name
     @classmethod
@@ -70,7 +75,10 @@ class ScriptABC(ABC):
 
         self.lines = self.lines \
                      + self.launcher.getRules(self._className(), tlimit, nodes, 
-                                              tasks, cpus, qos)
+                                              tasks, cpus, qos) \
+                     + self.launcher.getEnvironmentSetup()
+                     
+        self.lines.append("")                                                                                      
 
     # Generate script
     def _saveScript(self, path=""):

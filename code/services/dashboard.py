@@ -18,7 +18,7 @@ import reverse_geocoder as rg
 import glob
 
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 
 from obspy.imaging.beachball import beachball
 import ucis4eq.dal as dal
@@ -179,7 +179,7 @@ app.layout = html.Div(
                         label='Results',
                         value='tab-4', className='custom-tab',
                         selected_className='custom-tab--selected'
-                    ),
+                    ),                  
                 ]),
         ),
 
@@ -187,15 +187,45 @@ app.layout = html.Div(
                  children=[
                 ],
                 className='wrapper'),
-        html.Div(id="logos",
-                 children=[
-                           dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(cheeseLogo)), className="card-logo-cheese"),
-                           dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(eflowsLogo)), className="card-logo-eflows")
-                         ],
-                 style={"position": "absolute", "top": 250, "left": 15, "width": 340},
+                
+        html.Div(
+            [
+                dbc.Button("Acknowledgement", id="button-logos", className='modal-button', n_clicks=0),
+                dbc.Modal(
+                    [
+                        #dbc.ModalHeader(),
+                        dbc.ModalBody([
+                            dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(cheeseLogo)), className="card-logo-cheese"),
+                            dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(eflowsLogo)), className="card-logo-eflows")
+                            ],
+                        ),
+                    ],
+                    id="modal-logos",
+                    size="sm",
+                    is_open=False,
                 ),
+            ],
+            style={"position": "absolute", "top": 10, "right": 10},
+        ),
+        #html.Div(id="logos",
+        #         children=[
+        #                   dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(cheeseLogo)), className="card-logo-cheese"),
+        #                   dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(eflowsLogo)), className="card-logo-eflows")
+        #                  ],
+        #         style={"position": "absolute", "top": 250, "left": 15, "width": 340},
+        #        ),
     ]
 )
+
+@app.callback(
+    Output("modal-logos", "is_open"),
+    [Input("button-logos", "n_clicks")],
+    [State("modal-logos", "is_open")],
+)
+def toggle_modal(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open
 
 @app.callback(Output('tabs-content-classes', 'children'),
               Input('tabs-with-classes', 'value'))
@@ -205,7 +235,9 @@ def render_content(tab):
 
         content = html.Div(id='tab-content-1')
 
-        return html.Div(children = [content, map_layers])
+        alert = dcc.Interval(id="progress-interval-alerts", n_intervals=0, interval=10000)
+
+        return html.Div(children = [alert, content, map_layers])
 
     elif tab == 'tab-2':
 
@@ -248,11 +280,23 @@ def render_content(tab):
         domains = html.Div(id='tab-domains-4')
         plots = html.Div(id='tab-plots-4')
 
+        modal =  html.Div([dbc.Modal([
+                        dbc.ModalHeader(),
+                        dbc.ModalBody(id="modal-plots-body"),
+                        #dbc.ModalFooter(dbc.Button("Close", id="close-modal-plots")),
+                        ],
+                        id="modal-plots",
+                        size="xl",
+                        is_open=False,
+                        keyboard=False,
+                        backdrop="static",                        
+                    )])
+
         return html.Div(children = [
                             content,
                             getLoading('tab-table-4'),
+                            modal,
                             domains,
-                            plots,
                             getLoading('tab-plots-4'),
                             ])
 
@@ -289,8 +333,9 @@ def getLoading(id):
                 )
 
 @app.callback(Output('tab-content-1', 'children'),
+              Input("progress-interval-alerts", "n_intervals"),
               Input('layer-selection', 'value'))
-def queryEvents(layer):
+def queryEvents(n, layer):
 
     #data_url = 'https://raw.githubusercontent.com/plotly/datasets/master/2014_usa_states.csv'
     #df = pd.read_csv(data_url)
@@ -363,7 +408,7 @@ def queryEvents(layer):
                 html.Div(
                     children = [
                     # Draw Map
-                    dl.Map(style={'width': '100%', 'height': '640px'},
+                    dl.Map(style={'width': '100%', 'height': '40em'},
                            center=[25.67492, 28.63586],
                            zoom=2,
                            children=[
@@ -474,7 +519,7 @@ def showEvent(layer, latitude, longitude):
                 }
 
     # Draw Map
-    eventMap = dl.Map(style={'width': '100%', 'height': '780px'},
+    eventMap = dl.Map(style={'width': '100%', 'height': '42em'},
                    center=[float(latitude), float(longitude)],
                    zoom=8,
                    children=[
@@ -494,99 +539,103 @@ def showEvent(layer, latitude, longitude):
 def newEvent():
     event = html.Div([
                 html.Div([
-                        html.H3('Event Info'),
+                        html.H5('Event Info', style={'font-weight': 'bold'}),
                         dbc.Row([
-                            dbc.Label('Location name*: ', html_for="location-name", width=4),
+                            dbc.Label('Name: ', html_for="location-name", width=2),
                             dbc.Col(
                                 dbc.Input(id='location-name', value='Samos EQ Example', type='text'),
-                                width=5,
+                                width=10,
                                 ),
                             ],
-                            className="mb-3"),
+                            className="mb-2"),
 
                         dbc.Row([
-                            dbc.Label('Magnitude*: ', html_for="magnitude"),
+                            dbc.Label('Magnitude: ', html_for="magnitude", width=2),
                             dbc.Col(
-                                dcc.Slider(id='magnitude', min=2, max=10, value=7,
-                             step=0.1, tooltip={"placement": "bottom", "always_visible": True})
+                                dcc.Slider(id='magnitude', min=2, max=10, value=7, marks=None,
+                                step=0.1, tooltip={"placement": "bottom", "always_visible": True},
+                                className="slider"),
+                                width=10
                                 ),
                             ],
-                        className="mb-3"),
+                        className="mb-1"),
                     ]),
 
                 html.Div([
-                        html.H3('Location'),
-
                         dbc.Row([
-                            dbc.Label('Latitude*: ', html_for="latitude", width=4),
+                            dbc.Label('Latitude: ', html_for="latitude", width=2),
                             dbc.Col(
                                 dbc.Input(id='latitude', value='37.918', type='number'),
-                                width=3,
+                                width=2,
                                 ),
-                            ],
-                            className="mb-3"),
-                        dbc.Row([
-                            dbc.Label('Longitude*: ', html_for="longitude", width=4),
+                            dbc.Label('Longitude: ', html_for="longitude", width=2),
                             dbc.Col(
                                 dbc.Input(id='longitude', value='26.79', type='number'),
-                                width=3,
+                                width=2,
                                 ),
-                            ],
-                            className="mb-3"),
-                        dbc.Row([
-                            dbc.Label('Depth*: ', html_for="depth", width=4),
+                            dbc.Label('Depth: ', html_for="depth", width=2),
                             dbc.Col(
                                 dbc.Input(id='depth', value='21000', type='number'),
-                                width=3,
-                                ),
+                                width=2,
+                                ),                                
                             ],
-                            className="mb-3"),
+                            className="mb-1"),
+
+
                     ]),
                 html.Div([
-                        html.H3('Central Moment Tensor (Optional)'),
+                        html.H5('Central Moment Tensor', style={'font-weight': 'bold', 'padding-top': '10px'}),
                         dbc.Row([
                             dbc.Col([
                                 dbc.Row([
-                                    dbc.Label('Strike: ', html_for="cmt-strike"),
+                                    dbc.Label('Strike: ', html_for="cmt-strike", width=3),
                                     dbc.Col(
-                                        dcc.Slider(id='cmt-strike', min=0, max=360, value=270,
-                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True})
-                                        ),
+                                        dcc.Slider(id='cmt-strike', min=0, max=360, value=270, marks=None,
+                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True},
+                                               className="slider"),
+                                        width=9
+                                        )
                                     ],
-                                className="mb-3"),
+                                className="mb-1"),
 
                                 dbc.Row([
-                                    dbc.Label('Dip: ', html_for="cmt-dip"),
+                                    dbc.Label('Dip: ', html_for="cmt-dip", width=3),
                                     dbc.Col(
-                                        dcc.Slider(id='cmt-dip', min=0, max=90, value=37,
-                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True})
-                                        ),
+                                        dcc.Slider(id='cmt-dip', min=0, max=90, value=37, marks=None,
+                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True},
+                                               className="slider"),
+                                        width=9
+                                        )
                                     ],
-                                className="mb-3"),
+                                className="mb-1"),
 
                                 dbc.Row([
-                                    dbc.Label('Rake: ', html_for="cmt-rake"),
+                                    dbc.Label('Rake: ', html_for="cmt-rake", width=3),
                                     dbc.Col(
-                                        dcc.Slider(id='cmt-rake',  min=-180, max=180, value=-86,
-                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True})
-                                        ),
+                                        dcc.Slider(id='cmt-rake',  min=-180, max=180, value=-86, marks=None,
+                                               step=0.5, tooltip={"placement": "bottom", "always_visible": True},
+                                               className="slider"),
+                                        width=9
+                                        )
                                     ],
-                                className="mb-3"),
-                            ], style = {"width": "70%"}),
+                                className="mb-1"),
+                            ], width=8),
                             dbc.Col([
-                                html.Div(id='tab-beachball-2')
-                            ], style = {"width": "30%"}),
+                                html.Div(id='tab-beachball-2', className='card-bb')
+                            ], width=4),
                         ], style = {"width": "100%"}),
                     ]),
                 html.Div([
-                        html.H3('Graves-Pitarka (Rupture Generator)'),
+                        html.H5('Graves-Pitarka (Rupture Generator)', style={'font-weight': 'bold'}),
                         dbc.Row([
                             dbc.Col([
                                 dbc.Row([
-                                    dbc.Label('Seed: ', html_for="cmt-strike"),
+                                    dbc.Label('Seed: ', html_for="cmt-strike", width=2),
                                     dbc.Col(
-                                        dcc.Slider(id='gp-seed', min=1, max=9999999, value=2109996,
-                                               step=1, tooltip={"placement": "bottom", "always_visible": True})
+                                        dcc.Slider(id='gp-seed', min=1, max=9999999, value=2109996, marks=None,
+                                               step=1, tooltip={"placement": "bottom", "always_visible": True},
+                                               className="slider"),
+                                        width=10
                                         ),
                                     ],
                                 className="mb-3"),
@@ -644,7 +693,7 @@ def dropDownMenus():
             placeholder="Select metric"
         )
 
-    content = html.Div(children=[html.H3('Plots selection'), dbc.Row([dbc.Col(first), dbc.Col(second),
+    content = html.Div(children=[dbc.Row([dbc.Col(first), dbc.Col(second),
              dbc.Col(third)], style = {"width": "100%"} )], className = "card")
     return content
 
@@ -795,7 +844,6 @@ def triggerEvent():
 @app.callback(
     Output('submit-job', 'children'),
     Output('submit-job', 'disabled'),
-    Output('tabs-with-classes', 'value'),
     [Input('submit-job', 'n_clicks'),
      Input('location-name', 'value'),
      Input('magnitude', 'value'),
@@ -850,9 +898,9 @@ def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake, seed):
         #cmd = cmd.replace("%s", file)
         #os.system(cmd.replace("%s", file))
 
-        return "Event launched", True, "tab-2"
+        return "Event launched", True
     else:
-        return dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update
 
 @app.callback(Output('tab-table-3', 'children'),
               Input('tabs-with-classes', 'value'))
@@ -980,14 +1028,13 @@ def executionSnapshot(n, data, idx):
 
     col = dal.database["ServiceRuns"]
     cursor= col.find({"requestId": data[idx[0]]['Run']})
-
     service = list(cursor)[-1]
     map = True
     if service['serviceName'] == "SalvusRun":
 
         # Creating the repository instance for data transfer
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create('BSCDT', **dal.config)
+        dataRepo = dal.repositories.create(service['machine']['repository'], **dal.config)
 
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + service['inputs']['trial'] + "/"
@@ -1000,6 +1047,8 @@ def executionSnapshot(n, data, idx):
 
         # Download results from HPC machine
         dataRepo.downloadFile(rfile, lfile)
+        
+        print("Doing the job")
 
         try:
             currentSnapshot = base64.b64encode(open(lfile, 'rb').read()).decode('ascii')
@@ -1058,15 +1107,21 @@ def executionTree(n, data, idx):
 
     i = 0
     for event in cursor:
+        if event['machine'] == 'N/A':
+            machine = "Local"
+        else:
+            machine = event['machine']['id'] + ' (' + event['machine']['organization'] + ')'
+            
         fieldsEQ[str(i)] = {
             'Service': event['serviceName'],
             'Status':  event['status'],
             'InitTime': event['initTime'],
-            'EndTime': event['endTime'] if 'endTime' in event.keys() else ''
+            'EndTime': event['endTime'] if 'endTime' in event.keys() else '',
+            'Machine': machine
         }
         i = i + 1;
 
-    columns = ['Service', 'Status', 'InitTime', 'EndTime']
+    columns = ['Service', 'Status', 'InitTime', 'EndTime', 'Machine']
 
 
     df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
@@ -1127,7 +1182,7 @@ def update_progress(n, data, idx):
 
     if service['serviceName'] == "SalvusRun":
         r = requests.post("http://127.0.0.1:5003/SalvusPing", json=service['inputs'])
-        if r.json()['response'] == 501:
+        if r.json()['response'] == 501 or not r.json()['result']:
             #raise Exception(r.json()['result'])
             value = 0
         else:
@@ -1355,7 +1410,7 @@ def queryDomains(data, idx):
                 )
     return content
 
-@app.callback(Output('tab-plots-4', 'children'),
+@app.callback(Output('modal-plots-body', 'children'),
               Input('tableDomains', "derived_viewport_data"),
               Input('tableDomains', "derived_virtual_selected_rows"))
 def plotResults(data, idx):
@@ -1365,7 +1420,7 @@ def plotResults(data, idx):
 
     global domainSelectedRow
     domainSelectedRow = data[idx[0]]
-
+    
     # Make the query
     fieldsEQ = {}
     col = dal.database["Requests"]
@@ -1376,7 +1431,7 @@ def plotResults(data, idx):
 
     # Creating the repository instance for data transfer
     # TODO: Select the repository from the DB 'Resources' document
-    dataRepo = dal.repositories.create('B2DROP', **dal.config)
+    dataRepo = dal.repositories.create(dal.repository, **dal.config)
 
     # Create the directory for the current execution
     workSpace = "/workspace/runs/" + path
@@ -1395,9 +1450,21 @@ def plotResults(data, idx):
     tar.close()
 
     figures = html.Div(id="plotFigures", className="card",
-                       children=[html.H3('Figures will appear here')])
+                       children=[html.H3('Figures will appear here')])          
+          
     return html.Div(children = [dropDownMenus(), figures])
-
+    
+@app.callback(
+    Output("modal-plots", "is_open"),
+    [Input('tableDomains', "derived_virtual_selected_rows")],
+    [State("modal-plots", "is_open")],
+)
+def toggle_modal_plots(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open
+    
+    
 if __name__ == "__main__":
     app.title = "UCIS4EQ Monitor"
     app.config['suppress_callback_exceptions'] = True

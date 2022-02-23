@@ -56,14 +56,6 @@ class SalvusWrapperSubmision(scriptABC.ScriptABC):
         # TODO: Change this depending of the target environment queue system
         self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
                             r["cpus-per-task"], r["qos"])
-
-        # Additional instructions
-        self.lines.append("set -e")        
-        
-        # TODO: Add those specific directives onto the proper resource 
-        #       definition (JSON).
-        self.lines.append("module load ANACONDA/5.0.1")
-        self.lines.append("source activate cheese")
         
         for line in additional:
             self.lines.append(line)
@@ -72,7 +64,6 @@ class SalvusWrapperSubmision(scriptABC.ScriptABC):
         for command in commands:
             self.lines.append("")
             self.lines.append(command[0] + " " + command[1])
-
 
         # Save the script to disk
         return self._saveScript(path)
@@ -97,11 +88,11 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         result = {}        
         
         # Select target machine
-        machine = body['resources']        
+        machine = body['resources']
 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create('BSCDT', **dal.config)
+        dataRepo = dal.repositories.create(machine['repository'], **dal.config)
 
         # Enable multiline writting
         yaml.SafeDumper.org_represent_str = yaml.SafeDumper.represent_str
@@ -141,10 +132,9 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         additional.append("export PYTHONPATH=" +\
                            os.path.dirname(self.filePing['salvus_wrapper']) +\
                            ":$PYTHONPATH")
-            
         
         # Submission instance   
-        submission = SalvusWrapperSubmision(machine)
+        submission = SalvusWrapperSubmision(machine['id'])
         
         script = submission.build(commands, workSpace, resources, additional)
     
@@ -178,20 +168,9 @@ class SalvusRunSubmision(scriptABC.ScriptABC):
         # TODO: Change this depending of the target environment queue system
         self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
                             r["cpus-per-task"], r["qos"])
-
-        # Additional instructions
-        self.lines.append("set -e")
-        
-        self.lines.append("module load ANACONDA/5.0.1")
-        self.lines.append("source activate cheese")
-                
-        self.lines.append("module load fabric")
-        self.lines.append("export I_MPI_EXTRA_FILESYSTEM_LIST=gpfs")
-        self.lines.append("export I_MPI_EXTRA_FILESYSTEM=on")
         
         for line in additional:
             self.lines.append(line)
-        self.lines.append("echo $SLURM_JOB_ID >> jobfile.txt")
 
         # Build command
         for command in commands:
@@ -223,12 +202,15 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         # Initialization
         result = {}
         
-        # Select target machinefgetRules
-        machine = body['resources']
+        # Select target machine        
+        machine =  body['resources']
+        
+        # Instantiate Salvus submission
+        submission = SalvusRunSubmision(machine['id'])        
                 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create('BSCDT', **dal.config)
+        dataRepo = dal.repositories.create(machine['repository'], **dal.config)
         
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + body["trial"] + "/"
@@ -246,8 +228,8 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         commands.append((binary, args))
         
         # ... build command for the modeling
-        binary = "/usr/bin/srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE " +\
-                  self.filePing['salvus_compute'] + " compute "
+        binary = submission.getMPICommand() + self.filePing['salvus_compute'] +\
+                " compute "
         args = body['input']
         commands.append((binary, args))
         
@@ -255,9 +237,6 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         # TODO: This is hardcoded by right now but should be parametrized
         resources = {'wtime': 2400, 'nodes': 10, 'tasks-per-node': 48,
                      'cpus-per-task': 1, 'qos': 'debug'}
-        
-        # Submission instance   
-        submission = SalvusRunSubmision(machine)
         
         script = submission.build(commands, workSpace, resources, [])
     
@@ -305,13 +284,13 @@ class SalvusPost(microServiceABC.MicroServiceABC):
         # Initialization
         result = {}
         
-        # Select target machinefgetRules
+        # Select target machinef
         # TODO Do this in a clever way!
         machine = body['resources']        
 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create('BSCDT', **dal.config)        
+        dataRepo = dal.repositories.create(machine['repository'], **dal.config)        
         
         # Create the directory for the current execution
         bpath = body['base'] + "/" + body['domain']['id'] + "/"
@@ -379,7 +358,7 @@ class SalvusPost(microServiceABC.MicroServiceABC):
                            ":$PYTHONPATH")
                            
         # Submission instance   
-        submission = SalvusWrapperSubmision(machine)     
+        submission = SalvusWrapperSubmision(machine['id'])     
         
         script = submission.build(commands, workSpace, resources, additional)        
                               
@@ -403,7 +382,7 @@ class SalvusPost(microServiceABC.MicroServiceABC):
     
         # Upload results to B2DROP
         # TODO: Select a random repository
-        b2drop = dal.repositories.create('B2DROP', **dal.config)
+        b2drop = dal.repositories.create(dal.repository, **dal.config)
         
         rpath = "ChEESE/PD1/Runs/" + body["base"] + "_" + body['domain']['id']  + "/"
         lpath = workSpace
@@ -445,7 +424,7 @@ class SalvusPing(microServiceABC.MicroServiceABC):
                 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create('BSCDT', **dal.config)
+        dataRepo = dal.repositories.create(machine['repository'], **dal.config)
         
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + body["trial"] + "/"
@@ -460,8 +439,11 @@ class SalvusPing(microServiceABC.MicroServiceABC):
         dataRepo.downloadFile(rfile, lfile)
     
         # Read local json file
-        with open(lfile, 'r') as f:
-            progress = json.load(f)
-
+        try:
+            with open(lfile, 'r') as f:
+                progress = json.load(f)
+        except FileNotFoundError:
+                progress = None
+            
         # Return list of Id of the newly created item
         return jsonify(result = progress, response = 201)

@@ -33,7 +33,9 @@ from flask import jsonify
 
 # Internal
 from ucis4eq.misc import config, microServiceABC
+from ucis4eq.launchers import config
 import ucis4eq as ucis4eq
+import ucis4eq.dal as dal
 
 ################################################################################
 # Methods and classes
@@ -45,6 +47,9 @@ class ComputeResources(microServiceABC.MicroServiceABC):
         """
         Initialize the CMT statistical component implementation
         """
+        
+        # Select the database
+        self.db = ucis4eq.dal.database        
 
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration        
@@ -52,11 +57,16 @@ class ComputeResources(microServiceABC.MicroServiceABC):
         """
         Calculate the computational resources and site
         """
+
         # Decide what site to use among the availables
-        site = "MN4"
-        
-        
+        resources = self.db.Resources.find({}, {'_id': False}).sort('order', 1)
+        resource = None
+        for site in list(resources):
+            if site['id'] in config.keys():
+                resource = site
+            break
+            
         # TODO: Calculate resources (e.g  #nodes and #cores)
 
         # Return list of Id of the newly created item
-        return jsonify(result = site, response = 201)
+        return jsonify(result = resource, response = 201)

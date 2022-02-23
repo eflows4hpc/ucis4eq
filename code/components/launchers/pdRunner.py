@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+#
+# Slurm specialization launcher
+# This module is part of the Smart Center Control (SSC) solution
+#
+# Author:  Juan Esteban Rodríguez, Josep de la Puente
+# Contact: juan.rodriguez@bsc.es, josep.delapuente@bsc.es
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+################################################################################
+# Module imports
+import os
+import time
+import uuid
+import subprocess
+import threading
+
+from ucis4eq.launchers.slurmRunnerABC import SlurmRunnerABC
+
+################################################################################
+# Methods and classes
+
+class PDSlurmRunner(SlurmRunnerABC):
+            
+    # Obtain the spefific rules for a slurm Script    
+    def getRules(self, cname, tlimit, nodes, tasks, cpus, qos):
+        
+        # Initialize list of instructions
+        lines = []
+
+        # Add rules to the slurm script
+        lines.append("#SBATCH --job-name=run_salvus")
+        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(tlimit)))
+        lines.append("#SBATCH --tasks-per-node=" + str(tasks))
+        lines.append("#SBATCH --ntasks=" + str(int(nodes) * int(tasks)))
+        lines.append("#SBATCH --error=" + cname + ".e")
+        lines.append("#SBATCH --output=" + cname + ".o")
+        lines.append("#SBATCH --partition=normal")
+        lines.append("#SBATCH --constraint=gpu")
+        lines.append("#SBATCH --account=s1040")
+
+        lines.append("")
+        lines.append("cd $SLURM_SUBMIT_DIR")
+        lines.append("")        
+        
+        # Return the set of instructions
+        return lines
+
+    # Method for obtaining environment setup (module loads, PATH, conda environmnet, etc ...)
+    def getEnvironmentSetup(self):
+        # Initialize list of instructions
+        lines = []
+        
+        # Piz Daint MPI setup
+        lines.append("export LD_LIBRARY_PATH=/opt/cray/pe/mpt/7.7.15/gni/mpich-gnu-abi/8.2/lib:$LD_LIBRARY_PATH")
+        lines.append("export CRAY_CUDA_MPS=1")
+        
+        # Additional instructions
+        lines.append("set -e")
+
+        # Enabling Singulatity
+        lines.append("module load singularity")
+                
+        # Enabling Cheese environment (that includes Salvus)
+        lines.append("module switch PrgEnv-cray PrgEnv-gnu")
+        lines.append("module switch cray-mpich cray-mpich-abi")
+
+        return lines        
+    
+class PDRunnerBuilder:
+    def __init__(self):
+        self._instance = None
+
+    def __call__(self, info, **_ignored):
+        user = info["user"]
+        url = info["url"]
+        path = info["path"]
+        # WARNING!!!: We dont want to do this as a Singleton
+        #if not self._instance:
+        #    self._instance = SlurmRunner(user, url, path)
+            
+        #return self._instance
+        return PDSlurmRunner(user, url, path)

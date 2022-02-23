@@ -45,7 +45,7 @@ class DAL(microServiceABC.MicroServiceABC):
 
     # Service's entry point definition
     @config.safeRun
-    def entryPoint(self, repositoryName = 'B2DROP'):
+    def entryPoint(self, repositoryName = dal.repository):
             
         repository = dal.repositories.create(repositoryName, **dal.config)
         
@@ -54,7 +54,7 @@ class DAL(microServiceABC.MicroServiceABC):
         os.makedirs(workSpace, exist_ok=True)    
         
         # Download the file from the repository
-        rpath = dal.config["B2DROP"]["path"]
+        rpath = dal.config[repositoryName]["path"]
         rfile = os.path.basename(rpath)
         lpath = workSpace + rfile
         

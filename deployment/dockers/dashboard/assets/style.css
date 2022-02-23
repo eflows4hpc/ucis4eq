@@ -6,8 +6,8 @@ body {
 
 .header {
     background-image: linear-gradient(to right, #F7F7F0 0%, #222222 0%,  #222222 60%, #000000 85%);
-    height: 14em;
-    padding: 3em 0 0 0;
+    height: 12em;
+    padding: 1em 0 0 0;
     border-bottom: 5px solid rgb(227, 98, 9) !important;    
 }
 
@@ -32,12 +32,23 @@ body {
     max-width: 384px;
 }
 
+.modal-button{
+    background-color: #222222;  
+    border: 1px solid rgb(227, 98, 9) !important;    
+}
+
+.modal-content{
+    background-color: #F7F7F0;  
+    border-radius: 10px;  
+    border: 3px solid rgb(227, 98, 9) !important;    
+      
+}
+
 .wrapper {
     margin-right: auto;
     margin-left: auto;
-    max-width: 1600px;
-
-    margin-top: 32px;
+    max-width: 80%;
+    margin-top: 2em;
 }
 
 .mid-wrapper{
@@ -50,8 +61,8 @@ body {
 }
 
 .card {
-    margin-top: 30px;
-    margin-bottom: 30px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     padding: 5px; 
     border-radius: 10px;
     background-color: #F7F7F0;
@@ -60,22 +71,16 @@ body {
     align-items: center;
     justify-content: center; 
     box-shadow: 1px 1px 1px #F7F7F0;
-    border: 4px solid #c8d8e4 !important;
+    border: 2px solid #c8d8e4 !important;
 }
 .card-bb {
-    margin-top: 30px;
-    margin-bottom: 30px;
-    height: 200px;
-    width: 200px;    
-    padding: 5px; 
-    border-radius: 10px;
+    height: 75%;
+    width: 75%;    
+    align-items: center;    
     background-color: #F7F7F0;
-    font-family: "system-ui";
-    display: flex !important;
-    align-items: center;
     justify-content: center; 
-    box-shadow: 1px 1px 1px #F7F7F0;
-    border: 4px #c8d8e4 !important;
+    border: 0px solid #c8d8e4 !important;
+    
 }
 
 .card-map {
@@ -159,6 +164,9 @@ body {
     
 }
 
+.slider{
+  padding: 0px !important;
+}
 .big-buttom{
   width: 100%;
   height: 40px;

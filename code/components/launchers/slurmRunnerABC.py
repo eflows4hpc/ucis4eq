@@ -27,12 +27,13 @@ import uuid
 import subprocess
 import threading
 
+from abc import ABC, abstractmethod
 from ucis4eq.launchers.runnerABC import RunnerABC
 
 ################################################################################
 # Methods and classes
 
-class SlurmRunner(RunnerABC):
+class SlurmRunnerABC(RunnerABC, ABC):
 
     # Some attributes
     message = ""
@@ -53,32 +54,12 @@ class SlurmRunner(RunnerABC):
         self.path = path
         
         # Initialize the synchronizerpos
-        self.resultAvailable = threading.Event()        
+        self.resultAvailable = threading.Event()
+
+    # Method for obtaining the spefific MPI command (srun, mpirun, etc...)           
+    def getMPICommand(self):
+        return "/usr/bin/srun --ntasks=$SLURM_NTASKS --ntasks-per-node=$SLURM_NTASKS_PER_NODE "        
             
-    # Obtain the spefific rules for a slurm Script    
-    def getRules(self, cname, tlimit, nodes, tasks, cpus, qos):
-        
-        # Initialize list of instructions
-        lines = []
-
-        # Add rules to the slurm script
-        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(tlimit)))
-        lines.append("#SBATCH --nodes=" + str(nodes))
-        lines.append("#SBATCH --tasks-per-node=" + str(tasks))
-        lines.append("#SBATCH --cpus-per-task=" + str(cpus))
-        lines.append("#SBATCH --ntasks=" + str(int(nodes) * int(tasks)))
-        lines.append("#SBATCH --error=" + cname + ".e")
-        lines.append("#SBATCH --output=" + cname + ".o")
-        lines.append("#SBATCH --qos=" + qos)
-        #lines.append("#SBATCH --partition=main")
-        #lines.append("#SBATCH --reservation=ChEESE21_test")
-
-        lines.append("")
-        lines.append("cd $SLURM_SUBMIT_DIR")
-        
-        # Return the set of instructions
-        return lines
-
     # Enqueue a process and wait
     def run(self, path, cmd):
 
@@ -147,18 +128,3 @@ class SlurmRunner(RunnerABC):
 
         # Results are available
         self.resultAvailable.set()                         
-    
-class MN4RunnerBuilder:
-    def __init__(self):
-        self._instance = None
-
-    def __call__(self, MN4, **_ignored):
-        user = MN4["user"]
-        url = MN4["url"]
-        path = MN4["path"]
-        # WARNING!!!: We dont want to do this as a Singleton
-        #if not self._instance:
-        #    self._instance = SlurmRunner(user, url, path)
-            
-        #return self._instance
-        return SlurmRunner(user, url, path)

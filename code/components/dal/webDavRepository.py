@@ -21,76 +21,62 @@
 
 ################################################################################
 # Module imports
-import subprocess
-import os
-
 from ucis4eq.dal.staticDataAccess import RepositoryABC
+
+# Load NextCloud API
+from webdav3.client import Client
 
 ################################################################################
 # Methods and classes
 
-class BSCDTRepository(RepositoryABC):
-    def __init__(self, user, url, path):
+class WebDavRepository(RepositoryABC):
+    def __init__(self, user, passwd, url):
         
-        # Base command 
-        self.baseCmd = "scp" 
-        
-        # Store the username, url and base path
+        # Store the username
         self.user = user
-        self.url = url
-        self.path = path
+            
+        # Create a client
+        options = {
+         'webdav_hostname': url,
+         'webdav_login':    user,
+         'webdav_password': passwd,
+         'verbose': True
+        }
+        self._client = Client(options)
             
     def authenticate(self):
         pass
     
     def mkdir(self, rpath):
         # Create remote folder
-        #print("mkdir " + rpath, flush=True)
-        remote = self.user + "@" + self.url    
+        self._client.mkdir(rpath)
 
-        # Perform the operation
-        subprocess.run(["ssh", remote, "mkdir -p", 
-                       os.path.join(self.path, rpath)])
-                 
-                               
     def downloadFile(self, remote, local):
-        
-        # Build the remote filename
-        if not os.path.isabs(remote):
-            remote = os.path.join(self.path, remote)
-        
-        #print("Download: " + remote, flush=True)        
-        remote = self.user + "@" + self.url + ":" + remote
-    
-        # Perform the operation
-        subprocess.run([self.baseCmd, remote, local])
+        # Download file
+        self._client.download_sync(remote_path=remote, local_path=local)
         
     def uploadFile(self, remote, local):
-        # Build the remote filename
-        if not os.path.isabs(remote):
-            remote = os.path.join(self.path, remote)
-            
-        #print("Upload: " + local, flush=True)
+        # Upload file
+        self._client.upload_sync(remote_path=remote, local_path=local)
         
-        remote = self.user + "@" + self.url + ":" + remote
-    
-        # Perform the operation
-        subprocess.run([self.baseCmd, local, remote])
-              
     def __del__(self):
         pass
         # TODO: Figure out why the following line is failing
         #free_size = self._client.free()
     
-class BSCDTRepositoryBuilder:
+class BSCB2DROPRepositoryBuilder:
     def __init__(self):
         self._instance = None
 
-    def __call__(self, BSCDT, **_ignored):
-        user = BSCDT["user"]
-        url = BSCDT["url"]
-        path = BSCDT["path"]
+    def __call__(self, BSC_B2DROP, **_ignored):
+        user = BSC_B2DROP["user"]
+        passw = BSC_B2DROP["pass"]
+        url = BSC_B2DROP["url"]
         if not self._instance:
-            self._instance = BSCDTRepository(user, url, path)
-            
+            accessCode = self.authorize(
+                user, passw)
+            self._instance = WebDavRepository(user, passw, url)
         return self._instance
+
+    def authorize(self, key, secret):
+        return 'B2DROP_ACCESS_CODE'

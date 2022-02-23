@@ -57,6 +57,10 @@ class MicroServiceABC(ABC):
                     runInfo['status'] = status
                     runInfo['initTime'] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
                     runInfo['inputs'] = args[1]
+                    if "resources" in args[1].keys():
+                        runInfo['machine'] = args[1]['resources']
+                    else:
+                        runInfo['machine'] = "N/A"
                     serviceRun = dal.database.ServiceRuns.insert_one(runInfo).inserted_id
                else:
                     raise Exception("The 'entrypoint' method for the service '" +\

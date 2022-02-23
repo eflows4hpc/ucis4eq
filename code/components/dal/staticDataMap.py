@@ -82,7 +82,7 @@ class StaticDataMap():
             repoSetting = col.find_one(query)
             
             # Store the current repository object
-            self.repos[repoName] = dal.repositories.create(repoSetting['type'], **dal.config)
+            self.repos[repoName] = dal.repositories.create(repoSetting['id'], **dal.config)
         
         # Handle remote and local paths
         rpath = repoSettings['path']

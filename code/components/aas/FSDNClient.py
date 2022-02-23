@@ -123,7 +123,7 @@ class WSGeneral:
                     for r in self.config['repositories'].keys()]
         imap_unordered_it = pool.imap_unordered(self._runtask, tasks)
 
-        print("All ready!", flush=True)
+        #print("All ready!", flush=True)
 
         # Wait the tasks to finish
         for name, nelems, result in imap_unordered_it:
@@ -255,11 +255,11 @@ class WSEvents(WSGeneral):
                 delay = now.timestamp() - e.origins[0]['time'].timestamp
 
                 # DEBUG pursoses message
-                print("[", name, "] --> ",  e.origins[0]['time'].datetime,
-                e.origins[0]['latitude'], e.origins[0]['longitude'],
-                e.origins[0]['depth'], e.magnitudes[0]['mag'],
-                e.event_descriptions[0].text if e.event_descriptions else "",
-                "Delay (secs):", delay, flush=True)
+                #print("[", name, "] --> ",  e.origins[0]['time'].datetime,
+                #e.origins[0]['latitude'], e.origins[0]['longitude'],
+                #e.origins[0]['depth'], e.magnitudes[0]['mag'],
+                #e.event_descriptions[0].text if e.event_descriptions else "",
+                #"Delay (secs):", delay, flush=True)
 
                 # Don't add the event if a deadline time was reached
                 # SPRUCE [P.Beckman 2006]

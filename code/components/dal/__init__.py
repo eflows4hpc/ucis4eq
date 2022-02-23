@@ -5,16 +5,17 @@
 from pymongo import MongoClient
 import json
 from . import staticDataAccess as SDA
-from . import b2dropRepository as B2DropRepo
-from . import BSCDTRepository as BSCDTRepo
+from . import webDavRepository as WebDavRepo
+from . import SSHRepository as SSHRepo
 from . import localRepository as LocalRepo
 
 # Define the supported list of repositories
 repositories = SDA.SDAProvider()
 
 # Register each data repository
-repositories.registerBuilder('B2DROP', B2DropRepo.B2DropRepositoryBuilder())
-repositories.registerBuilder('BSCDT', BSCDTRepo.BSCDTRepositoryBuilder())
+repositories.registerBuilder('BSC_B2DROP', WebDavRepo.BSCB2DROPRepositoryBuilder())
+repositories.registerBuilder('BSC_DT', SSHRepo.BSCDTRepositoryBuilder())
+repositories.registerBuilder('ETH_DAINT', SSHRepo.ETHDAINTRepositoryBuilder())
 repositories.registerBuilder('LOCAL', LocalRepo.LocalRepositoryBuilder())
 
 # Start a Mongo client
@@ -25,6 +26,7 @@ database = mongoDB['UCIS4EQ']
 
 # Define entry point document for static mapping
 StaticDataMappingDocument = "StaticDataMapping"
+repository = "BSC_B2DROP" 
 
 # Load DAL setting for all services so all services can access to repositories
 config = None

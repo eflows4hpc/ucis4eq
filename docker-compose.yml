@@ -14,8 +14,8 @@ services:
         IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json
-      - ${UCIS4EQ_SITES}:/opt/Sites.json      
+      - ./data/DAL.json:/opt/DAL.json
+      - ./data/Sites.json:/opt/Sites.json      
 
     entrypoint: ["/bin/bash", "/opt/services/start.sh"]
     restart: always    
@@ -32,8 +32,8 @@ services:
         IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/salvus    
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json
-      - ${UCIS4EQ_SITES}:/opt/Sites.json            
+      - ./data/DAL.json:/opt/DAL.json
+      - ./data/Sites.json:/opt/Sites.json            
     entrypoint: ["/bin/bash", "/opt/services/start.sh"]
     restart: always    
     depends_on:
@@ -44,8 +44,8 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/microservices
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json
-      - ${UCIS4EQ_SITES}:/opt/Sites.json    
+      - ./data/DAL.json:/opt/DAL.json
+      - ./data/Sites.json:/opt/Sites.json    
     restart: always        
     depends_on:
       - DAL
@@ -54,7 +54,7 @@ services:
   workflowManager:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
     environment:
-      - UCIS4EQ_LOCATION=${UCIS4EQ_LOCATION}   
+      - UCIS4EQ_LOCATION=${LOCATION}
     network_mode: "host"
     restart: always      
 
@@ -62,6 +62,7 @@ services:
   DAL:
     network_mode: "host"
     image: mongo:4.2
+    command: mongod --quiet --logpath /dev/null    
     ports:
       - "27017:27017"
     restart: always
@@ -71,8 +72,8 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/listener
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json
-      - ${UCIS4EQ_SITES}:/opt/Sites.json            
+      - ./data/DAL.json:/opt/DAL.json
+      - ./data/Sites.json:/opt/Sites.json            
     restart: always
     depends_on:
       - DAL
@@ -89,4 +90,4 @@ services:
         IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/dashboard
     network_mode: "host"
     volumes:
-      - ${UCIS4EQ_DAL}:/opt/DAL.json      
+      - ./data/DAL.json:/opt/DAL.json

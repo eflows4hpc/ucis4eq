@@ -51,6 +51,14 @@ class LocalRunner(RunnerABC):
         
         # Return the set of instructions
         return []
+
+    # Obtain the spefific MPI command (srun, mpirun, etc...)           
+    def getMPICommand(self):
+        pass
+        
+    # Obtain environment setup (module loads, PATH, conda environmnet, etc ...)
+    def getEnvironmentSetup(self):
+        pass
         
     # Run locally and wait
     def run(self, cmd):

@@ -57,10 +57,6 @@ class SlipGenSubmision(ScriptABC):
         self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
                             r["cpus-per-task"], r["qos"])
 
-        # Additional instructions
-        self.lines.append("module load singularity")
-        self.lines.append("")
-
         # Build command
         cmd = []
         cmd.append("singularity exec --bind $PWD:/workspace " + image + " /opt/scripts/launcher.sh " 
@@ -108,7 +104,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create('BSCDT', **dal.config)
+        dataRepo = dal.repositories.create(machine['repository'], **dal.config)
             
         # Create local directories
         path =  ucis4eq.workSpace + "/scratch/outdata/" + body['trial'] + "/"
@@ -166,7 +162,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
                      'cpus-per-task': 48, 'qos': 'debug'}
 
         # Submission instance   
-        submission = SlipGenSubmision(machine)          
+        submission = SlipGenSubmision(machine['id'])          
 
         script = submission.build(image, path, args, resources)
     
