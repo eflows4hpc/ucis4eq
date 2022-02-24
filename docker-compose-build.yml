@@ -1,0 +1,67 @@
+###
+###   Docker file for the ucis4eq services
+###
+version: '3.7'
+
+services:
+  
+  # UCIS4EQ Base
+  base:
+    container_name: registry.gitlab.com/cheese-coe/ucis4eq/base     
+    build: 
+      context: .      
+      dockerfile: deployment/dockers/Dockerfile-base  
+      
+  # UCIS4EQ Micro services      
+  microservices:
+    container_name: registry.gitlab.com/cheese-coe/ucis4eq/microservices     
+    build: 
+      context: .      
+      dockerfile: deployment/dockers/Dockerfile-microServices   
+    depends_on:
+      - base
+
+  # UCIS4EQ Workflow manager services    
+  workflowmanager:
+    container_name: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager     
+    build: 
+      context: .      
+      dockerfile: deployment/dockers/Dockerfile-workflowManager 
+    depends_on:
+      - base
+      
+  # UCIS4EQ Dashboard service    
+  dashboard:
+    container_name: registry.gitlab.com/cheese-coe/ucis4eq/dashboard     
+    build: 
+      context: .      
+      dockerfile: deployment/dockers/Dockerfile-dashboard                
+    depends_on:
+      - base
+      
+  # UCIS4EQ Listener service    
+  listener:
+    container_name: registry.gitlab.com/cheese-coe/ucis4eq/listener     
+    build: 
+      context: .      
+      dockerfile: deployment/dockers/Dockerfile-listener      
+    depends_on:
+      - base
+      
+  # UCIS4EQ Salvus service
+  salvus:
+    container_name: registry.gitlab.com/cheese-coe/ucis4eq/salvus     
+    build: 
+      context: .      
+      dockerfile: deployment/dockers/Dockerfile-salvusServices      
+    depends_on:
+      - base
+      
+  # UCIS4EQ Slipgen service
+  slipgen:
+    container_name: registry.gitlab.com/cheese-coe/ucis4eq/slipgen     
+    build: 
+      context: .      
+      dockerfile: deployment/dockers/Dockerfile-slipGen  
+
+            
