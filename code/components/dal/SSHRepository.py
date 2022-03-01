@@ -111,7 +111,7 @@ class ETHDAINTRepositoryBuilder:
         user = ETH_DAINT["user"]
         url = ETH_DAINT["url"]
         path = ETH_DAINT["path"]
-        proxy = info["proxy"]
+        proxy = ETH_DAINT["proxy"]
         
         if not self._instance:
             self._instance = SSHRepository(user, url, path)

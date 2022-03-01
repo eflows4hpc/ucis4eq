@@ -86,11 +86,11 @@ class PDRunnerBuilder:
     def __init__(self):
         self._instance = None
 
-    def __call__(self, info, **_ignored):
-        user = info["user"]
-        url = info["url"]
-        path = info["path"]
-        proxy = info["proxy"]
+    def __call__(self, DAINT, **_ignored):
+        user = DAINT["user"]
+        url = DAINT["url"]
+        path = DAINT["path"]
+        proxy = DAINT["proxy"]
         # WARNING!!!: We dont want to do this as a Singleton
         #if not self._instance:
         #    self._instance = SlurmRunner(user, url, path)
