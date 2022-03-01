@@ -76,19 +76,17 @@ class StaticDataMap():
             raise Exception("File '" + name +"' was not found on the repositories")
                 
         # Check if the current repository was created
-        print(doc['repositories'])
-        print(self.mainRepo)
-        repoSettings = dal.repositories.selectFrom(doc['repositories'], 
+        repo, repoSettings = dal.repositories.selectFrom(doc['repositories'], 
                 self.mainRepo)
                 
-        if not self.mainRepo in self.repos.keys():                   
+        if not repo in self.repos.keys():
             # Find the repository type
             col = dal.database["Repositories"]
-            query = { "id": {"$eq": self.mainRepo} } 
-            repoSetting = col.find_one(query)
+            query = { "id": {"$eq": repo} } 
+            repoInfo = col.find_one(query)
             
             # Store the current repository object
-            self.repos[self.mainRepo] = dal.repositories.create(repoSetting['id'], **dal.config)
+            self.repos[repo] = dal.repositories.create(repoInfo['id'], **dal.config)
         
         # Handle remote and local paths
         rpath = repoSettings['path']
@@ -97,7 +95,7 @@ class StaticDataMap():
         # Download the file from the repository (only if it doesn't exist)
 #        if not os.path.exists(lpath):            
         if not self.quiet:
-            self.repos[self.mainRepo].downloadFile(rpath, lpath)
+            self.repos[repo].downloadFile(rpath, lpath)
             
             # Return the file path
             return lpath

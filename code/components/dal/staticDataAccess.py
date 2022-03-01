@@ -42,16 +42,16 @@ class SDAFactory(Factory):
         # TODO: Add some mechanism for choosing a repository,
         #       load balancing, etc...
         if repo in repositories.keys():
-            repository = repositories[repo]
+            repository = repo
         elif len(repositories.keys()) == 1:
-            repository = repositories(list(repositories)[0])
+            repository = list(repositories)[0]
         elif dal.repository in repositories.keys():
-            repository = repositories[dal.repository]
+            repository = dal.repository
         else:
             print("WARNING: No repository found for current file")
-            repository = None
-                   
-        return repository
+            return None, None
+                           
+        return repository, repositories[repository]
 
 class SDAProvider(SDAFactory):
     def get(self, service_id, **kwargs):
