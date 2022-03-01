@@ -72,6 +72,7 @@ class BSCB2DROPRepositoryBuilder:
         user = BSC_B2DROP["user"]
         passw = BSC_B2DROP["pass"]
         url = BSC_B2DROP["url"]
+        
         if not self._instance:
             accessCode = self.authorize(
                 user, passw)

@@ -30,11 +30,16 @@ from ucis4eq.dal.staticDataAccess import RepositoryABC
 # Methods and classes
 
 class SSHRepository(RepositoryABC):
-    def __init__(self, user, url, path):
+    def __init__(self, user, url, path, proxy=None):
         
         # Base command 
         self.baseCmd = "scp" 
-        
+
+        if proxy:
+            self.proxyCmd = " -o ProxyCommand='ssh -W %h:%p " + proxy + "' "
+        else:
+            self.proxyCmd = ""
+            
         # Store the username, url and base path
         self.user = user
         self.url = url
@@ -43,10 +48,11 @@ class SSHRepository(RepositoryABC):
     def authenticate(self):
         pass
     
-    def mkdir(self, rpath):
+    def mkdir(self, rpath):    
+        
         # Create remote folder
         #print("mkdir " + rpath, flush=True)
-        remote = self.user + "@" + self.url    
+        remote = self.proxyCmd + self.user + "@" + self.url    
 
         # Perform the operation
         subprocess.run(["ssh", remote, "mkdir -p", 
@@ -60,7 +66,7 @@ class SSHRepository(RepositoryABC):
             remote = os.path.join(self.path, remote)
         
         #print("Download: " + remote, flush=True)        
-        remote = self.user + "@" + self.url + ":" + remote
+        remote = self.proxyCmd + self.user + "@" + self.url + ":" + remote
     
         # Perform the operation
         subprocess.run([self.baseCmd, remote, local])
@@ -72,7 +78,7 @@ class SSHRepository(RepositoryABC):
             
         #print("Upload: " + local, flush=True)
         
-        remote = self.user + "@" + self.url + ":" + remote
+        remote = self.proxyCmd + self.user + "@" + self.url + ":" + remote
     
         # Perform the operation
         subprocess.run([self.baseCmd, local, remote])
@@ -105,6 +111,8 @@ class ETHDAINTRepositoryBuilder:
         user = ETH_DAINT["user"]
         url = ETH_DAINT["url"]
         path = ETH_DAINT["path"]
+        proxy = info["proxy"]
+        
         if not self._instance:
             self._instance = SSHRepository(user, url, path)
             
