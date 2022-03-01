@@ -73,7 +73,8 @@ class DAL(microServiceABC.MicroServiceABC):
         docs = col.find(dalDocs)
         
         for doc in docs:
-            repo, repoSettings = dal.repositories.selectFrom(doc['repositories'])
+            repoSettings = dal.repositories.selectFrom(doc['repositories'],
+                    repositoryName)
             rpath = repoSettings['path']
             rfile = os.path.basename(rpath)
             lpath = workSpace + rfile
@@ -104,9 +105,13 @@ class DAL(microServiceABC.MicroServiceABC):
         
         # Insert all registries
         if documentsPath.endswith(".json"):
+            print(documentsPath)
 
-            with open(documentsPath, "r", encoding="utf-8") as f:
-                fdata = json.load(f)
+            try:
+                with open(documentsPath, "r", encoding="utf-8") as f:
+                    fdata = json.load(f)
+            except ValueError:
+                raise Exception('Decoding JSON file ' + documentsPath + ' has failed')
                         
             # Get the set of collections already set in DAL
             list = collection.distinct( "id" )

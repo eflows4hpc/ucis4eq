@@ -90,6 +90,9 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         # Select target machine
         machine = body['resources']
 
+        # Set repository
+        self.setMainRepository(machine['repository'])        
+
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
         dataRepo = dal.repositories.create(machine['repository'], **dal.config)
@@ -205,6 +208,9 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         # Select target machine        
         machine =  body['resources']
         
+        # Set repository
+        self.setMainRepository(machine['repository'])        
+        
         # Instantiate Salvus submission
         submission = SalvusRunSubmision(machine['id'])        
                 
@@ -286,7 +292,10 @@ class SalvusPost(microServiceABC.MicroServiceABC):
         
         # Select target machinef
         # TODO Do this in a clever way!
-        machine = body['resources']        
+        machine = body['resources']     
+        
+        # Set repository
+        self.setMainRepository(machine['repository'])           
 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
@@ -421,6 +430,9 @@ class SalvusPing(microServiceABC.MicroServiceABC):
         
         # Select target machinefgetRules
         machine = body['resources']
+        
+        # Set repository
+        self.setMainRepository(machine['repository'])        
                 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document

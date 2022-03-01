@@ -152,8 +152,6 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                 config.checkPostRequest(r)
                 compResources = r.json()['result']
                 
-                print(compResources)
-
                 # Compute CMTs for each pair event-alert (earthquake - Agency notification)
                 input = {'id': self.eid, 'base': "event_" + body['uuid']}
                 input.update(setup)

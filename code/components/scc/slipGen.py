@@ -101,9 +101,11 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
 
         # Select target machine
         machine = body['resources']
+        
+        # Set repository
+        self.setMainRepository(machine['repository'])
 
         # Creating the repository instance for data transfer    
-        # TODO: Select the repository from the DB 'Resources' document
         dataRepo = dal.repositories.create(machine['repository'], **dal.config)
             
         # Create local directories

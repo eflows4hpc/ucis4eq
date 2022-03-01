@@ -64,8 +64,8 @@ class ComputeResources(microServiceABC.MicroServiceABC):
         for site in list(resources):
             if site['id'] in config.keys():
                 resource = site
-            break
-            
+                break
+                        
         # TODO: Calculate resources (e.g  #nodes and #cores)
 
         # Return list of Id of the newly created item

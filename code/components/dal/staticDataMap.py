@@ -43,6 +43,9 @@ class StaticDataMap():
         # Quiet mode
         self.quiet = quiet
         
+        # Main repo
+        self.mainRepo = dal.repository
+        
         # Obtain data from an external repository
         col = dal.database[dal.StaticDataMappingDocument]
         query = { "used_by": {"$eq": name} } 
@@ -73,16 +76,19 @@ class StaticDataMap():
             raise Exception("File '" + name +"' was not found on the repositories")
                 
         # Check if the current repository was created
-        repoName, repoSettings = dal.repositories.selectFrom(doc['repositories'])
+        print(doc['repositories'])
+        print(self.mainRepo)
+        repoSettings = dal.repositories.selectFrom(doc['repositories'], 
+                self.mainRepo)
                 
-        if not repoName in self.repos.keys():                   
+        if not self.mainRepo in self.repos.keys():                   
             # Find the repository type
             col = dal.database["Repositories"]
-            query = { "id": {"$eq": repoName} } 
+            query = { "id": {"$eq": self.mainRepo} } 
             repoSetting = col.find_one(query)
             
             # Store the current repository object
-            self.repos[repoName] = dal.repositories.create(repoSetting['id'], **dal.config)
+            self.repos[self.mainRepo] = dal.repositories.create(repoSetting['id'], **dal.config)
         
         # Handle remote and local paths
         rpath = repoSettings['path']
@@ -91,7 +97,7 @@ class StaticDataMap():
         # Download the file from the repository (only if it doesn't exist)
 #        if not os.path.exists(lpath):            
         if not self.quiet:
-            self.repos[repoName].downloadFile(rpath, lpath)
+            self.repos[self.mainRepo].downloadFile(rpath, lpath)
             
             # Return the file path
             return lpath
@@ -110,15 +116,19 @@ class StaticDataMap():
     def values(self):
         return self._values.values()
         
+    def setMainRepository(self, repo):
+        self.mainRepo = repo
+        
 def build(cls):
     "Static data file mapping"
     class BuildStaticDataMap(cls):
 
+        
         def __init__(self, *args, **kargs):
             
             # Initialize base class
             super(BuildStaticDataMap, self).__init__(*args, **kargs)
-            
+                        
             # Obtain the basename class name 
             className = self.__class__.__bases__[0].__name__
                                 
@@ -127,5 +137,9 @@ def build(cls):
             
             # Creating file Ping
             self.filePing = StaticDataMap(className, quiet=True)
+            
+        def setMainRepository(self, repo):
+            self.filePing.setMainRepository(repo)
+            self.fileMapping.setMainRepository(repo)
 
     return BuildStaticDataMap

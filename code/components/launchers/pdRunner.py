@@ -72,6 +72,9 @@ class PDSlurmRunner(SlurmRunnerABC):
 
         # Enabling Singulatity
         lines.append("module load singularity")
+        
+        # Enabling Cheese environment (that includes Salvus)
+        lines.append("source activate cheese")
                 
         # Enabling Cheese environment (that includes Salvus)
         lines.append("module switch PrgEnv-cray PrgEnv-gnu")
@@ -87,9 +90,10 @@ class PDRunnerBuilder:
         user = info["user"]
         url = info["url"]
         path = info["path"]
+        proxy = info["proxy"]
         # WARNING!!!: We dont want to do this as a Singleton
         #if not self._instance:
         #    self._instance = SlurmRunner(user, url, path)
             
         #return self._instance
-        return PDSlurmRunner(user, url, path)
+        return PDSlurmRunner(user, url, path, proxy)

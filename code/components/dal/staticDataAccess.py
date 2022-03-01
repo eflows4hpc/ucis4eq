@@ -24,6 +24,7 @@
 #from __future__ import annotations
 from abc import ABC, abstractmethod
 
+import ucis4eq.dal as dal
 from ucis4eq.misc.factory import Factory 
 
 
@@ -33,20 +34,24 @@ from ucis4eq.misc.factory import Factory
 class SDAFactory(Factory):
     
     # Method for choosing best repository
-    def selectFrom(self, repositories):
+    def selectFrom(self, repositories, repo):
         """
         Select a repository from a set 
         """
         
         # TODO: Add some mechanism for choosing a repository,
         #       load balancing, etc...
-        
-        if len(repositories.keys()) == 1:
-            name = list(repositories)[0]
+        if repo in repositories.keys():
+            repository = repositories[repo]
+        elif len(repositories.keys()) == 1:
+            repository = repositories(list(repositories)[0])
+        elif dal.repository in repositories.keys():
+            repository = repositories[dal.repository]
         else:
-            name = 'BSC_B2DROP'
-            
-        return name, repositories[name]
+            print("WARNING: No repository found for current file")
+            repository = None
+                   
+        return repository
 
 class SDAProvider(SDAFactory):
     def get(self, service_id, **kwargs):

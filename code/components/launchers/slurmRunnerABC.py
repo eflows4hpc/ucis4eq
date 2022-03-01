@@ -43,10 +43,11 @@ class SlurmRunnerABC(RunnerABC, ABC):
     uuid = uuid.uuid1()
     
     # Initialization method    
-    def __init__(self, user, url, path):
+    def __init__(self, user, url, path, proxy=None):
         
         # Base command 
         self.baseCmd = "ssh" 
+        self.proxyCmd = proxy
         
         # Store the username, url and base path
         self.user = user
@@ -63,8 +64,12 @@ class SlurmRunnerABC(RunnerABC, ABC):
     # Enqueue a process and wait
     def run(self, path, cmd):
 
-        # Remote connection    
-        remote = self.user + "@" + self.url  
+        # Remote connection
+        proxy = ""
+        if self.proxyCmd:
+            proxy = " -o ProxyCommand='ssh -W %h:%p " + self.proxyCmd + "' "
+              
+        remote = proxy + self.user + "@" + self.url  
         
         tcmd = "cd " + path + "; sbatch " + cmd
 
