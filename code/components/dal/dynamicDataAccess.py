@@ -73,7 +73,7 @@ class DAL(microServiceABC.MicroServiceABC):
         docs = col.find(dalDocs)
         
         for doc in docs:
-            repoSettings = dal.repositories.selectFrom(doc['repositories'],
+            repo, repoSettings = dal.repositories.selectFrom(doc['repositories'],
                     repositoryName)
             rpath = repoSettings['path']
             rfile = os.path.basename(rpath)
