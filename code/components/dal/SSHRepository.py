@@ -34,10 +34,12 @@ class SSHRepository(RepositoryABC):
         
         # Base command 
         self.baseCmd = "scp" 
-
+            
         if proxy:
-            self.proxyCmd = " -o ProxyCommand='ssh -W %h:%p " + proxy + "' "
+            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy + " "
+            self.proxyFlag = "-o"
         else:
+            self.proxyFlag = ""
             self.proxyCmd = ""
             
         # Store the username, url and base path
@@ -52,10 +54,10 @@ class SSHRepository(RepositoryABC):
         
         # Create remote folder
         #print("mkdir " + rpath, flush=True)
-        remote = self.proxyCmd + self.user + "@" + self.url    
+        remote = self.user + "@" + self.url    
 
         # Perform the operation
-        subprocess.run(["ssh", remote, "mkdir -p", 
+        subprocess.run(["ssh", self.proxyFlag, self.proxyCmd, remote, "mkdir -p", 
                        os.path.join(self.path, rpath)])
                  
                                
@@ -66,10 +68,10 @@ class SSHRepository(RepositoryABC):
             remote = os.path.join(self.path, remote)
         
         #print("Download: " + remote, flush=True)        
-        remote = self.proxyCmd + self.user + "@" + self.url + ":" + remote
+        remote = self.user + "@" + self.url + ":" + remote
     
         # Perform the operation
-        subprocess.run([self.baseCmd, remote, local])
+        subprocess.run([self.baseCmd, self.proxyFlag, self.proxyCmd, remote, local])
         
     def uploadFile(self, remote, local):
         # Build the remote filename
@@ -78,10 +80,10 @@ class SSHRepository(RepositoryABC):
             
         #print("Upload: " + local, flush=True)
         
-        remote = self.proxyCmd + self.user + "@" + self.url + ":" + remote
+        remote = self.user + "@" + self.url + ":" + remote
     
         # Perform the operation
-        subprocess.run([self.baseCmd, local, remote])
+        subprocess.run([self.baseCmd, self.proxyFlag, self.proxyCmd, local, remote])
               
     def __del__(self):
         pass

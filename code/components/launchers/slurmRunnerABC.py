@@ -49,8 +49,10 @@ class SlurmRunnerABC(RunnerABC, ABC):
         self.baseCmd = "ssh" 
 
         if proxy:
-            self.proxyCmd = " -o ProxyCommand='ssh -W %h:%p " + proxy + "' "
+            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy + " "
+            self.proxyFlag = "-o"
         else:
+            self.proxyFlag = ""
             self.proxyCmd = ""
         
         # Store the username, url and base path
@@ -69,12 +71,13 @@ class SlurmRunnerABC(RunnerABC, ABC):
     def run(self, path, cmd):
 
         # Remote connection
-        remote = self.proxyCmd + self.user + "@" + self.url  
+        remote = self.user + "@" + self.url  
         
         tcmd = "cd " + path + "; sbatch " + cmd
 
         # Run the command and wait
-        process = subprocess.run([self.baseCmd, remote, tcmd],
+        process = subprocess.run([self.baseCmd, self.proxyFlag, self.proxyCmd, 
+                                  remote, tcmd],
                                   stdout=subprocess.PIPE,
                                   stdin=subprocess.PIPE,
                                   stderr=subprocess.PIPE,

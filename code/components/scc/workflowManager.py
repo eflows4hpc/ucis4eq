@@ -216,7 +216,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                         break  ## Avoid to run 66 times this (swarm runs)
                     break
 
-                print("Waitting for results", flush=True)
+                print("Waiting for results", flush=True)
                 for future in concurrent.futures.as_completed(futures):
                     data = future.result()
                                             
