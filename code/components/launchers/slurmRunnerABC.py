@@ -49,8 +49,8 @@ class SlurmRunnerABC(RunnerABC, ABC):
         self.baseCmd = "ssh" 
 
         if proxy:
-            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy + " "
             self.proxyFlag = "-o"
+            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy + " "
         else:
             self.proxyFlag = ""
             self.proxyCmd = ""
@@ -76,8 +76,8 @@ class SlurmRunnerABC(RunnerABC, ABC):
         tcmd = "cd " + path + "; sbatch " + cmd
 
         # Run the command and wait
-        process = subprocess.run([self.baseCmd, self.proxyFlag, self.proxyCmd, 
-                                  remote, tcmd],
+        command = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, tcmd]
+        process = subprocess.run(list(filter(None, command)),
                                   stdout=subprocess.PIPE,
                                   stdin=subprocess.PIPE,
                                   stderr=subprocess.PIPE,
@@ -114,7 +114,8 @@ class SlurmRunnerABC(RunnerABC, ABC):
         # Wait for the job to finish
         while True:
             # Query for the job state
-            process = subprocess.run([self.baseCmd, remote, cmd],
+            command = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, cmd]
+            process = subprocess.run(list(filter(None, command)),
                                       stdout=subprocess.PIPE,
                                       stdin=subprocess.PIPE,
                                       stderr=subprocess.PIPE,

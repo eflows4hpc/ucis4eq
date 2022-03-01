@@ -36,8 +36,8 @@ class SSHRepository(RepositoryABC):
         self.baseCmd = "scp" 
             
         if proxy:
-            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy + " "
             self.proxyFlag = "-o"
+            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy + " "
         else:
             self.proxyFlag = ""
             self.proxyCmd = ""
@@ -57,10 +57,10 @@ class SSHRepository(RepositoryABC):
         remote = self.user + "@" + self.url    
 
         # Perform the operation
-        subprocess.run(["ssh", self.proxyFlag, self.proxyCmd, remote, "mkdir -p", 
-                       os.path.join(self.path, rpath)])
+        command = ["ssh", self.proxyFlag, self.proxyCmd, remote, "mkdir -p", 
+                       os.path.join(self.path, rpath)]
+        subprocess.run(list(filter(None, command)))
                  
-                               
     def downloadFile(self, remote, local):
         
         # Build the remote filename
@@ -71,7 +71,8 @@ class SSHRepository(RepositoryABC):
         remote = self.user + "@" + self.url + ":" + remote
     
         # Perform the operation
-        subprocess.run([self.baseCmd, self.proxyFlag, self.proxyCmd, remote, local])
+        command = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, local]
+        subprocess.run(list(filter(None, command)))
         
     def uploadFile(self, remote, local):
         # Build the remote filename
@@ -83,7 +84,8 @@ class SSHRepository(RepositoryABC):
         remote = self.user + "@" + self.url + ":" + remote
     
         # Perform the operation
-        subprocess.run([self.baseCmd, self.proxyFlag, self.proxyCmd, local, remote])
+        command = [self.baseCmd, self.proxyFlag, self.proxyCmd, local, remote]
+        subprocess.run(list(filter(None, command)))
               
     def __del__(self):
         pass
