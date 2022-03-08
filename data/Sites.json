@@ -3,5 +3,11 @@
     "user": "bsc21253",
     "url": "mn3.bsc.es",
     "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ/"
+  },
+  "DAINT": {
+    "user": "jrodrgue",
+    "url": "daint.cscs.ch",
+    "proxy": "jrodrguew@ela.cscs.ch",
+    "path": "/project/s1040/mpienkow/UCIS4EQ/"
   }
 }

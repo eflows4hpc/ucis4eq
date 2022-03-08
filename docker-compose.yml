@@ -10,7 +10,8 @@ services:
       context: .
       dockerfile: deployment/dockers/Dockerfile-credentials
       args:
-        SSH_PRV: $SSH_PRV   
+        SSH_PRV: $SSH_PRV
+        PD_USER: $PD_USER   
         IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/slipgen
     network_mode: "host"
     volumes:
@@ -28,7 +29,8 @@ services:
       context: .
       dockerfile: deployment/dockers/Dockerfile-credentials
       args:
-        SSH_PRV: $SSH_PRV   
+        SSH_PRV: $SSH_PRV
+        PD_USER: $PD_USER   
         IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/salvus    
     network_mode: "host"
     volumes:
@@ -86,7 +88,8 @@ services:
       context: .      
       dockerfile: deployment/dockers/Dockerfile-credentials
       args:
-        SSH_PRV: $SSH_PRV   
+        SSH_PRV: $SSH_PRV
+        PD_USER: $PD_USER   
         IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/dashboard
     network_mode: "host"
     volumes:

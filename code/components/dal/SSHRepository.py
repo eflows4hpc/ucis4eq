@@ -37,7 +37,7 @@ class SSHRepository(RepositoryABC):
             
         if proxy:
             self.proxyFlag = "-o"
-            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy + " "
+            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy
         else:
             self.proxyFlag = ""
             self.proxyCmd = ""
@@ -118,6 +118,6 @@ class ETHDAINTRepositoryBuilder:
         proxy = ETH_DAINT["proxy"]
         
         if not self._instance:
-            self._instance = SSHRepository(user, url, path)
+            self._instance = SSHRepository(user, url, path, proxy)
             
         return self._instance        

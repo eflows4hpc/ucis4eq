@@ -50,7 +50,7 @@ class SlurmRunnerABC(RunnerABC, ABC):
 
         if proxy:
             self.proxyFlag = "-o"
-            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy + " "
+            self.proxyCmd = "ProxyCommand=ssh -W %h:%p " + proxy
         else:
             self.proxyFlag = ""
             self.proxyCmd = ""
