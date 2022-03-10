@@ -59,7 +59,7 @@ class SlipGenSubmision(ScriptABC):
 
         # Build command
         cmd = []
-        cmd.append("singularity exec --bind $PWD:/workspace " + image + " /opt/scripts/launcher.sh " 
+        cmd.append("singularity exec --bind $PWD:/workspace --pwd /workspace" + image + " /opt/scripts/launcher.sh " 
                    + args)
 
         self.lines.append(" ".join(cmd))
