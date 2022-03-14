@@ -47,38 +47,40 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
   Find more installation options in:
   https://docs.docker.com/compose/install/
 
-### 2 - Install image on the local host
+### 2 - Deploy UCIS4EQ services
 
-Due to the image was registered on the GitLab repository, first step is doing login
+Because the Docker images are registered on the GitLab repository, first step is login on it
 
 ```
   docker login registry.gitlab.com
 ```
 
-##### Obtain the docker-composer.yml and .env file from the GitLab repository
+For obtaining docker-composer.yml, setup and test files, create a working directory, move there and then:
 
 ```
-  curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/docker-compose.yml/raw?ref=master' > docker-compose.yml
-  curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/.env/raw?ref=master' > .env  
+  bash -c "$(curl --request GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/install.sh/raw?ref=master')"
 ```
 
-## Manual TEST Example
+Follow the instructions
+
+## Manual event triggering
+
+From working directory:
 
 ### 1 - Start the UCIS4EQ System
 Open a terminal and be sure that both .env and docker-compose.yml are in the such directory. Then, run:
 
 ```
-docker-compose up 
+SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose up 
 ```
 
-### 2 - Download the event setup
+IMPORTANT: During first deployment, some images will be created for adding user's ssh credentials.
+
+### 2 - Trigger a manual alert
 ```
-curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSISZ_EQEventExample.json/raw?ref=master' > SISZ_EQEventExample.json
+curl -X POST -H 'Content-Type: application/json' -d @data/SAMOS_EQ_Event_DEMO.json http://127.0.0.1:5001/WMEmulator
 ```
 
-### 3 - Trigger a manual alert
-```
-curl -X POST -H 'Content-Type: application/json' -d @SISZ_EQEventExample.json http://127.0.0.1:5001/WMEmulator
-```
+### 3 - Event follow-up in the Dashboard
 
-Notice that .env file and all configuration files should be provided for a right behaviour 
+Open a browser and go to http://127.0.0.1:8050/

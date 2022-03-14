@@ -17,7 +17,7 @@ curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://
 curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSites.json/raw?ref=master' > data/Sites.json 
 
 echo "... and an known event..."
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSAMOS_EQ_Event_DEMO.json/raw?ref=master' > data/SAMOS_EQ_Event_DEMO.json.json 
+curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSAMOS_EQ_Event_DEMO.json/raw?ref=master' > data/SAMOS_EQ_Event_DEMO.json 
 
 echo "All DONE!"
 
@@ -32,6 +32,3 @@ echo ' 4- To start runnning:
 echo " 5- To stop running services just ctrl+C  (twice)"         
 echo " 6- To make an installation clean-up" 
 echo "    docker-compose down"
-
-echo ""
-echo "Good luck!"
