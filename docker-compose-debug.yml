@@ -70,7 +70,6 @@ services:
 
   # Mongo DataBase 
   DAL:
-    network_mode: "host"
     image: mongo:4.2
     command: mongod --quiet --logpath /dev/null    
     ports:

@@ -291,14 +291,12 @@ class SalvusPost(microServiceABC.MicroServiceABC):
         result = {}
         
         # Select target machinef
-        # TODO Do this in a clever way!
         machine = body['resources']     
         
         # Set repository
         self.setMainRepository(machine['repository'])           
 
         # Creating the repository instance for data transfer    
-        # TODO: Select the repository from the DB 'Resources' document
         dataRepo = dal.repositories.create(machine['repository'], **dal.config)        
         
         # Create the directory for the current execution
@@ -390,7 +388,6 @@ class SalvusPost(microServiceABC.MicroServiceABC):
                               workSpace + body['base'] + ".tar.gz")
     
         # Upload results to B2DROP
-        # TODO: Select a random repository
         b2drop = dal.repositories.create(dal.repository, **dal.config)
         
         rpath = "ChEESE/PD1/Runs/" + body["base"] + "_" + body['domain']['id']  + "/"

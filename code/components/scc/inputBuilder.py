@@ -66,6 +66,12 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         """
         # Initialize inputP dict
         inputP = {}
+        
+        # Select target machine
+        machine = body['resources']
+        
+        # Set repository
+        self.setMainRepository(machine['repository'])        
 
         # Obtain information from the DB
         # Notice that more than one results can be returned.

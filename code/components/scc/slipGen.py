@@ -53,13 +53,12 @@ class SlipGenSubmision(ScriptABC):
         # Obtain Slurm rules
         r = resources
         
-        # TODO: Change this depending of the target environment queue system
         self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
                             r["cpus-per-task"], r["qos"])
 
         # Build command
         cmd = []
-        cmd.append("singularity exec --bind $PWD:/workspace --pwd /workspace" + image + " /opt/scripts/launcher.sh " 
+        cmd.append("singularity exec --bind $PWD:/workspace --pwd /workspace " + image + " /opt/scripts/launcher.sh " 
                    + args)
 
         self.lines.append(" ".join(cmd))
