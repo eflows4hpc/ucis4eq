@@ -24,7 +24,7 @@
 #from __future__ import annotations
 from abc import ABC, abstractmethod
 
-import ucis4eq.dal as dal
+import ucis4eq
 from ucis4eq.misc.factory import Factory 
 
 
@@ -38,15 +38,15 @@ class SDAFactory(Factory):
         """
         Select a repository from a set 
         """
-        
+                
         # TODO: Add some mechanism for choosing a repository,
         #       load balancing, etc...
         if repo in repositories.keys():
             repository = repo
         elif len(repositories.keys()) == 1:
             repository = list(repositories)[0]
-        elif dal.repository in repositories.keys():
-            repository = dal.repository
+        elif ucis4eq.dal.repository in repositories.keys():
+            repository = ucis4eq.dal.repository
         else:
             print("WARNING: No repository found for current file")
             return None, None
