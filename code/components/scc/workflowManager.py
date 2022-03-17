@@ -136,7 +136,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
             input = {}
             
             # Creating the pool executor
-            with concurrent.futures.ProcessPoolExecutor(max_workers=20) as executor:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
                 futures = []
 
                 # Calculate the CMT input parameters
@@ -172,9 +172,6 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                     config.checkPostRequest(r)
 
                     cmt = r.json()['result']
-                    
-                    # TODO Remove this line for enabling statistical CMTs
-                    cmt = {}
                     
                     if "cmt" in a.keys():
                         cmt.update(a["cmt"])
@@ -217,13 +214,13 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                             futures.append(executor.submit(WorkflowManagerEmulator.compute, lalert, self.url))
                             
                             #break  ## Avoid to run 66 times this (swarm runs)
-                        break  ## Avoid to run 66 times this (swarm runs)
-                    break
+                        #break  ## Avoid to run 66 times this (swarm runs)
+                    #break
 
                 print("Waiting for results", flush=True)
                 for future in concurrent.futures.as_completed(futures):
                     data = future.result()
-                                            
+                                                                
             # Post-process output by generating:
             r = requests.post(self.url + ":5003/SalvusPlots", json=input)
             config.checkPostRequest(r)

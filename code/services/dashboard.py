@@ -701,9 +701,18 @@ def dropDownMenus():
             value=None,
             placeholder="Select metric"
         )
-
-    content = html.Div(children=[dbc.Row([dbc.Col(first), dbc.Col(second),
-             dbc.Col(third)], style = {"width": "100%"} )], className = "card")
+    fourth = dcc.Dropdown(
+            id='fourth-dropdown',
+            options=[],
+            value=None,
+            placeholder="Select trial"
+        )
+    
+    content = html.Div(children=[dbc.Row([dbc.Col(first, width=2), 
+                                          dbc.Col(second, width=2),
+                                          dbc.Col(third, width=2),
+                                          dbc.Col(fourth, width=6)], 
+             style = {"width": "100%"} )], className = "card")
     return content
 
 
@@ -711,7 +720,7 @@ def dropDownMenus():
     Output("second-dropdown", "options"),
     [Input("first-dropdown", "value")],
 )
-def updateSecondDropdown(value1):
+def updateFirstDropdown(value1):
 
     if not value1:
         return dash.no_update
@@ -737,14 +746,53 @@ def updateSecondDropdown(value1, value2):
         options.append({"label": units, "value": units})
 
     return options
+    
+@app.callback(
+    Output("fourth-dropdown", "options"),
+    [Input("first-dropdown", "value"),
+     Input("second-dropdown", "value"),
+     Input("third-dropdown", "value")],
+)
+def updateThirdDropdown(value1, value2, value3):
+
+    if not (value1 and value2 and value3):
+        return dash.no_update
+
+    options = []
+
+    request = [
+        {
+            "$match": {
+                "requestId":  doneSelectedRow['Run'],
+                 "inputs.trial": {"$ne" : None} 
+                }
+        },
+        {
+            "$group": { 
+                "_id": { "trial": "$inputs.trial"},
+                } 
+        }
+    ] 
+        
+    col = dal.database["ServiceRuns"]
+    cursor= col.aggregate(request)   
+    
+    for trial in cursor:    
+        name = trial["_id"]["trial"]
+
+        options.append({"label": name.split("/")[-1], "value": name})            
+    
+    return options    
+
 
 @app.callback(
     Output("plotFigures", "children"),
     [Input("first-dropdown", "value"),
      Input("second-dropdown", "value"),
-     Input("third-dropdown", "value")],
+     Input("third-dropdown", "value"),
+     Input("fourth-dropdown", "value")],
 )
-def buildpattern(value1, value2, value3):
+def buildpattern(value1, value2, value3, value4):
 
     if not (doneSelectedRow and domainSelectedRow
             and value1 and value2 and value3):
@@ -762,8 +810,8 @@ def buildpattern(value1, value2, value3):
         request = list(col.find({"_id": ObjectId(doneSelectedRow['Run'])}))[0]
 
         path = "event_" + request['uuid'] + "_" + domainSelectedRow['Model'] + "/"
-        filenames = "event_" + request['uuid'] + "/*/*/" + pattern
-
+        filenames = value4 + "/*/" + pattern
+        
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + path
         os.makedirs(workSpace, exist_ok=True)
@@ -1141,7 +1189,7 @@ def executionDetails(n, data, idx):
         progress, label, color = calculateProgress(service, trialProgressValues, show)
             
         elem = dbc.Row([
-                      dbc.Col(html.H6(name.split("/")[-1]), width=5),
+                      dbc.Col(html.H6(name.split("/")[-1]), width=7),
                       dbc.Col(dbc.Progress(id=f"progressBar_{name}", 
                                            striped=True, 
                                            animated="True", 
@@ -1152,7 +1200,7 @@ def executionDetails(n, data, idx):
                                                   "font-size": "20px",
                                                   "text-align": "center"}
                                           ), 
-                                           width=7),
+                                           width=5),
                         dbc.Tooltip(
                                     f"Stage: {service['serviceName']}",
                                     target=f"progressBar_{name}",
@@ -1371,8 +1419,8 @@ def queryDoneJobs(value):
                 'Longitude': lon,
                 'Min. Mw': event['magnitudemin'],
                 'Max. Mw': event['magnitudemax'],
-                'Min. Depth': event['magnitudemin'],
-                'Max. Depth': event['magnitudemax'],
+                'Min. Depth': event['depthmin'],
+                'Max. Depth': event['depthmax'],
                 '# Alerts': event['alerts'],
                 #'UUID': event['uuid']
                 'Run': id
