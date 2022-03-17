@@ -39,8 +39,17 @@ progressValues = {
    'SlipGenGP': { 'value': 5, 'init': 5},
    'InputParametersBuilder': { 'value': 1, 'init': 10},
    'SalvusPrepare': { 'value': 7, 'init': 11},
-   'SalvusRun': { 'value':  75, 'init': 18},
-   'SalvusPost': { 'value': 7, 'init': 93}
+   'SalvusRun': { 'value':  70, 'init': 18},
+   'SalvusPost': { 'value': 5, 'init': 88},
+   'SalvusPlots': { 'value': 7, 'init': 93}
+}
+
+trialProgressValues = {
+   'SlipGenGP': { 'value': 5, 'init': 0},
+   'InputParametersBuilder': { 'value': 5, 'init': 5},
+   'SalvusPrepare': { 'value': 5, 'init': 10},
+   'SalvusRun': { 'value':  80, 'init': 15},
+   'SalvusPost': { 'value': 5, 'init': 95}
 }
 
 doneSelectedRow = None
@@ -260,12 +269,12 @@ def render_content(tab):
     elif tab == 'tab-3':
         content = html.Div(id='tab-table-3')
         eventsProgress = html.Div(id='tab-progress-3')
-        eventsTree = html.Div(id='tab-tree-3')
+        eventsDetails = html.Div(id='tab-details-3')        
+        eventsTrials = html.Div(id='tab-trials-3')
         eventsSnap = html.Div(id='tab-snaps-3')
 
-
         eventsInfo = html.Div(children = [dbc.Row([
-                                            dbc.Col([eventsProgress, eventsTree], width=8),
+                                            dbc.Col([eventsProgress, eventsDetails, eventsTrials], width=8),
                                             dbc.Col(eventsSnap, width=4)])
                      ])
 
@@ -946,8 +955,8 @@ def queryJobs(value):
                 'Longitude': lon,
                 'Min. Mw': event['magnitudemin'],
                 'Max. Mw': event['magnitudemax'],
-                'Min. Depth': event['magnitudemin'],
-                'Max. Depth': event['magnitudemax'],
+                'Min. Depth': event['depthmin'],
+                'Max. Depth': event['depthmax'],
                 '# Alerts': event['alerts'],
                 #'UUID': event['uuid']
                 'Run': id
@@ -961,7 +970,7 @@ def queryJobs(value):
     table = html.Div(
         className="card",
         children=[
-            dcc.Interval(id="progress-interval", n_intervals=0, interval=10000),
+            dcc.Interval(id="progress-interval", n_intervals=0, interval=30000),
             dcc.Interval(id="progress-interval-snaps", n_intervals=0, interval=30000),
             # Draw table
             dash_table.DataTable(
@@ -1006,9 +1015,11 @@ def executionTree(n, data, idx):
     if len(idx):
         progressBar = html.Div(
                         className = "card",
-                        children = [
-                            dbc.Progress(id="progress", striped=True)
-                        ]
+                        children = [dbc.Row([
+                                      dbc.Col(dbc.Progress(id="progress", striped=True, animated="True", style={"height": "50px", "font-size": "40px"}), width=11),
+                                      dbc.Col(dbc.Button("+", id="progress-button", className='progress-button', n_clicks=0, style = {"width": "100%"}), width=1)
+                                    ],
+                                    style = {"width": "100%"} )]
                      )
     else:
         progressBar = html.Div()
@@ -1048,8 +1059,6 @@ def executionSnapshot(n, data, idx):
         # Download results from HPC machine
         dataRepo.downloadFile(rfile, lfile)
         
-        print("Doing the job")
-
         try:
             currentSnapshot = base64.b64encode(open(lfile, 'rb').read()).decode('ascii')
             snapshot = dbc.Card(
@@ -1091,11 +1100,82 @@ def executionSnapshot(n, data, idx):
 
     return html.Div(children=[snapshot])
 
-@app.callback(Output('tab-tree-3', 'children'),
+
+@app.callback(Output('tab-trials-3', 'children'),
               Input("progress-interval", "n_intervals"),
               Input('tableRunning', "derived_viewport_data"),
               Input('tableRunning', "derived_virtual_selected_rows"))
-def executionTree(n, data, idx):
+def executionDetails(n, data, idx):
+    
+    if not len(idx):
+        return dash.no_update  
+        
+    request = [
+        {
+            "$match": {
+                "requestId": data[idx[0]]['Run'],
+                 "inputs.trial": {"$ne" : None} 
+                }
+        },
+        {
+            "$group": { 
+                "_id": { "trial": "$inputs.trial"},
+                } 
+        }
+    ] 
+        
+    col = dal.database["ServiceRuns"]
+    cursor= col.aggregate(request)    
+    
+    pbars = []
+    
+    for trial in cursor:    
+        name = trial["_id"]["trial"]
+        cursor2 = col.find({"inputs.trial": name})
+
+        service=list(cursor2)[-1]
+        if name == "event_cabc0e50-a0ec-11ea-9ec0-test/trial_WESTERN_TURKEY_3D.GCMT.slip2":
+            show = True
+        else:
+            show = False
+        progress, label, color = calculateProgress(service, trialProgressValues, show)
+            
+        elem = dbc.Row([
+                      dbc.Col(html.H6(name.split("/")[-1]), width=5),
+                      dbc.Col(dbc.Progress(id=f"progressBar_{name}", 
+                                           striped=True, 
+                                           animated="True", 
+                                           value=progress,
+                                           label=label,
+                                           color=color,
+                                           style={"height": "25px", 
+                                                  "font-size": "20px",
+                                                  "text-align": "center"}
+                                          ), 
+                                           width=7),
+                        dbc.Tooltip(
+                                    f"Stage: {service['serviceName']}",
+                                    target=f"progressBar_{name}",
+                                    placement="left"
+                                )                   
+                      
+                    ],
+                    style = {"width": "100%", "margin": "5px"} )            
+            
+        pbars.append(elem)
+            
+        
+    content = html.Div(
+                    className="card",
+                    children = pbars
+                )
+    return content
+    
+@app.callback(Output('tab-details-3', 'children'),
+              Input("progress-interval", "n_intervals"),
+              Input('tableRunning', "derived_viewport_data"),
+              Input('tableRunning', "derived_virtual_selected_rows"))
+def executionDetails(n, data, idx):
 
     fieldsEQ = {}
 
@@ -1126,39 +1206,61 @@ def executionTree(n, data, idx):
 
     df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
 
+    dataTable = dash_table.DataTable(
+                    id='table',
+                    columns=[{"name": i, "id": i}
+                             for i in columns],
+                    data=df.to_dict('records'),
+                    sort_action="native",
+                    sort_mode='multi',
+                    style_data={
+                        'color': 'black',
+                        'backgroundColor': 'white',
+                        'textAlign': 'center',
+                        'border': 'none',
+                    },
+                    style_data_conditional=[
+                        {
+                            'if': {'row_index': 'odd'},
+                            'backgroundColor': 'rgb(247, 247, 240)',
+                        }
+                    ],
+                    style_header={
+                        'backgroundColor': 'rgb(227, 98, 9)',
+                        'color': 'black',
+                        'fontWeight': 'bold',
+                        'textAlign': 'center'
+                    }
+            )
 
     content = html.Div(
-                    className = "card",
+                    id="generalProgress",
                     children = [
-                        dash_table.DataTable(
-                            id='table',
-                            columns=[{"name": i, "id": i}
-                                     for i in columns],
-                            data=df.to_dict('records'),
-                            sort_action="native",
-                            sort_mode='multi',
-                            style_data={
-                                'color': 'black',
-                                'backgroundColor': 'white',
-                                'textAlign': 'center',
-                                'border': 'none',
-                            },
-                            style_data_conditional=[
-                                {
-                                    'if': {'row_index': 'odd'},
-                                    'backgroundColor': 'rgb(247, 247, 240)',
-                                }
-                            ],
-                            style_header={
-                                'backgroundColor': 'rgb(227, 98, 9)',
-                                'color': 'black',
-                                'fontWeight': 'bold',
-                                'textAlign': 'center'
-                            }
-                        )
+                        dbc.Modal([
+                                dbc.ModalHeader(),
+                                dbc.ModalBody(),
+                                   dataTable
+                                ],
+                                size="xl",
+                                is_open=False,
+                                keyboard=False,
+                                backdrop="static",  
+                                scrollable=True,
+                                id="modal-details"
+                            )                   
                     ]
                 )
     return content
+    
+@app.callback(
+    Output("modal-details", "is_open"),
+    [Input("progress-button", "n_clicks")],
+    [State("modal-details", "is_open")],
+)
+def toggle_modal_progress(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open    
 
 @app.callback(
     [Output("progress", "value"), Output("progress", "label"), Output("progress", "color")],
@@ -1171,13 +1273,27 @@ def update_progress(n, data, idx):
     if not data or not idx:
         return dash.no_update, dash.no_update, dash.no_update
 
-    color = dash.no_update
 
     col = dal.database["ServiceRuns"]
     cursor= col.find({"requestId": data[idx[0]]['Run']})
 
-    service = list(cursor)[-1]
+    # Calculate progress for main progress bar        
+    progress,label, color = calculateProgress(list(cursor)[-1], progressValues)
 
+    if data[idx[0]]['Status'] == "REJECTED":
+       color = "warning"
+    elif data[idx[0]]['Status'] == "SUCCESS":
+        color = "success"
+
+    # check progress of some background process, in this example we'll just
+    # use n_intervals constrained to be in 0-100
+    #progress = min(n % 110, 100)
+    # only add text after 5% progress to ensure text isn't squashed too much
+    return progress, label, color
+
+def calculateProgress(service, progressValues, show=False):
+
+    color = "#2b6777"
     value = progressValues[service['serviceName']]['value']
 
     if service['serviceName'] == "SalvusRun":
@@ -1191,8 +1307,11 @@ def update_progress(n, data, idx):
                 task = result['tasks'][1]
                 if 'current' in task.keys():
                     value = int(value * (task['current'] / task['total']))
+            if show:
+                print(service['serviceName'] + "    ---> " + str(value))
     else:
         value = 0
+        
 
     if service['status'] == "SUCCESS":
         progress = progressValues[service['serviceName']]['init'] +\
@@ -1200,19 +1319,9 @@ def update_progress(n, data, idx):
     else:
         progress = progressValues[service['serviceName']]['init'] + value
         if service['status'] == "FAILED":
-            color = "danger"
-
-    if data[idx[0]]['Status'] == "REJECTED":
-       color = "warning"
-    elif data[idx[0]]['Status'] == "SUCCESS":
-        color = "success"
-
-    # check progress of some background process, in this example we'll just
-    # use n_intervals constrained to be in 0-100
-    #progress = min(n % 110, 100)
-    # only add text after 5% progress to ensure text isn't squashed too much
+            color = "danger"    
+    
     return progress, f"{progress} %" if progress >= 8 else "", color
-
 
 @app.callback(Output('tab-table-4', 'children'),
               Input('tabs-with-classes', 'value'))

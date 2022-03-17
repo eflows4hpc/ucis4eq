@@ -92,7 +92,9 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         self.geometry['region_ID'] = domain['region']
                 
         paths = {}
-        for file in domain['files']:
+        files = ["mesh_precomputed", "mesh_onthefly", "velocity_model",
+                 "topography", "bathymetry"]
+        for file in files:
             if not domain['files'][file] == "":
                 paths[file] = self.filePing[domain['files'][file]]
         self.geometry['filepaths'] = paths

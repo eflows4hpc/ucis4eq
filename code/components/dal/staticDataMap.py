@@ -73,7 +73,8 @@ class StaticDataMap():
         if name in self._values.keys():
             doc = self._values[name]
         else:
-            raise Exception("File '" + name +"' was not found on the repositories")
+            raise Exception("File '" + name +"' was not found on the repositories. Only these are available ["
+                             +', '.join(self._values.keys()) +"]")
                 
         # Check if the current repository was created
         repo, repoSettings = dal.repositories.selectFrom(doc['repositories'], 

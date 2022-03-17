@@ -105,7 +105,6 @@ class DAL(microServiceABC.MicroServiceABC):
         
         # Insert all registries
         if documentsPath.endswith(".json"):
-            print(documentsPath)
 
             try:
                 with open(documentsPath, "r", encoding="utf-8") as f:

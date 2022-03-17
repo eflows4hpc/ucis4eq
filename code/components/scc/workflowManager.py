@@ -81,6 +81,10 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         # Call Salvus system (or other)
         r = requests.post(url + ":5003/SalvusRun", json=sim)
         config.checkPostRequest(r)
+        
+        # Call Salvus post (or other)
+        r = requests.post(url + ":5003/SalvusPost", json=sim)
+        config.checkPostRequest(r)
 
         return lalert
 
@@ -132,7 +136,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
             input = {}
             
             # Creating the pool executor
-            with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=20) as executor:
                 futures = []
 
                 # Calculate the CMT input parameters
@@ -212,7 +216,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
 
                             futures.append(executor.submit(WorkflowManagerEmulator.compute, lalert, self.url))
                             
-                            break  ## Avoid to run 66 times this (swarm runs)
+                            #break  ## Avoid to run 66 times this (swarm runs)
                         break  ## Avoid to run 66 times this (swarm runs)
                     break
 
@@ -221,8 +225,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                     data = future.result()
                                             
             # Post-process output by generating:
-            input['trial'] = lalert['trial']
-            r = requests.post(self.url + ":5003/SalvusPost", json=input)
+            r = requests.post(self.url + ":5003/SalvusPlots", json=input)
             config.checkPostRequest(r)
             
             # Set the event with SUCCESS state
