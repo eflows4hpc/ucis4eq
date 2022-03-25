@@ -40,7 +40,7 @@ class RunnerABC(ABC):
 
     # Method for defining the "getRules" required method
     @abstractmethod    
-    def getRules(self, cname, tlimit, nodes, tasks, cpus, qos):
+    def getRules(self, stage):
         raise NotImplementedError("Error: 'getRules' method should be implemented")
 
     # Method for obtaining the spefific MPI command (srun, mpirun, etc...)           

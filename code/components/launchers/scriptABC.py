@@ -71,11 +71,10 @@ class ScriptABC(ABC):
         self.lines.append("")
 
     # Build specific slurm rules
-    def _getRules(self, tlimit, nodes, tasks, cpus, qos):
+    def _getRules(self, stage):
 
         self.lines = self.lines \
-                     + self.launcher.getRules(self._className(), tlimit, nodes, 
-                                              tasks, cpus, qos) \
+                     + self.launcher.getRules(self._className(), stage) \
                      + self.launcher.getEnvironmentSetup()
                      
         self.lines.append("")                                                                                      

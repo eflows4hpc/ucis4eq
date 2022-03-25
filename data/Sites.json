@@ -2,12 +2,86 @@
   "MN4": {
     "user": "bsc21253",
     "url": "mn3.bsc.es",
-    "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ/"
+    "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ2/",
+    "resources": {
+      "SlipGenGP": {
+        "wtime": 360,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "qos": "debug"
+      },
+      "SalvusPrepare": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "qos": "debug"
+      },
+      "SalvusRun": {
+        "wtime": 2400,
+        "nodes": 10,
+        "tasks-per-node": 48,
+        "qos": "debug"
+      },
+      "SalvusPost": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "qos": "debug"
+      },
+      "SalvusPlots": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "qos": "debug"
+      }
+    }
   },
   "DAINT": {
     "user": "jrodrgue",
     "url": "daint.cscs.ch",
     "proxy": "jrodrguew@ela.cscs.ch",
-    "path": "/project/s1040/mpienkow/UCIS4EQ/"
+    "path": "/project/s1040/mpienkow/UCIS4EQ/",
+    "resources": {
+      "SlipGenGP": {
+        "wtime": 360,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "partition": "debug",
+        "constraint": "gpu",
+        "account": "s1040" 
+      },
+      "SalvusPrepare": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "partition": "debug",
+        "constraint": "gpu",
+        "account": "s1040" 
+      },
+      "SalvusRun": {
+        "wtime": 2400,
+        "nodes": 10,
+        "tasks-per-node": 48,
+        "partition": "debug",
+        "constraint": "gpu",
+        "account": "s1040" 
+      },
+      "SalvusPost": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "partition": "debug",
+        "constraint": "gpu",
+        "account": "s1040" 
+      },
+      "SalvusPlots": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "partition": "debug",
+        "constraint": "gpu",
+        "account": "s1040" 
+      }
+    }
   }
 }

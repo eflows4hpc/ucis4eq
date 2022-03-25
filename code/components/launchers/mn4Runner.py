@@ -35,20 +35,24 @@ from ucis4eq.launchers.slurmRunnerABC import SlurmRunnerABC
 class MN4SlurmRunner(SlurmRunnerABC):
             
     # Obtain the spefific rules for a slurm Script    
-    def getRules(self, cname, tlimit, nodes, tasks, cpus, qos):
+    def getRules(self, stage):
         
         # Initialize list of instructions
         lines = []
+        
+        # Select the resources for the given stage
+        # TODO: Control that provided stage exist
+        args = self.resources[stage]
 
         # Add rules to the slurm script
-        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(tlimit)))
-        lines.append("#SBATCH --nodes=" + str(nodes))
-        lines.append("#SBATCH --tasks-per-node=" + str(tasks))
-        lines.append("#SBATCH --cpus-per-task=" + str(cpus))
-        lines.append("#SBATCH --ntasks=" + str(int(nodes) * int(tasks)))
-        lines.append("#SBATCH --error=" + cname + ".e")
-        lines.append("#SBATCH --output=" + cname + ".o")
-        lines.append("#SBATCH --qos=" + qos)
+        lines.append("#SBATCH --job-name=" + stage)        
+        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(args['tlimit'])))
+        lines.append("#SBATCH --nodes=" + str(args['nodes']))
+        lines.append("#SBATCH --tasks-per-node=" + str(args['tasks']))
+        lines.append("#SBATCH --ntasks=" + str(int(args['nodes']) * int(args['tasks'])))
+        lines.append("#SBATCH --error=" + args['cname'] + ".e")
+        lines.append("#SBATCH --output=" + args['cname'] + ".o")
+        lines.append("#SBATCH --qos=" + args['qos'])
         #lines.append("#SBATCH --partition=main")
         #lines.append("#SBATCH --reservation=ChEESE21_test")
 
@@ -89,9 +93,10 @@ class MN4RunnerBuilder:
         user = MN4["user"]
         url = MN4["url"]
         path = MN4["path"]
+        resources = MN4["resources"]        
         # WARNING!!!: We dont want to do this as a Singleton
         #if not self._instance:
         #    self._instance = SlurmRunner(user, url, path)
             
         #return self._instance
-        return MN4SlurmRunner(user, url, path)
+        return MN4SlurmRunner(user, url, path, resources)

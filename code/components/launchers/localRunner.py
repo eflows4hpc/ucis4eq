@@ -47,7 +47,7 @@ class LocalRunner(RunnerABC):
         self.path = path     
             
     # Obtain the spefific rules for a local script    
-    def getRules(self, tlimit, nodes, tasks, cpus, qos):
+    def getRules(self, stage):
         
         # Return the set of instructions
         return []

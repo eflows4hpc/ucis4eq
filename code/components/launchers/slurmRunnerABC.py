@@ -43,7 +43,7 @@ class SlurmRunnerABC(RunnerABC, ABC):
     uuid = uuid.uuid1()
     
     # Initialization method    
-    def __init__(self, user, url, path, proxy=None):
+    def __init__(self, user, url, path, resources, proxy=None):
         
         # Base command 
         self.baseCmd = "ssh" 
@@ -55,10 +55,11 @@ class SlurmRunnerABC(RunnerABC, ABC):
             self.proxyFlag = ""
             self.proxyCmd = ""
         
-        # Store the username, url and base path
+        # Store the username, url, base path and resources
         self.user = user
         self.url = url
         self.path = path
+        self.resources = resources
         
         # Initialize the synchronizerpos
         self.resultAvailable = threading.Event()

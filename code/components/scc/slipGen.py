@@ -46,15 +46,13 @@ from ucis4eq.dal import staticDataMap
 class SlipGenSubmision(ScriptABC):
     
     # Build the submission script
-    def build(self, image, path, args, resources):
+    def build(self, image, path, args, stage):
         # Obtain Header 
         self._getHeader()
 
         # Obtain Slurm rules
-        r = resources
         
-        self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
-                            r["cpus-per-task"], r["qos"])
+        self._getRules(stage)
 
         # Build command
         cmd = []
@@ -157,15 +155,10 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
                 + os.path.basename(self.fileMapping[setup['model']]) \
                 + " -s " + os.path.basename(source) + initSlip
 
-        # Generate Submission script
-        # TODO: This is hardcoded by right now but should be parametrized
-        resources = {'wtime': 360, 'nodes': 1, 'tasks-per-node': 1,
-                     'cpus-per-task': 48, 'qos': 'debug'}
-
         # Submission instance   
         submission = SlipGenSubmision(machine['id'])          
 
-        script = submission.build(image, path, args, resources)
+        script = submission.build(image, path, args, "SlipGenGP")
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "slipgen"

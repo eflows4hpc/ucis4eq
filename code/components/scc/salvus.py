@@ -46,16 +46,12 @@ from ucis4eq.dal import staticDataMap
 class SalvusWrapperSubmision(scriptABC.ScriptABC):
     
     # Build the submission script
-    def build(self, commands, path, resources, additional = []):
+    def build(self, commands, path, stage, additional = []):
         # Obtain Header 
         self._getHeader()
-
-        # Obtain Slurm rules
-        r = resources
         
         # TODO: Change this depending of the target environment queue system
-        self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
-                            r["cpus-per-task"], r["qos"])
+        self._getRules(stage)
         
         for line in additional:
             self.lines.append(line)
@@ -124,11 +120,6 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
                "--salvus " + self.filePing['salvus_setup']
                
         commands.append((binary, args)) 
-        
-        # Generate Submission script
-        # TODO: This is hardcoded by now but should be parametrized
-        resources = {'wtime': 1800, 'nodes': 1, 'tasks-per-node': 1,
-                     'cpus-per-task': 48, 'qos': 'debug'}
                      
         # Solver dependencies 
         additional = []
@@ -139,7 +130,7 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         # Submission instance   
         submission = SalvusWrapperSubmision(machine['id'])
         
-        script = submission.build(commands, workSpace, resources, additional)
+        script = submission.build(commands, workSpace, "SalvusPrepare", additional)
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "salvus_wrapper"
@@ -161,16 +152,12 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
 class SalvusRunSubmision(scriptABC.ScriptABC):
     
     # Build the submission script
-    def build(self, commands, path, resources, additional = []):
+    def build(self, commands, path, stage, additional = []):
         # Obtain Header 
         self._getHeader()
-
-        # Obtain Slurm rules
-        r = resources
         
         # TODO: Change this depending of the target environment queue system
-        self._getRules(r['wtime'], r["nodes"], r["tasks-per-node"], 
-                            r["cpus-per-task"], r["qos"])
+        self._getRules(stage)
         
         for line in additional:
             self.lines.append(line)
@@ -239,12 +226,8 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         args = body['input']
         commands.append((binary, args))
         
-        # Generate Submission script
-        # TODO: This is hardcoded by right now but should be parametrized
-        resources = {'wtime': 2400, 'nodes': 10, 'tasks-per-node': 48,
-                     'cpus-per-task': 1, 'qos': 'debug'}
         
-        script = submission.build(commands, workSpace, resources, [])
+        script = submission.build(commands, workSpace, "SalvusRun", [])
     
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "salvus"
@@ -308,12 +291,7 @@ class SalvusPost(microServiceABC.MicroServiceABC):
                "--salvus "  + self.filePing['salvus_setup'] + " " +\
                "--coordsdata " +  wworkpath + " " +\
                "--rawdata " + sworkpath
-        commands.append((binary, args))
-            
-        # Generate Submission script
-        # TODO: This is hardcoded by now but should be parametrized
-        resources = {'wtime': 1800, 'nodes': 1, 'tasks-per-node': 1,
-                     'cpus-per-task': 48, 'qos': 'debug'}        
+        commands.append((binary, args))      
         
         # Solver dependencies 
         additional = []
@@ -324,7 +302,7 @@ class SalvusPost(microServiceABC.MicroServiceABC):
         # Submission instance   
         submission = SalvusWrapperSubmision(machine['id'])     
         
-        script = submission.build(commands, workSpace, resources, additional)        
+        script = submission.build(commands, workSpace, "SalvusPost", additional)        
                               
         # Create the remote working directory
         rworkpath = body['trial'] + "/" + "salvus_post"
@@ -411,12 +389,7 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         # ... create symbolic link
         binary = "rm  "
         args = "-fr " + body['base']
-        commands.append((binary, args))           
-        
-        # Generate Submission script
-        # TODO: This is hardcoded by now but should be parametrized
-        resources = {'wtime': 1800, 'nodes': 1, 'tasks-per-node': 1,
-                     'cpus-per-task': 48, 'qos': 'debug'}        
+        commands.append((binary, args))                  
         
         # Solver dependencies 
         additional = []
@@ -427,7 +400,7 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         # Submission instance   
         submission = SalvusWrapperSubmision(machine['id'])     
         
-        script = submission.build(commands, workSpace, resources, additional)        
+        script = submission.build(commands, workSpace, "SalvusPlots", additional)        
                               
         # Create the remote working directory
         rworkpath = bpath + "salvus_plots"

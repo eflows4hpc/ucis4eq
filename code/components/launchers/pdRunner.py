@@ -35,21 +35,25 @@ from ucis4eq.launchers.slurmRunnerABC import SlurmRunnerABC
 class PDSlurmRunner(SlurmRunnerABC):
             
     # Obtain the spefific rules for a slurm Script    
-    def getRules(self, cname, tlimit, nodes, tasks, cpus, qos):
+    def getRules(self, stage):
         
         # Initialize list of instructions
         lines = []
+        
+        # Select the resources for the given stage
+        # TODO: Control that provided stage exist
+        args = self.resources[stage]        
 
         # Add rules to the slurm script
-        lines.append("#SBATCH --job-name=run_salvus")
-        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(tlimit)))
-        lines.append("#SBATCH --tasks-per-node=" + str(tasks))
-        lines.append("#SBATCH --ntasks=" + str(int(nodes) * int(tasks)))
-        lines.append("#SBATCH --error=" + cname + ".e")
-        lines.append("#SBATCH --output=" + cname + ".o")
-        lines.append("#SBATCH --partition=normal")
-        lines.append("#SBATCH --constraint=gpu")
-        lines.append("#SBATCH --account=s1040")
+        lines.append("#SBATCH --job-name=" + stage)
+        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(args['tlimit'])))
+        lines.append("#SBATCH --tasks-per-node=" + str(args['tasks']))
+        lines.append("#SBATCH --ntasks=" + str(int(args['nodes']) * int(args['tasks'])))
+        lines.append("#SBATCH --error=" + args['cname'] + ".e")
+        lines.append("#SBATCH --output=" + args['cname'] + ".o")
+        lines.append("#SBATCH --partition=" + args['partition'])
+        lines.append("#SBATCH --constraint=" + args['constraint'])
+        lines.append("#SBATCH --account=" + args['account'])
 
         lines.append("")
         lines.append("cd $SLURM_SUBMIT_DIR")
@@ -90,10 +94,11 @@ class PDRunnerBuilder:
         user = DAINT["user"]
         url = DAINT["url"]
         path = DAINT["path"]
+        resources = DAINT["resources"]           
         proxy = DAINT["proxy"]
         # WARNING!!!: We dont want to do this as a Singleton
         #if not self._instance:
         #    self._instance = SlurmRunner(user, url, path)
             
         #return self._instance
-        return PDSlurmRunner(user, url, path, proxy)
+        return PDSlurmRunner(user, url, path, resources, proxy)
