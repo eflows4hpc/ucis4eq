@@ -46,12 +46,12 @@ class MN4SlurmRunner(SlurmRunnerABC):
 
         # Add rules to the slurm script
         lines.append("#SBATCH --job-name=" + stage)        
-        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(args['tlimit'])))
+        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(args['wtime'])))
         lines.append("#SBATCH --nodes=" + str(args['nodes']))
-        lines.append("#SBATCH --tasks-per-node=" + str(args['tasks']))
-        lines.append("#SBATCH --ntasks=" + str(int(args['nodes']) * int(args['tasks'])))
-        lines.append("#SBATCH --error=" + args['cname'] + ".e")
-        lines.append("#SBATCH --output=" + args['cname'] + ".o")
+        lines.append("#SBATCH --tasks-per-node=" + str(args['tasks-per-node']))
+        lines.append("#SBATCH --ntasks=" + str(int(args['nodes']) * int(args['tasks-per-node'])))
+        lines.append("#SBATCH --error=" + stage + ".e")
+        lines.append("#SBATCH --output=" + stage + ".o")
         lines.append("#SBATCH --qos=" + args['qos'])
         #lines.append("#SBATCH --partition=main")
         #lines.append("#SBATCH --reservation=ChEESE21_test")
@@ -64,7 +64,7 @@ class MN4SlurmRunner(SlurmRunnerABC):
         return lines
 
     # Method for obtaining environment setup (module loads, PATH, conda environmnet, etc ...)
-    def getEnvironmentSetup(self):
+    def getEnvironmentSetup(self, stage):
         # Initialize list of instructions
         lines = []
         

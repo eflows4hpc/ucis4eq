@@ -43,14 +43,14 @@ class PDSlurmRunner(SlurmRunnerABC):
         # Select the resources for the given stage
         # TODO: Control that provided stage exist
         args = self.resources[stage]        
-
+        print(args)
         # Add rules to the slurm script
         lines.append("#SBATCH --job-name=" + stage)
-        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(args['tlimit'])))
-        lines.append("#SBATCH --tasks-per-node=" + str(args['tasks']))
-        lines.append("#SBATCH --ntasks=" + str(int(args['nodes']) * int(args['tasks'])))
-        lines.append("#SBATCH --error=" + args['cname'] + ".e")
-        lines.append("#SBATCH --output=" + args['cname'] + ".o")
+        lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(args['wtime'])))
+        lines.append("#SBATCH --tasks-per-node=" + str(args['tasks-per-node']))
+        lines.append("#SBATCH --ntasks=" + str(int(args['nodes']) * int(args['tasks-per-node'])))
+        lines.append("#SBATCH --error=" + stage + ".e")
+        lines.append("#SBATCH --output=" + stage + ".o")
         lines.append("#SBATCH --partition=" + args['partition'])
         lines.append("#SBATCH --constraint=" + args['constraint'])
         lines.append("#SBATCH --account=" + args['account'])
@@ -63,26 +63,34 @@ class PDSlurmRunner(SlurmRunnerABC):
         return lines
 
     # Method for obtaining environment setup (module loads, PATH, conda environmnet, etc ...)
-    def getEnvironmentSetup(self):
+    def getEnvironmentSetup(self, stage):
         # Initialize list of instructions
         lines = []
         
+        # TODO: Control that provided stage exist
+        args = self.resources[stage]
+        
+        add_lines = args['environment']
+
+        for line in add_lines:
+            lines.append(line)
+
         # Piz Daint MPI setup
-        lines.append("export LD_LIBRARY_PATH=/opt/cray/pe/mpt/7.7.15/gni/mpich-gnu-abi/8.2/lib:$LD_LIBRARY_PATH")
-        lines.append("export CRAY_CUDA_MPS=1")
+        # lines.append("export LD_LIBRARY_PATH=/opt/cray/pe/mpt/7.7.15/gni/mpich-gnu-abi/8.2/lib:$LD_LIBRARY_PATH")
+        # lines.append("export CRAY_CUDA_MPS=1")
         
         # Additional instructions
-        lines.append("set -e")
+        # lines.append("set -e")
 
         # Enabling Singulatity
-        lines.append("module load singularity")
+        # lines.append("module load singularity")
         
         # Enabling Cheese environment (that includes Salvus)
-        lines.append("source activate cheese")
+        # lines.append("source activate cheese")
                 
         # Enabling Cheese environment (that includes Salvus)
-        lines.append("module switch PrgEnv-cray PrgEnv-gnu")
-        lines.append("module switch cray-mpich cray-mpich-abi")
+        # lines.append("module switch PrgEnv-cray PrgEnv-gnu")
+        # lines.append("module switch cray-mpich cray-mpich-abi")
 
         return lines        
     

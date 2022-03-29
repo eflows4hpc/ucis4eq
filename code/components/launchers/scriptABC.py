@@ -75,7 +75,7 @@ class ScriptABC(ABC):
 
         self.lines = self.lines \
                      + self.launcher.getRules(stage) \
-                     + self.launcher.getEnvironmentSetup()
+                     + self.launcher.getEnvironmentSetup(stage)
                      
         self.lines.append("")                                                                                      
 

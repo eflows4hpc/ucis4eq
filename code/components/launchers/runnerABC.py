@@ -50,7 +50,7 @@ class RunnerABC(ABC):
         
     # Method for obtaining environment setup (module loads, PATH, conda environmnet, etc ...)
     @abstractmethod    
-    def getEnvironmentSetup(self):
+    def getEnvironmentSetup(self, stage):
         raise NotImplementedError("Error: 'getMPICommand' method should be implemented")
 
     # Method for defining the "run" required method

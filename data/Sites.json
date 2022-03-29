@@ -1,8 +1,8 @@
 {
   "MN4": {
-    "user": "bsc21253",
+    "user": "pr1ejg11",
     "url": "mn3.bsc.es",
-    "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ2/",
+    "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ/",
     "resources": {
       "SlipGenGP": {
         "wtime": 360,
@@ -25,62 +25,67 @@
       "SalvusPost": {
         "wtime": 1800,
         "nodes": 1,
-        "tasks-per-node": 1,
+        "tasks-per-node": 48,
         "qos": "debug"
       },
       "SalvusPlots": {
         "wtime": 1800,
         "nodes": 1,
-        "tasks-per-node": 1,
+        "tasks-per-node": 48,
         "qos": "debug"
       }
     }
   },
   "DAINT": {
-    "user": "jrodrgue",
+    "user": "mpienkow",
     "url": "daint.cscs.ch",
-    "proxy": "jrodrguew@ela.cscs.ch",
-    "path": "/project/s1040/mpienkow/UCIS4EQ/",
+    "proxy": "mpienkow@ela.cscs.ch",
+    "path": "/scratch/snx3000/mpienkow/UCIS4EQ_run/",
     "resources": {
       "SlipGenGP": {
         "wtime": 360,
         "nodes": 1,
         "tasks-per-node": 1,
-        "partition": "debug",
-        "constraint": "gpu",
-        "account": "s1040" 
+        "partition": "prepost",
+        "constraint": "mc",
+        "account": "s1040",
+        "environment": ["set -e", "module load singularity"]
       },
       "SalvusPrepare": {
         "wtime": 1800,
         "nodes": 1,
         "tasks-per-node": 1,
-        "partition": "debug",
-        "constraint": "gpu",
-        "account": "s1040" 
+        "partition": "prepost",
+        "constraint": "mc",
+        "account": "s1040",
+	"environment": ["set -e", "source activate cheese"]
       },
       "SalvusRun": {
-        "wtime": 2400,
-        "nodes": 10,
-        "tasks-per-node": 48,
-        "partition": "debug",
+        "wtime": 3600,
+        "nodes": 5,
+        "tasks-per-node": 4,
+        "partition": "normal",
         "constraint": "gpu",
-        "account": "s1040" 
-      },
+        "account": "s1040",
+ 	"environment": ["set -e", "export LD_LIBRARY_PATH=/opt/cray/pe/mpt/7.7.15/gni/mpich-gnu-abi/8.2/lib:$LD_LIBRARY_PATH", "export CRAY_CUDA_MPS=1", "module switch PrgEnv-cray PrgEnv-gnu", "module switch cray-mpich cray-mpich-abi"]
+     },
       "SalvusPost": {
         "wtime": 1800,
         "nodes": 1,
-        "tasks-per-node": 1,
-        "partition": "debug",
-        "constraint": "gpu",
-        "account": "s1040" 
+        "tasks-per-node": 12,
+        "partition": "prepost",
+        "constraint": "mc",
+        "account": "s1040",
+	"environment": ["set -e", "source activate cheese"]
       },
       "SalvusPlots": {
         "wtime": 1800,
         "nodes": 1,
-        "tasks-per-node": 1,
-        "partition": "debug",
-        "constraint": "gpu",
-        "account": "s1040" 
+        "tasks-per-node": 12,
+        "partition": "prepost",
+        "constraint": "mc",
+        "account": "s1040",
+	"environment": ["set -e", "source activate cheese"]
       }
     }
   }

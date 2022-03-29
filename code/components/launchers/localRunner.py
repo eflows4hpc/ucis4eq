@@ -57,7 +57,7 @@ class LocalRunner(RunnerABC):
         pass
         
     # Obtain environment setup (module loads, PATH, conda environmnet, etc ...)
-    def getEnvironmentSetup(self):
+    def getEnvironmentSetup(self, stage):
         pass
         
     # Run locally and wait
