@@ -32,6 +32,12 @@ import os
 # Third parties
 from flask import jsonify
 
+from pycompss.api.parameter import *
+from pycompss.api.http import http
+from pycompss.api.api import compss_wait_on
+from pycompss.api.task import task
+#from pycompss.api.on_failure import on_failure
+
 # Internal
 import ucis4eq
 from ucis4eq.misc import config, microServiceABC
@@ -233,3 +239,88 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']) + " notified for region " + str(domain['region']), response = 201)
+
+
+class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the workflow manager
+        """
+
+    # Service's entry point definition
+    @config.safeRun
+    def entryPoint(self, body):
+        """
+        PyCOMPSs workflow manager
+        """
+
+        print("__ Running PyCOMPSs workflow __")
+        event = body
+
+        # Obtain the Event Id. (useful during all the workflow livecycle)    
+        eid = register_event(event)
+        
+        # Obtain the region where the event occured        
+        domains = get_domains(eid)
+        
+        # Wait for future to check if continue or abort
+        domains = compss_wait_on(domains)
+        if not domains:
+            eid = set_event_state(eid)
+
+            raise Exception("There is not enough information for simulating the EQ in region")  
+        
+        else:
+            # For each found domain
+            for domain in domains:
+                input = {}            
+                
+                # Calculate the CMT input parameters
+                print(domain['region'])
+                precmt = preCMT(eid, domain['region'])
+        
+        
+        # Return list of Id of the newly created item
+        return jsonify(result = "Event with UUID " + str(body['uuid']), response = 201)
+
+#@on_failure(management='IGNORE', returns=0)
+@http(request="POST", resource="/eventRegistration", service_name="microServices",
+      payload="{{event}}", produces='{"result" : "{{return_0}}" }')
+@task(returns=1)
+def register_event(event):
+    """
+    """
+    pass
+    
+#@on_failure(management='IGNORE', returns=0)    
+@http(request="POST", resource="/eventDomains", service_name="microServices",
+      payload='{ "id" : {{event_id}} }', 
+      produces='{"result" : "{{return_0}}" }')
+@task(returns=1)
+def get_domains(event_id):
+    """
+    """
+    pass
+    
+#@on_failure(management='IGNORE', returns=0)    
+@http(request="POST", resource="/eventSetState", service_name="microServices",
+      payload='{ "id" : {{event_id}}, "state": "REJECTED" }', 
+      produces='{"result" : "{{return_0}}" }')
+@task(returns=1)
+def set_event_state(event_id):
+    """
+    """
+    pass    
+    
+#@on_failure(management='IGNORE', returns=0)    
+@http(request="POST", resource="/precmt", service_name="microServices",
+      payload='{ "id" : {{event_id}}, "region": {{region}} }', 
+      produces='{"result" : "{{return_0}}" }')
+@task(returns=1)
+def preCMT(event_id, region):
+    """
+    """
+    pass      
+    
