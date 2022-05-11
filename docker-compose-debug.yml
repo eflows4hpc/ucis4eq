@@ -71,7 +71,8 @@ services:
       - ./code/services/workflowManagerService.py:/root/services/workflowManagerService.py      
       - ./data/resources.xml:/usr/local/lib/python3.8/site-packages/pycompss/COMPSs/Runtime/configuration/xml/resources/default_resources.xml
       - ./data/project.xml:/usr/local/lib/python3.8/site-packages/pycompss/COMPSs/Runtime/configuration/xml/projects/default_project.xml
-      
+      - ./results/pycompss:/root/.COMPSs/
+        
   # Mongo DataBase 
   DAL:
     image: mongo:4.2

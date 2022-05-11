@@ -11,12 +11,6 @@
   "BSC_DT":{
     "user": "bsc21253",
     "url": "dt01.bsc.es",
-    "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ/"    
-  },
-  "ETH_DAINT":{
-    "user": "jrodrgue",
-    "url": "daint.cscs.ch",
-    "proxy": "jrodrgue@ela.cscs.ch",
-    "path": "/project/s1040/mpienkow/UCIS4EQ/"
+    "path": "/gpfs/scratch/bsc21/bsc21253/eFlows/UCIS4EQ/"    
   }
 }

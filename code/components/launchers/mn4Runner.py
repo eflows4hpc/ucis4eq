@@ -71,7 +71,7 @@ class MN4SlurmRunner(SlurmRunnerABC):
         lines.append("module load singularity")
                 
         # Enabling Cheese environment (that includes Salvus)
-        lines.append("module load ANACONDA/5.0.1")
+        #lines.append("module load ANACONDA/5.0.1")
         lines.append("source activate cheese")
         
         # Loading and setting up MPI        

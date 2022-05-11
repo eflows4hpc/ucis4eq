@@ -55,7 +55,9 @@ ADD code/services/workflowManagerService.py /root/services/workflowManagerServic
 
 # Prepare an script able to start the service
 #RUN echo "/opt/COMPSs/Runtime/scripts/user/runcompss /root/services/workflowManagerService.py" >> /root/services/start.sh
-RUN echo "/usr/local/lib/python3.8/site-packages/pycompss/COMPSs/Runtime/scripts/user/runcompss -d --project=/opt/project.xml --resources=/opt/resources.xml /root/services/workflowManagerService.py" >> /root/services/start.sh
+RUN echo "/usr/local/lib/python3.8/site-packages/pycompss/COMPSs/Runtime/scripts/user/runcompss --graph=true --log_level=info -d --project=/opt/project.xml --resources=/opt/resources.xml /root/services/workflowManagerService.py" >> /root/services/start.sh
+
+#RUN echo "/usr/local/lib/python3.8/site-packages/pycompss/COMPSs/Runtime/scripts/user/runcompss --graph=true --log_level=info -d /root/services/workflowManagerService.py" >> /root/services/start.sh
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 

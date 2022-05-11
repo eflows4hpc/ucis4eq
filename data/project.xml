@@ -6,4 +6,12 @@
 		<LimitOfTasks>1</LimitOfTasks>
 	</Http>
 	
+	<Http BaseUrl="http://127.0.0.1:5003/">
+		<LimitOfTasks>1</LimitOfTasks>
+	</Http>
+  
+        <Http BaseUrl="http://127.0.0.1:5002/">
+		<LimitOfTasks>1</LimitOfTasks>
+	</Http>	
+	
 </Project>
