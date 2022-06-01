@@ -108,6 +108,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         # Create local directories
         path =  ucis4eq.workSpace + "/scratch/outdata/" + body['trial'] + "/"
         cmt = body['CMT']
+        event = body['event']
         
         os.makedirs(path, exist_ok=True)
         
@@ -122,10 +123,10 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         source = path + "inputs.src"
         
         # Generate GP source file
-        srcParams = self._MaiBerozaRelations(body['magnitude'], body['latitude'], 
-                                  body['longitude'], body['depth'] )
+        srcParams = self._MaiBerozaRelations(event['magnitude'], event['latitude'], 
+                                  event['longitude'], event['depth'] )
 
-        srcParams['MAGNITUDE'] = body['magnitude']                                     
+        srcParams['MAGNITUDE'] = event['magnitude']                                     
         srcParams['STRIKE'] = cmt['strike']                        
         srcParams['RAKE'] = cmt['rake']
         srcParams['DIP'] = cmt['dip']
@@ -176,7 +177,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         submission.run(dataRepo.path + "/" + rworkpath)
 
         # Get the path to the generated rupture
-        result['rupture'] = dataRepo.path + "/" + rworkpath + "/scratch/outdata/rupture/rupture.srf"
+        result = dataRepo.path + "/" + rworkpath + "/scratch/outdata/rupture/rupture.srf"
                             
         # Return list of Id of the newly created item
         # TODO: Return the SRF in plain text 

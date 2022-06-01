@@ -11,7 +11,7 @@
   "BSC_DT":{
     "user": "bsc21253",
     "url": "dt01.bsc.es",
-    "path": "/gpfs/scratch/pr1ejg00/pr1ejg11/UCIS4EQ/"    
+    "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ"    
   },
   "ETH_DAINT":{
     "user": "jrodrgue",

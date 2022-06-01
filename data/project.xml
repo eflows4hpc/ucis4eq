@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+	<MasterNode/>
+
+	<Http BaseUrl="http://127.0.0.1:5000/">
+		<LimitOfTasks>1</LimitOfTasks>
+	</Http>
+	
+	<Http BaseUrl="http://127.0.0.1:5003/">
+		<LimitOfTasks>1</LimitOfTasks>
+	</Http>
+  
+        <Http BaseUrl="http://127.0.0.1:5002/">
+		<LimitOfTasks>1</LimitOfTasks>
+	</Http>	
+
+	<MasterNode>
+	        <Processor Name="MainProcessor">
+	            <ComputingUnits>4</ComputingUnits>
+	        </Processor>
+	        <Memory>
+	            <Size>16</Size>
+	        </Memory>
+	        <Storage>
+	            <Size>200.0</Size>
+	        </Storage>
+	</MasterNode>
+	
+</Project>

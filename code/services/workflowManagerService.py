@@ -33,7 +33,7 @@ from functools import wraps
 from flask import Flask, request, jsonify
 
 # Load micro-services implemented components
-from ucis4eq.scc.workflowManager import WorkflowManagerEmulator
+from ucis4eq.scc.workflowManager import WorkflowManagerEmulator, PyCommsWorkflowManager
 #from ucis4eq.scc.workflowManagerExperimental import DaskWorkflowManager
 
 ################################################################################
@@ -45,7 +45,7 @@ workflowManagerServiceApp = Flask(__name__)
 def postRequest(fn):
     @wraps(fn)
     def wrapped(*args, **kwargs):
-        
+
         """
         Function to dispatch new events.
         """
@@ -59,7 +59,7 @@ def postRequest(fn):
 
         # Call the decorated method passing it the input JSON
         return fn(body)
-        
+
     return wrapped
 
 # Base root of the micro-services Hub
@@ -70,17 +70,17 @@ def get_initial_response():
     message = {
         'apiVersion': 'v1.0',
         'status': '200',
-        'message': 'Welcome to the ChEESE Workflow Manager service for PD1'
+        'message': 'Welcome to the UCIS4EQ Workflow Manager service for PD1'
     }
     # Making the message looks good
     resp = jsonify(message)
     # Returning the object
     return resp
-    
+
 ################################################################################
 # Services definition
 ################################################################################
-    
+
 # Determine the kind of source for the simulation
 @workflowManagerServiceApp.route("/WMEmulator", methods=['POST'])
 @postRequest
@@ -88,18 +88,18 @@ def workflowManagerEmulatorService(body):
     """
     Call component implementing this micro service
     """
-    
+
     return WorkflowManagerEmulator().entryPoint(body)
 
 # Determine the kind of source for the simulation
-#@workflowManagerServiceApp.route("/DaskWM", methods=['POST'])
-#@postRequest
-#def DaskWorkflowManagerService(body):
-#    """
-#    Call component implementing this micro service
-#    """
-#    
-#    return DaskWorkflowManager().entryPoint(body)
+@workflowManagerServiceApp.route("/PyCOMPSsWM", methods=['POST'])
+@postRequest
+def PyCommsWorkflowManagerService(body):
+    """
+    Call component implementing this micro service
+    """
+
+    return PyCommsWorkflowManager().entryPoint(body)
 
 
 ################################################################################
@@ -108,4 +108,4 @@ def workflowManagerEmulatorService(body):
 
 if __name__ == '__main__':
     # Running app in debug mode
-    workflowManagerServiceApp.run(host="0.0.0.0", debug=True, port=5001)
+    workflowManagerServiceApp.run(host="0.0.0.0", debug=False, port=5001)

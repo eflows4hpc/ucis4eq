@@ -99,10 +99,10 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
                 paths[file] = self.filePing[domain['files'][file]]
         self.geometry['filepaths'] = paths
     
-        self.source['magnitude'] = body["magnitude"]
-        self.source['longitude'] = body["longitude"]
-        self.source['latitude'] = body["latitude"]
-        self.source['depth'] = body["depth"]
+        self.source['magnitude'] = body['event']["magnitude"]
+        self.source['longitude'] = body['event']["longitude"]
+        self.source['latitude'] = body['event']["latitude"]
+        self.source['depth'] = body['event']["depth"]
         self.source['strike'] = body["CMT"]["strike"]
         self.source['rake'] = body["CMT"]["rake"]
         self.source['dip'] = body["CMT"]["dip"]

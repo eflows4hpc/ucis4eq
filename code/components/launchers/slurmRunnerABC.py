@@ -134,7 +134,7 @@ class SlurmRunnerABC(RunnerABC, ABC):
             if process.stdout == "":
                 break
             else:
-                time.sleep(5)
+                time.sleep(10)
 
         # Results are available
         self.resultAvailable.set()                         

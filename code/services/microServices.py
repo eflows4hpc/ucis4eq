@@ -85,7 +85,7 @@ def get_initial_response():
     message = {
         'apiVersion': 'v1.0',
         'status': '200',
-        'message': 'Welcome to the ChEESE Micro-Services Hub for PD1'
+        'message': 'Welcome to the UCIS4EQ Micro-Services Hub for PD1'
     }
     
     # Making the message looks good

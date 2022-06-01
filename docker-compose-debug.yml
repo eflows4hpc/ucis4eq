@@ -52,7 +52,7 @@ services:
     volumes:
       - ./data/DAL.json:/opt/DAL.json
       - ./data/Sites.json:/opt/Sites.json      
-      - ./code/components/:/usr/local/lib/python3.7/site-packages/ucis4eq
+      - ./code/components/:/usr/local/lib/python3.8/site-packages/ucis4eq
       - ./code/services/microServices.py:/root/services/microServices.py
     depends_on:
       - DAL
@@ -65,9 +65,14 @@ services:
       - UCIS4EQ_LOCATION=${LOCATION}
       - PYTHONUNBUFFERED=1
     volumes:
-      - ./code/components/:/usr/local/lib/python3.7/site-packages/ucis4eq
+      - ./data/project.xml:/opt/project.xml
+      - ./data/resources.xml:/opt/resources.xml          
+      - ./code/components/:/usr/local/lib/python3.8/site-packages/ucis4eq
       - ./code/services/workflowManagerService.py:/root/services/workflowManagerService.py      
-
+      - ./data/resources.xml:/usr/local/lib/python3.8/site-packages/pycompss/COMPSs/Runtime/configuration/xml/resources/default_resources.xml
+      - ./data/project.xml:/usr/local/lib/python3.8/site-packages/pycompss/COMPSs/Runtime/configuration/xml/projects/default_project.xml
+      - ./results/pycompss:/root/.COMPSs/
+        
   # Mongo DataBase 
   DAL:
     image: mongo:4.2

@@ -137,7 +137,7 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         """
 
         # Read the input catalog from file
-        self.cat = obspy.read_events(self.fileMapping[body['catalog']])
+        self.cat = obspy.read_events(self.fileMapping[body['domain']['region']])
                 
         # Configure the component
         self.setup = body['setup']
@@ -159,8 +159,15 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                            e['depth'], 
                            e['magnitude']
                           )
+        
+        # Obtain Focal Mechanisms
+        cmts = self._getFocalMechanism()
+        
+        # Append input CMT's to the list of calculated ones
+        if "cmt" in body['event'].keys():
+            cmts.update(body['event']["cmt"])
 
-        return jsonify(result = self._getFocalMechanism(), response = 201)
+        return jsonify(result = cmts, response = 201)
                         
     def _getFocalMechanism(self):
         """
