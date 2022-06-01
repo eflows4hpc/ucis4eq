@@ -70,7 +70,7 @@ def get_initial_response():
     message = {
         'apiVersion': 'v1.0',
         'status': '200',
-        'message': 'Welcome to the ChEESE Workflow Manager service for PD1'
+        'message': 'Welcome to the UCIS4EQ Workflow Manager service for PD1'
     }
     # Making the message looks good
     resp = jsonify(message)

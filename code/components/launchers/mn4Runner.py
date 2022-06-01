@@ -70,7 +70,7 @@ class MN4SlurmRunner(SlurmRunnerABC):
         # Enabling Singulatity
         lines.append("module load singularity")
                 
-        # Enabling Cheese environment (that includes Salvus)
+        # Enabling UCIS4EQ environment (that includes Salvus)
         #lines.append("module load ANACONDA/5.0.1")
         lines.append("source activate cheese")
         

@@ -34,7 +34,7 @@ from flask import jsonify
 
 from pycompss.api.parameter import *
 from pycompss.api.http import http
-from pycompss.api.api import compss_wait_on
+from pycompss.api.api import compss_wait_on, compss_barrier
 from pycompss.api.task import task
 #from pycompss.api.on_failure import on_failure
 
@@ -340,13 +340,15 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
 
                 # General post-processing for generating plots
                 #TODO: Be sure this continue being necessary
-                #compss_wait_on(all_results)
-                result = run_salvus_plots(eid, all_results, basename, domain, resources)
+                compss_wait_on(all_results)
+                result = run_salvus_plots(eid, basename, domain, resources)
 
                 # Set the event with SUCCESS state    
                 compss_wait_on(result)   
                 eid = set_event_state(eid, "SUCCESS")
 
+        # Wait for the workflow to finish
+        compss_barrier(no_more_tasks=True)
                 
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']), response = 201)
@@ -484,8 +486,9 @@ def run_salvus_post(event_id, salvus_result, trial, resources):
       payload='{ "id" : {{event_id}}, "base" : "{{base}}", \
                  "domain" : {{domain}}, "resources" : {{resources}} }',
       produces='{"result" : "{{return_0}}"}')
-@task(returns=1, results=COLLECTION_IN)
-def run_salvus_plots(event_id, results, base, domain, resources):
+#@task(returns=1, results=COLLECTION_IN)
+@task(returns=1)
+def run_salvus_plots(event_id, base, domain, resources):
     """
     """
     pass    

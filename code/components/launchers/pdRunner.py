@@ -73,10 +73,10 @@ class PDSlurmRunner(SlurmRunnerABC):
         # Enabling Singulatity
         lines.append("module load singularity")
         
-        # Enabling Cheese environment (that includes Salvus)
+        # Enabling UCIS4EQ environment (that includes Salvus)
         lines.append("source activate cheese")
                 
-        # Enabling Cheese environment (that includes Salvus)
+        # Enabling UCIS4EQ environment (that includes Salvus)
         lines.append("module switch PrgEnv-cray PrgEnv-gnu")
         lines.append("module switch cray-mpich cray-mpich-abi")
 
