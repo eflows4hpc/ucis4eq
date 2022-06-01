@@ -3,7 +3,7 @@
     "user": "juan.rodriguez@bsc.es",
     "pass": "my_amazing_password",
     "url": "https://b2drop.bsc.es/remote.php/webdav/",
-    "path": "ChEESE/PD1/StaticDataMapping.json"
+    "path": "UCIS4EQ/StaticDataMapping.json"
   },
   "local": {
     "path": "/workspace/"
