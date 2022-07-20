@@ -33,7 +33,7 @@ from functools import wraps
 from flask import Flask, request, jsonify
 
 # Load Salvus service implemented components
-from ucis4eq.scc.salvus import SalvusPrepare, SalvusRun, SalvusPost, SalvusPlots, SalvusPing
+from ucis4eq.scc.salvus import SalvusPrepare, SalvusRun, SalvusPost, SalvusPlots, SalvusPing, SalvusPostSwarm
 
 ################################################################################
 # Dispatcher App creation
@@ -108,6 +108,15 @@ def SalvusPostService(body):
     Call component implementing this service
     """
     return SalvusPost().entryPoint(body)    
+    
+# Call Salvus post-processing
+@salvusServiceApp.route("/SalvusPostSwarm", methods=['POST'])
+@postRequest
+def SalvusPostSwarmService(body):
+    """
+    Call component implementing this service
+    """
+    return SalvusPostSwarm().entryPoint(body)      
 
 # Call Salvus post-processing
 @salvusServiceApp.route("/SalvusPlots", methods=['POST'])

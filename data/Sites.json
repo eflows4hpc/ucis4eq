@@ -28,6 +28,12 @@
         "tasks-per-node": 48,
         "qos": "debug"
       },
+      "SalvusPostSwarm": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 48,
+        "qos": "debug"
+      },      
       "SalvusPlots": {
         "wtime": 1800,
         "nodes": 1,

@@ -338,10 +338,14 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                         break
                     break
 
-                # General post-processing for generating plots
                 #TODO: Be sure this continue being necessary
                 compss_wait_on(all_results)
-                result = run_salvus_plots(eid, basename, domain, resources)
+                
+                # Call postprocessing swarm
+                output_swarm = run_salvus_post_swarm(eid, basename, domain, resources)
+
+                # General post-processing for generating plots
+                result = run_salvus_plots(eid, output_swarm, basename, domain, resources)
 
                 # Set the event with SUCCESS state    
                 compss_wait_on(result)   
@@ -482,13 +486,24 @@ def run_salvus_post(event_id, salvus_result, trial, resources):
     pass    
     
 #@on_failure(management='IGNORE', returns=0)
+@http(request="POST", resource="SalvusPostSwarm", service_name="salvus",
+      payload='{ "id" : {{event_id}}, "base" : "{{base}}", \
+                 "domain" : {{domain}}, "resources" : {{resources}} }',
+      produces='{"result" : "{{return_0}}"}')
+@task(returns=1)
+def run_salvus_post_swarm(event_id, base, domain, resources):
+    """
+    """
+    pass       
+    
+#@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="SalvusPlots", service_name="salvus",
       payload='{ "id" : {{event_id}}, "base" : "{{base}}", \
                  "domain" : {{domain}}, "resources" : {{resources}} }',
       produces='{"result" : "{{return_0}}"}')
 #@task(returns=1, results=COLLECTION_IN)
 @task(returns=1)
-def run_salvus_plots(event_id, base, domain, resources):
+def run_salvus_plots(event_id, salvus_post_results, base, domain, resources):
     """
     """
     pass    

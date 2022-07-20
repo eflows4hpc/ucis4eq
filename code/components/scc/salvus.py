@@ -318,6 +318,81 @@ class SalvusPost(microServiceABC.MicroServiceABC):
         return jsonify(result = result, response = 201)
 
 @staticDataMap.build
+class SalvusPostSwarm(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the CMT statistical component implementation
+        """
+
+        # Select the database
+        self.db = ucis4eq.dal.database
+
+    # Service's entry point definition
+    @config.safeRun
+    @microServiceABC.MicroServiceABC.runRegistration    
+    def entryPoint(self, body):
+        """
+        Call the Salvus-Flow Marta's wrapper (Postprocessing scripts)
+        """
+        
+        # Initialization
+        result = None
+        
+        # Select target machinef
+        machine = body['resources']     
+        
+        # Set repository
+        self.setMainRepository(machine['repository'])           
+
+        # Creating the repository instance for data transfer    
+        dataRepo = dal.repositories.create(machine['repository'], **dal.config)        
+        
+        # Create the directory for the current execution
+        bpath = body['base'] + "/" + body['domain']['id'] + "/"
+        workSpace = "/workspace/runs/" + bpath
+        os.makedirs(workSpace, exist_ok=True)       
+        
+        dname = "salvus_post_swarm"
+        pattern = "/trial_" + body['domain']['id'] + "*/"
+        root = dataRepo.path + "/"
+        pworkpath = root + bpath + "/" + dname
+        sworkpath = root + body['base'] + pattern + "salvus/"
+        
+        # Prepare script's arguments
+        commands = []
+        # ... for postprocessing
+        binary = "python "  + self.filePing['salvus_wrapper_post_swarm'] 
+        args = "--processeddata '" + sworkpath + "' " +\
+               "--output " + pworkpath
+        commands.append((binary, args))      
+        
+        # Solver dependencies 
+        additional = []
+        additional.append("export PYTHONPATH=" +\
+                           os.path.dirname(self.filePing['salvus_wrapper_post_swarm']) +\
+                           ":$PYTHONPATH")
+                           
+        # Submission instance   
+        submission = SalvusWrapperSubmision(machine['id'])     
+        
+        script = submission.build(commands, workSpace, "SalvusPostSwarm", additional)
+                              
+        # Create the remote working directory
+        rworkpath = bpath + dname
+        dataRepo.mkdir(rworkpath)
+
+        # Transfer input parameter file and script
+        dataRepo.uploadFile(rworkpath, script) 
+        
+        # Submit and wait for finish
+        #submission.run(dataRepo.path + "/" + rworkpath)
+    
+        # Return list of Id of the newly created item
+        return jsonify(result = result, response = 201)
+
+@staticDataMap.build
 class SalvusPlots(microServiceABC.MicroServiceABC):
 
     # Initialization method
@@ -357,10 +432,12 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         workSpace = "/workspace/runs/" + bpath
         os.makedirs(workSpace, exist_ok=True)       
         
-        pattern = "/trial_" + body['domain']['id'] + "*/"
+        
+        dname = "salvus_plots"
+        pattern = "/" + body['domain']['id'] + "/salvus_post_swarm"
         root = dataRepo.path + "/"
-        pworkpath = root + bpath + "/" + "salvus_plots"
-        sworkpath = root + body['base'] + pattern + "salvus/"
+        pworkpath = root + bpath + "/" + dname
+        sworkpath = root + body['base'] + pattern + "/"
         
         # Prepare script's arguments
         commands = []
@@ -383,7 +460,7 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         # ... create symbolic link
         binary = "tar "
         args = "czvf  " + body['base'] + ".tar.gz " + body['base'] +\
-                pattern + "salvus/*.png"
+                pattern + "/*.png"
         commands.append((binary, args))
         
         # ... create symbolic link
@@ -403,7 +480,7 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         script = submission.build(commands, workSpace, "SalvusPlots", additional)        
                               
         # Create the remote working directory
-        rworkpath = bpath + "salvus_plots"
+        rworkpath = bpath + dname
         dataRepo.mkdir(rworkpath)
 
         # Transfer input parameter file and script
