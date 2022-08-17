@@ -3,7 +3,8 @@
     "user": "juan.rodriguez@bsc.es",
     "pass": "my_amazing_password",
     "url": "https://b2drop.bsc.es/remote.php/webdav/",
-    "path": "UCIS4EQ/StaticDataMapping.json"
+    "datamapping": "UCIS4EQ/StaticDataMappingV2.json",
+    "output": "UCIS4EQ/Runs"
   },
   "local": {
     "path": "/workspace/"

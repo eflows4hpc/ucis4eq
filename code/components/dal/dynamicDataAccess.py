@@ -30,6 +30,7 @@ from flask import jsonify
 
 import ucis4eq
 import ucis4eq.dal as dal
+from ucis4eq.dal import staticDataAccess
 from ucis4eq.misc import config, microServiceABC
 
 ################################################################################
@@ -47,14 +48,14 @@ class DAL(microServiceABC.MicroServiceABC):
     @config.safeRun
     def entryPoint(self, repositoryName = dal.repository):
             
-        repository = dal.repositories.create(repositoryName, **dal.config)
+        repository = staticDataAccess.repositories.create(repositoryName, **dal.config)
         
         # Create a directory for DAL documents 
         workSpace = ucis4eq.workSpace + "/DAL/"
         os.makedirs(workSpace, exist_ok=True)    
         
         # Download the file from the repository
-        rpath = dal.config[repositoryName]["path"]
+        rpath = dal.config[repositoryName]["datamapping"]
         rfile = os.path.basename(rpath)
         lpath = workSpace + rfile
         
@@ -73,7 +74,7 @@ class DAL(microServiceABC.MicroServiceABC):
         docs = col.find(dalDocs)
         
         for doc in docs:
-            repo, repoSettings = dal.repositories.selectFrom(doc['repositories'],
+            repo, repoSettings = staticDataAccess.repositories.selectFrom(doc['repositories'],
                     repositoryName)
             rpath = repoSettings['path']
             rfile = os.path.basename(rpath)

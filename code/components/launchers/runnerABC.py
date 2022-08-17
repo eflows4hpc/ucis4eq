@@ -37,6 +37,7 @@ class RunnerABC(ABC):
     def __init__(self, task):
         # Task name
         self.task = task
+        self.setup = None
 
     # Method for defining the "getRules" required method
     @abstractmethod    

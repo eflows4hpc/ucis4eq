@@ -35,7 +35,7 @@ from flask import Flask, request, jsonify
 
 # Load micro-services implemented components
 from ucis4eq.misc import config
-from ucis4eq.scc.event import EventRegistration, EventDomains, EventCountry, EventSetState, EventGetRegion
+from ucis4eq.scc.event import EventRegistration, EventRegion, EventCountry, EventSetState, EventSetup
 from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs 
 from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource 
 from ucis4eq.scc.inputBuilder import InputParametersBuilder
@@ -114,7 +114,6 @@ def CMTInputsService(body):
     """
     Call component implementing this micro service
     """
-
     return CMTInputs().entryPoint(body)
 
 # CMT Aproximation
@@ -185,25 +184,25 @@ def eventSetStateService(body):
     """
     Call component implementing this micro service
     """
-    return EventSetState().entryPoint(body)
-
-# Incomming event registration
-@microServicesApp.route("/eventGetRegion", methods=['POST'])
-@postRequest
-def eventGetRegionService(body):
-    """
-    Call component implementing this micro service
-    """
-    return EventGetRegion().entryPoint(body)    
+    return EventSetState().entryPoint(body) 
 
 # Event domains detection
-@microServicesApp.route("/eventDomains", methods=['POST'])
+@microServicesApp.route("/eventRegion", methods=['POST'])
 @postRequest
-def eventDomainsService(body):
+def eventRegionService(body):
     """
     Call component implementing this micro service
     """
-    return EventDomains().entryPoint(body)
+    return EventRegion().entryPoint(body)
+    
+# Event domains detection
+@microServicesApp.route("/eventSetup", methods=['POST'])
+@postRequest
+def eventSetupService(body):
+    """
+    Call component implementing this micro service
+    """
+    return EventSetup().entryPoint(body)
 
 # Event region detection
 @microServicesApp.route("/eventCountry", methods=['POST'])

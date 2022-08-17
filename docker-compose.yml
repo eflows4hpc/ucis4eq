@@ -42,8 +42,14 @@ services:
       - DAL    
       
   # UCIS4EQ Micro-services 
-  microServices:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/microservices
+  microservices:
+    build: 
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV   
+        PD_USER: $PD_USER   
+        IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/microservices   
     network_mode: "host"
     volumes:
       - ./data/DAL.json:/opt/DAL.json
@@ -53,7 +59,7 @@ services:
       - DAL
   
   # UCIS4EQ Workflow Manager service  
-  workflowManager:
+  workflowmanager:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
     environment:
       - UCIS4EQ_LOCATION=${LOCATION}
@@ -78,7 +84,7 @@ services:
     restart: always
     depends_on:
       - DAL
-      - microServices   
+      - microservices   
       
   # UCIS4EQ Dashboard service
   dashboard:

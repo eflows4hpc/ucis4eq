@@ -22,13 +22,13 @@
           "strike": 270,
           "dip": 37,
           "rake": -95,
-          "initSlip": "Samos_init_slip_np1.txt"
+          "initSlip": "Samos_init_slip_np1"
         },
         "GCMT_AuxPlane": {
           "strike": 96,
           "dip": 53,
           "rake": -86,
-          "initSlip": "Samos_init_slip_np2.txt"
+          "initSlip": "Samos_init_slip_np2"
         }
       }
     }

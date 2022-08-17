@@ -266,90 +266,91 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
         eid = register_event(event)
         
         # Obtain the region where the event occured        
-        domains = get_domains(eid)
+        region = get_region(eid)
+        
+        # Obtain the setup depending of the incomming event
+        setup = get_setup(eid)
         
         # Wait for future to check if continue or abort
-        domains = compss_wait_on(domains)
-        if not domains:
+        region = compss_wait_on(region)
+        
+        if not region:
             eid = set_event_state(eid, "REJECTED")
 
             raise Exception("There is not enough information for simulating the EQ in region")  
         
-        else:
-            # For each found domain
-            for domain in domains:
-                
-                # Calculate the CMT input parameters
-                precmt = build_cmt_input(eid, domain['region'])
+        else:        
             
-                # Obtain region information
-                region = get_event_region(domain['region'])
-
-                # Calculate computational resources for the given domain
-                resources = compute_resources(eid, domain)
-                
-                # Wait for region setup
-                region = compss_wait_on(region)
-                
-                # Compute alerts
-                all_results = []
-                for alert in event['alerts']:
+            # Calculate computational resources for the given domain
+            resources = compute_resources(eid, region)
                     
-                    # Calculating CMTs
-                    cmts = calculate_cmt(alert, eid, domain, precmt)
-
-                    # Wait for calculated CMTs
-                    cmts = compss_wait_on(cmts)
+            # Calculate the CMT input parameters
+            precmt = build_cmt_input(eid, region, resources, setup)
+            
+            # Obtain rupture generator's setup
+            gpsetup = graves_pitarka_setup(eid, region, setup)     
+    
+            # Wait for GP Setup
+            gpsetup = compss_wait_on(gpsetup)            
+            
+            # Compute alerts
+            all_results = []
+            for alert in event['alerts']:
+                
+                # Calculating CMTs
+                cmts = calculate_cmt(alert, eid, region, precmt)
+    
+                # Wait for calculated CMTs
+                cmts = compss_wait_on(cmts)
+                
+                # For each calculated or provided CMT
+                for cmt in cmts.keys():
                     
-                    # For each calculated or provided CMT
-                    for cmt in cmts.keys():
+                    # For each GP defined trial
+                    for slip in range(1, gpsetup['trials']+1):
+                        # Set the trial path
+                        path = basename + "/trial_" + ".".join([cmt, "slip"+str(slip)])
+                    
+                        # Call Graves-Pitarka's rupture generator
+                        rupture = compute_graves_pitarka(eid, alert, path,
+                                     cmts[cmt], region, gpsetup, resources)
+                                     
+                        # Call input parameters builder
+                        inputs = build_input_parameters( eid, alert, cmts[cmt], 
+                                rupture, region, resources, gpsetup)
+    
+                        # TODO:
+                        # Call a service in charge of deciding the kernel
+                        # (simulation code)
+    
+                        # Build the Salvus input parameter file (remotely)
+                        salvus_inputs = build_salvus_parameters( eid, path, 
+                                inputs, resources)
+    
+                        # Build the Salvus input parameter file (remotely)
+                        result = run_salvus( eid, path, salvus_inputs,
+                                resources)
                         
-                        # For each GP defined trial
-                        for slip in range(1, region['GPSetup']['trials']+1):
-                            # Set the trial path
-                            path = basename + "/trial_" + ".".join([domain['id'], cmt, 
-                                             "slip"+str(slip)])
+                        # Call Salvus post 
+                        all_results.append(run_salvus_post(eid, result, path, 
+                                        resources))        
                         
-                            # Call Graves-Pitarka's rupture generator
-                            rupture = compute_graves_pitarka(eid, alert, path,
-                                         cmts[cmt], domain, resources)
-                                         
-                            # Call input parameters builder
-                            inputs = build_input_parameters( eid, alert, cmts[cmt], 
-                                    rupture, domain, resources)
-
-                            # TODO:
-                            # Call a service in charge of deciding the kernel
-                            # (simulation code)
-
-                            # Build the Salvus input parameter file (remotely)
-                            salvus_inputs = build_salvus_parameters( eid, path, 
-                                    inputs, resources)
-
-                            # Build the Salvus input parameter file (remotely)
-                            result = run_salvus( eid, path, salvus_inputs,
-                                    resources)
-                            
-                            # Call Salvus post 
-                            all_results.append(run_salvus_post(eid, result, path, 
-                                            resources))        
-                            
-                            #break
                         break
                     break
-
-                #TODO: Be sure this continue being necessary
-                compss_wait_on(all_results)
-                
-                # Call postprocessing swarm
-                output_swarm = run_salvus_post_swarm(eid, basename, domain, resources)
-
-                # General post-processing for generating plots
-                result = run_salvus_plots(eid, output_swarm, basename, domain, resources)
-
-                # Set the event with SUCCESS state    
-                compss_wait_on(result)   
-                eid = set_event_state(eid, "SUCCESS")
+                break
+    
+            #TODO: Be sure this continue being necessary
+            compss_wait_on(all_results)
+            
+            # Call postprocessing swarm
+            output_swarm = run_salvus_post_swarm(eid, basename, domain, resources)
+    
+            # General post-processing for generating plots
+            result = run_salvus_plots(eid, output_swarm, basename, domain, resources)
+    
+            # Set the event with SUCCESS state    
+            compss_wait_on(result)   
+            eid = set_event_state(eid, "SUCCESS")
 
         # Wait for the workflow to finish
         compss_barrier(no_more_tasks=True)
@@ -367,14 +368,24 @@ def register_event(event):
     pass
     
 #@on_failure(management='IGNORE', returns=0)    
-@http(request="POST", resource="eventDomains", service_name="microServices",
+@http(request="POST", resource="eventRegion", service_name="microServices",
       payload='{ "id" : {{event_id}} }', 
       produces='{"result" : "{{return_0}}" }')
 @task(returns=1)
-def get_domains(event_id):
+def get_region(event_id):
     """
     """
     pass
+    
+#@on_failure(management='IGNORE', returns=0)    
+@http(request="POST", resource="eventSetup", service_name="microServices",
+      payload='{ "id" : {{event_id}} }', 
+      produces='{"result" : "{{return_0}}" }')
+@task(returns=1)
+def get_setup(event_id):
+    """
+    """
+    pass    
     
 #@on_failure(management='IGNORE', returns=0)    
 @http(request="POST", resource="eventSetState", service_name="microServices",
@@ -384,24 +395,15 @@ def get_domains(event_id):
 def set_event_state(event_id, state):
     """
     """
-    pass  
-
-#@on_failure(management='IGNORE', returns=0)    
-@http(request="POST", resource="eventGetRegion", service_name="microServices",
-      payload='{ "id" : "{{region_id}}" }', 
-      produces='{"result" : "{{return_0}}" }')
-@task(returns=1)
-def get_event_region(region_id):
-    """
-    """
-    pass      
+    pass   
     
 #@on_failure(management='IGNORE', returns=0)    
 @http(request="POST", resource="precmt", service_name="microServices",
-      payload='{ "id" : {{event_id}}, "region": "{{region_id}}" }', 
+      payload='{ "id" : {{event_id}}, "region": {{region}}, \
+                 "resources": {{resources}}, "setup": {{setup}} }', 
       produces='{"result" : "{{return_0}}" }')
 @task(returns=1)
-def build_cmt_input(event_id, region_id):
+def build_cmt_input(event_id, region, resources, setup):
     """
     """
     pass     
@@ -410,32 +412,42 @@ def build_cmt_input(event_id, region_id):
 #, "base" : {{base_name}}, "resources" : {{resources}} 
 @http(request="POST", resource="cmt", service_name="microServices",
       payload='{ "event" : {{alert}}, "id" : {{event_id}}, \
-                 "domain" : {{domain}}, "setup" : {{precmt}} }',
+                 "region" : {{region}}, "setup" : {{precmt}} }',
       produces='{"result" : "{{return_0}}"}')
 @task(returns=1)
-def calculate_cmt(alert, event_id, domain, precmt):
+def calculate_cmt(alert, event_id, region, precmt):
     """
     """
     pass  
     
 #@on_failure(management='IGNORE', returns=0)    
 @http(request="POST", resource="computeResources", service_name="microServices",
-      payload='{ "id" : {{event_id}}, "domain": {{domain}} }', 
+      payload='{ "id" : {{event_id}}, "region": {{region}} }', 
       produces='{"result" : "{{return_0}}" }')
 @task(returns=1)
-def compute_resources(event_id, domain):
+def compute_resources(event_id, region):
     """
     """
     pass    
+
+#@on_failure(management='IGNORE', returns=0)    
+@http(request="POST", resource="preGraves-Pitarka", service_name="slipgen",
+      payload='{ "id" : {{event_id}}, "region": {{region}}, "setup": {{setup}} }', 
+      produces='{"result" : "{{return_0}}" }')
+@task(returns=1)
+def graves_pitarka_setup(event_id, region, setup):
+    """
+    """
+    pass      
     
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="Graves-Pitarka", service_name="slipgen",
       payload='{ "event" : {{alert}}, "id" : {{event_id}}, "CMT" : {{cmt}}, \
-                 "trial" : "{{trial}}", "domain" : {{domain}}, \
+                 "trial" : "{{trial}}", "region": {{region}}, "setup" : {{setup}}, \
                  "resources" : {{resources}} }',
       produces='{"result" : "{{return_0}}"}')
 @task(returns=1)
-def compute_graves_pitarka(event_id, alert, trial, cmt, domain, resources):
+def compute_graves_pitarka(event_id, alert, trial, cmt, region, setup, resources):
     """
     """
     pass
@@ -443,11 +455,11 @@ def compute_graves_pitarka(event_id, alert, trial, cmt, domain, resources):
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="inputParametersBuilder", service_name="microServices",
       payload='{ "id" : {{event_id}}, "event" : {{alert}}, "CMT" : {{cmt}}, \
-                 "rupture" : {{rupture}}, "domain" : {{domain}}, \
-                 "resources" : {{resources}} }',
+                 "rupture" : {{rupture}}, "region" : {{region}}, \
+                 "resources" : {{resources}}, "setup" : {{setup}} }',
       produces='{"result" : "{{return_0}}"}')
 @task(returns=1)
-def build_input_parameters(event_id, alert, cmt, rupture, domain, resources):
+def build_input_parameters(event_id, alert, cmt, rupture, region, resources, setup):
     """
     """
     pass
@@ -487,23 +499,21 @@ def run_salvus_post(event_id, salvus_result, trial, resources):
     
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="SalvusPostSwarm", service_name="salvus",
-      payload='{ "id" : {{event_id}}, "base" : "{{base}}", \
-                 "domain" : {{domain}}, "resources" : {{resources}} }',
+      payload='{ "id" : {{event_id}}, "base" : "{{base}}", "resources" : {{resources}} }',
       produces='{"result" : "{{return_0}}"}')
 @task(returns=1)
-def run_salvus_post_swarm(event_id, base, domain, resources):
+def run_salvus_post_swarm(event_id, base, resources):
     """
     """
     pass       
     
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="SalvusPlots", service_name="salvus",
-      payload='{ "id" : {{event_id}}, "base" : "{{base}}", \
-                 "domain" : {{domain}}, "resources" : {{resources}} }',
+      payload='{ "id" : {{event_id}}, "base" : "{{base}}", "resources" : {{resources}} }',
       produces='{"result" : "{{return_0}}"}')
 #@task(returns=1, results=COLLECTION_IN)
 @task(returns=1)
-def run_salvus_plots(event_id, salvus_post_results, base, domain, resources):
+def run_salvus_plots(event_id, salvus_post_results, base, resources):
     """
     """
     pass    

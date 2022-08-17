@@ -109,29 +109,8 @@ class EventSetState(microServiceABC.MicroServiceABC):
         # Return list of Id of the newly created item
         return jsonify(result = str(body['id']), response = 201)
         
-class EventGetRegion(microServiceABC.MicroServiceABC):
-
-    # Initialization method
-    def __init__(self):
-        """
-        Initialize the eventDispatcher component implementation    
-        """
-        
-        # Select the database
-        self.db = ucis4eq.dal.database
-
-    # Service's entry point definition
-    @config.safeRun
-    def entryPoint(self, body):
-        """
-        Obtain region information
-        """
-        region = self.db.Regions.find_one({"id": body['id']}, {'_id': False})
-        
-        # Return list of Id of the newly created item
-        return jsonify(result = region, response = 201)
-
-class EventDomains(microServiceABC.MicroServiceABC):
+@staticDataMap.build        
+class EventRegion(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
@@ -143,13 +122,13 @@ class EventDomains(microServiceABC.MicroServiceABC):
         self.db = ucis4eq.dal.database
         
         # Initialize output results
-        self.domains = {}
+        self.region = None
 
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
-        Figure out the set of domains which the incoming EQ event belong
+        Figure out the region which the incoming EQ event belong
         """                    
         # Retrieve the event's complete information 
         rid = body['id']
@@ -184,34 +163,65 @@ class EventDomains(microServiceABC.MicroServiceABC):
                         "$toString": "$_id"
                     },
                     "id": 1,
-                    "region": 1,
-                    "mlat" : "$model.geometry.min_latitude",
-                    "Mlat" : "$model.geometry.max_latitude",
-                    "mlon" : "$model.geometry.min_longitude",
-                    "Mlon" : "$model.geometry.max_longitude" 
+                    "file_structure": 1, 
+                    "available_ensemble": 1, 
+                    "available_fmax": 1,    
+                    "depth_in_m": 1,                
+                    "min_latitude" : "$min_latitude",
+                    "max_latitude" : "$max_latitude",
+                    "min_longitude" : "$min_longitude",
+                    "max_longitude" : "$max_longitude" 
                  }
                },
                { 
                  "$match" : {
                    "$and" : [
-                    {"mlat": {"$lte": event["avgLatitude"]}},
-                    {"Mlat": {"$gte": event["avgLatitude"]}},
-                    {"mlon": {"$lte": event["avgLongitude"]}},
-                    {"Mlon": {"$gte": event["avgLongitude"]}}
+                    {"min_latitude": {"$lte": event["avgLatitude"]}},
+                    {"max_latitude": {"$gte": event["avgLatitude"]}},
+                    {"min_longitude": {"$lte": event["avgLongitude"]}},
+                    {"max_longitude": {"$gte": event["avgLongitude"]}}
                    ]
                  }
                }
             ]
-            
+
             #for region in self.db['Regions'].aggregate(regionPipeline): 
-            self.domains = list(self.db['Domains'].aggregate(regionPipeline))
+            regions = list(self.db['Regions'].aggregate(regionPipeline))
+            if regions:
+                # Select the region
+                #TODO: Calculate the area of each of the regions an choose the minimal one
+                # Ref: https://stackoverflow.com/questions/4681737/how-to-calculate-the-area-of-a-polygon-on-the-earths-surface-using-python   
+                self.region = regions[0]
                 
-        region = None
-        if self.domains:
-            region = self.domains[0]
-                    
+                # Download remote region's setup
+                self.region['path'] = self.fileMapping[self.region['id']]
+                        
         # Return list of Id of the newly created item
-        return jsonify(result = self.domains, response = 201)
+        return jsonify(result = self.region, response = 201)
+
+@staticDataMap.build
+class EventSetup(microServiceABC.MicroServiceABC):
+
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the eventSetup component implementation    
+        """
+         
+    # Service's entry point definition
+    @microServiceABC.MicroServiceABC.runRegistration
+    def entryPoint(self, body):
+        """
+        Determine the setup that better fit the incomming event charasteristics
+        """
+        
+        # TODO: Add a clever way of setting that parameters from a set of options 
+        setup = {} 
+        setup["fmax_policy"] = "min"
+        setup["source_ensemble"] = "statisticalCMT"
+
+        # Return the event setup
+        return jsonify(result = setup, response = 201)        
 
 @staticDataMap.build
 class EventCountry(microServiceABC.MicroServiceABC):
@@ -245,9 +255,7 @@ class EventCountry(microServiceABC.MicroServiceABC):
         # data = requests.get("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").json()
         with open(self.fileMapping["countries"], 'r', encoding='utf-8') as f:
             data = json.load(f)
-        
-        print(data)
-        
+                
         countries = {}
         for feature in data["features"]:
             geom = feature["geometry"]

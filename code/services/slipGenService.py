@@ -33,7 +33,7 @@ from functools import wraps
 from flask import Flask, request, jsonify
 
 # Load slip-gen service implemented components
-from ucis4eq.scc.slipGen import SlipGenGP
+from ucis4eq.scc.slipGen import SlipGenGP, SlipGenGPSetup
 
 ################################################################################
 # Dispatcher App creation
@@ -79,6 +79,15 @@ def get_initial_response():
 ################################################################################
 # Services definition
 ################################################################################
+    
+# Determine the kind of source for the simulation
+@slipGenServiceApp.route("/preGraves-Pitarka", methods=['POST'])
+@postRequest
+def slipGenGPSetupService(body):
+    """
+    Call component implementing this service
+    """
+    return SlipGenGPSetup().entryPoint(body)    
     
 # Determine the kind of source for the simulation
 @slipGenServiceApp.route("/Graves-Pitarka", methods=['POST'])

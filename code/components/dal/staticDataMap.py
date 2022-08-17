@@ -27,6 +27,7 @@ from abc import ABC, abstractmethod
 
 import ucis4eq
 import ucis4eq.dal as dal
+from ucis4eq.dal import staticDataAccess
 from ucis4eq.misc import config, microServiceABC
 
 ################################################################################
@@ -50,7 +51,7 @@ class StaticDataMap():
         col = dal.database[dal.StaticDataMappingDocument]
         query = { "used_by": {"$eq": name} } 
         docs = col.find(query)
-            
+                    
         # Files map
         self._values = {}
         for doc in docs:
@@ -77,7 +78,7 @@ class StaticDataMap():
                              +', '.join(self._values.keys()) +"]")
                 
         # Check if the current repository was created
-        repo, repoSettings = dal.repositories.selectFrom(doc['repositories'], 
+        repo, repoSettings = staticDataAccess.repositories.selectFrom(doc['repositories'], 
                 self.mainRepo)
                 
         if not repo in self.repos.keys():
@@ -87,12 +88,12 @@ class StaticDataMap():
             repoInfo = col.find_one(query)
             
             # Store the current repository object
-            self.repos[repo] = dal.repositories.create(repoInfo['id'], **dal.config)
+            self.repos[repo] = staticDataAccess.repositories.create(repoInfo['id'], **dal.config)
         
         # Handle remote and local paths
         rpath = repoSettings['path']
         lpath = self.workSpace + os.path.basename(rpath)
-
+        
         # Download the file from the repository (only if it doesn't exist)
 #        if not os.path.exists(lpath):            
         if not self.quiet:
@@ -101,7 +102,14 @@ class StaticDataMap():
             # Return the file path
             return lpath
         else:
-            return rpath            
+            if "type" in doc.keys() and doc["type"] == "Folder":
+                fileStructure = self.repos[repo].tree(rpath)
+                if fileStructure:
+                    return fileStructure
+                else:
+                    return rpath
+            else:
+                return rpath            
 
     def __iter__(self):
         return iter(self._values)
@@ -124,9 +132,6 @@ def build(cls):
 
         
         def __init__(self, *args, **kargs):
-            
-            # Initialize base class
-            super(BuildStaticDataMap, self).__init__(*args, **kargs)
                         
             # Obtain the basename class name 
             className = self.__class__.__bases__[0].__name__
@@ -136,6 +141,9 @@ def build(cls):
             
             # Creating file Ping
             self.filePing = StaticDataMap(className, quiet=True)
+            
+            # Initialize base class
+            super(BuildStaticDataMap, self).__init__(*args, **kargs)
             
         def setMainRepository(self, repo):
             self.filePing.setMainRepository(repo)

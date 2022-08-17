@@ -93,10 +93,15 @@ class MN4RunnerBuilder:
         user = MN4["user"]
         url = MN4["url"]
         path = MN4["path"]
-        resources = MN4["resources"]        
+        if "setup" in MN4.keys():
+            setup = MN4["setup"]           
+        else:
+            setup = None
+        resources = MN4["resources"]
+        
         # WARNING!!!: We dont want to do this as a Singleton
         #if not self._instance:
         #    self._instance = SlurmRunner(user, url, path)
             
         #return self._instance
-        return MN4SlurmRunner(user, url, path, resources)
+        return MN4SlurmRunner(user, url, path, resources, setup)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Abstract factory for accessing storage repositories
+# Abstract Base Class for Launchers
 # This module is part of the Smart Center Control (SSC) solution
 #
 # Author:  Juan Esteban Rodríguez, Josep de la Puente
@@ -21,39 +21,23 @@
 
 ################################################################################
 # Module imports
-from ucis4eq.dal.staticDataAccess import RepositoryABC 
+#from __future__ import annotations
+from ucis4eq.misc.factory import Provider
+from abc import ABC, abstractmethod
 
 ################################################################################
 # Methods and classes
 
-class LocalRepository(RepositoryABC):
-    def __init__(self, location):
-        self._location = location
+# Class in charge of dealing with data structure formats
+class DataStructureABC(ABC):
 
-    def authenticate(self):
-        pass
-    
-    def mkdir(self):
-        print("Creating directory in Local")
 
-    def downloadFile(self):
-        print("Downloading file from Local")
-        pass
-        
-    def uploadFile(self):
-        print("Uploading file to Local")
-        pass    
-    
-class LocalRepositoryBuilder:
-    def __init__(self):
-        self._instance = None
+    # Method for defining the "getPathTo" required method
+    @abstractmethod    
+    def prepare(self, region):
+        raise NotImplementedError("Error: 'attribute' method should be implemented")
 
-    def __call__(self, localClientKey, localClientSecret, **_ignored):
-        if not self._instance:
-            accessCode = self.authorize(
-                localClientKey, localClientSecret)
-            self._instance = LocalRepository(accessCode)
-        return self._instance
-
-    def authorize(self, key, secret):
-        return 'LOCAL_ACCESS_CODE'
+    # Method for defining the "getPathTo" required method
+    @abstractmethod    
+    def getPathTo(self, attribute):
+        raise NotImplementedError("Error: 'attribute' method should be implemented")

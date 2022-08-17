@@ -33,7 +33,7 @@ from flask import jsonify
 
 # Internal
 from ucis4eq.misc import config, microServiceABC
-from ucis4eq.launchers import config
+import ucis4eq.launchers as launchers
 import ucis4eq as ucis4eq
 import ucis4eq.dal as dal
 
@@ -51,21 +51,30 @@ class ComputeResources(microServiceABC.MicroServiceABC):
         # Select the database
         self.db = ucis4eq.dal.database        
 
+        # Default site's setup
+        self.type = 'LOCAL'
+
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration        
     def entryPoint(self, body):
         """
         Calculate the computational resources and site
         """
-
+        
         # Decide what site to use among the availables
-        resources = self.db.Resources.find({}, {'_id': False}).sort('order', 1)
         resource = None
+        
+        resources = self.db.Resources.find({}, {'_id': False}).sort('order', 1)
         for site in list(resources):
-            if site['id'] in config.keys():
+            if site['id'] in launchers.config.keys():
                 resource = site
                 break
-                        
+                
+        # Create a launcher to obtain the Setup
+        launcher = launchers.launchers.create(resource['id'], **launchers.config)
+        if launcher.setup:
+            resource['setup'] = launcher.setup
+            
         # TODO: Calculate resources (e.g  #nodes and #cores)
 
         # Return list of Id of the newly created item

@@ -24,7 +24,7 @@
 import subprocess
 import os
 
-from ucis4eq.dal.staticDataAccess import RepositoryABC
+from ucis4eq.dal.staticDataAccess.staticDataAccess import RepositoryABC
 
 ################################################################################
 # Methods and classes
@@ -60,6 +60,20 @@ class SSHRepository(RepositoryABC):
         command = ["ssh", self.proxyFlag, self.proxyCmd, remote, "mkdir -p", 
                        os.path.join(self.path, rpath)]
         subprocess.run(list(filter(None, command)))
+        
+    def tree(self, rpath):    
+        
+        # Create remote folder
+        #print("mkdir " + rpath, flush=True)
+        remote = self.user + "@" + self.url    
+
+        # Perform the operation
+        command = ["ssh", self.proxyFlag, self.proxyCmd, remote, "find", 
+                       os.path.join(self.path, rpath)]
+        output=subprocess.run(list(filter(None, command)), capture_output=True)        
+
+        # Parse output and return
+        return output.stdout.decode("utf-8").split("\n")[:-1]
                  
     def downloadFile(self, remote, local):
         

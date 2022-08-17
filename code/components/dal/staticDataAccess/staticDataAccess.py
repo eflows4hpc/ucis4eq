@@ -27,7 +27,6 @@ from abc import ABC, abstractmethod
 import ucis4eq
 from ucis4eq.misc.factory import Factory 
 
-
 ################################################################################
 # Methods and classes
 
@@ -38,7 +37,7 @@ class SDAFactory(Factory):
         """
         Select a repository from a set 
         """
-                
+ 
         # TODO: Add some mechanism for choosing a repository,
         #       load balancing, etc...
         if repo in repositories.keys():
@@ -76,6 +75,13 @@ class RepositoryABC(ABC):
         Creates a new directory
         """        
         pass
+        
+    @abstractmethod
+    def tree(self, rpath):
+        """
+        Obtains the list of files in a remote directory
+        """        
+        pass        
 
     @abstractmethod
     def downloadFile(self):
@@ -91,5 +97,3 @@ class RepositoryABC(ABC):
         """        
         pass
         
-        
-    

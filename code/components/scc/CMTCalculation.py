@@ -42,8 +42,10 @@ from obspy.imaging.beachball import aux_plane
 
 # Internal
 import ucis4eq
+import ucis4eq.dal as dal
 from ucis4eq.misc import config, microServiceABC
-from ucis4eq.dal import staticDataMap
+from ucis4eq.dal import staticDataMap, dataStructure
+
 
 ################################################################################
 # Methods and classes
@@ -94,9 +96,29 @@ class CMTInputs(microServiceABC.MicroServiceABC):
         """
         Generate a CMT input for a posterior CMT calculation
         """
-        # Read the input catalog from file
-        region = ucis4eq.dal.database.Regions.find_one({"id": body['region']})
-        inputParameters = region['cmtSetup']
+        ensembleType = "statisticalCMT"
+        
+        # Some correctness control
+        if not body['setup']['source_ensemble'] == ensembleType:
+            raise Exception('Requested ensamble' + body['setup']['source_ensemble'] 
+                            + 'is not compatible with statistical CMT calculation' )                
+        
+        if not body['setup']['source_ensemble'] in body['region']['available_ensemble']:
+            raise Exception('Requested ensamble' + body['setup']['source_ensemble'] 
+                            + 'is not available for region ' + body['region']['id'] )
+        
+        # Create the data structure
+        dataFormat = dataStructure.formats[body['region']['file_structure']]()
+        dataFormat.prepare(body['region']['id'])
+        
+        # Select an available ensamble
+        parametersFileName = body['region']['path'] + "/" + \
+                            dataFormat.getPathTo('source_ensemble') + "/" + ensembleType + \
+                             ".json"
+                    
+        # Read the input from file 
+        with open(parametersFileName, 'r') as f:
+            inputParameters = json.load(f)
         
         # TODO: This part should be done by the workflow manager
                     
@@ -135,12 +157,19 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         """
         Calculate a CMT approximation from historical earthquake events
         """
+        # Create the data structure
+        dataFormat = dataStructure.formats[body['region']['file_structure']]()
+        dataFormat.prepare(body['region']['id'])
 
-        # Read the input catalog from file
-        self.cat = obspy.read_events(self.fileMapping[body['domain']['region']])
-                
         # Configure the component
         self.setup = body['setup']
+        
+        # Read the input catalog from file
+        catalogFileName = body['region']['path'] + "/" + \
+                          dataFormat.getPathTo('source_ensemble') + "/" + \
+                          self.setup['catalog']
+        self.cat = obspy.read_events(catalogFileName)
+                
         
         # Check input parameters 
         #if self.setup['k']['min'] > self.setup['k']['max']:

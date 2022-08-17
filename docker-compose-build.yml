@@ -13,7 +13,7 @@ services:
       dockerfile: deployment/dockers/Dockerfile-base  
       
   # UCIS4EQ Micro services      
-  microServices:
+  microservices:
     image: registry.gitlab.com/cheese-coe/ucis4eq/microservices     
     build: 
       context: .      
@@ -22,7 +22,7 @@ services:
       - base
 
   # UCIS4EQ Workflow manager services    
-  workflowManager:
+  workflowmanager:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager     
     build: 
       context: .      

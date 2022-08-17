@@ -102,11 +102,12 @@ class PDRunnerBuilder:
         user = DAINT["user"]
         url = DAINT["url"]
         path = DAINT["path"]
-        resources = DAINT["resources"]           
+        setup = DAINT["setup"]           
+        resources = DAINT["resources"]
         proxy = DAINT["proxy"]
         # WARNING!!!: We dont want to do this as a Singleton
         #if not self._instance:
         #    self._instance = SlurmRunner(user, url, path)
             
         #return self._instance
-        return PDSlurmRunner(user, url, path, resources, proxy)
+        return PDSlurmRunner(user, url, path, resources, setup, proxy)

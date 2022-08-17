@@ -44,8 +44,14 @@ services:
     entrypoint: ["/bin/bash", "/opt/services/start.sh"]
       
   # UCIS4EQ Micro-services 
-  microServices:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/microservices
+  microservices:
+    build: 
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV   
+        PD_USER: $PD_USER   
+        IMAGE: registry.gitlab.com/cheese-coe/ucis4eq/microservices    
     network_mode: "host"
     environment:
       - PYTHONUNBUFFERED=1    
@@ -58,7 +64,7 @@ services:
       - DAL
   
   # UCIS4EQ Workflow Manager service  
-  workflowManager:
+  workflowmanager:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
     network_mode: "host"
     environment:
@@ -95,8 +101,8 @@ services:
     restart: always      
     depends_on:
       - DAL
-      - workflowManager
-      - microServices
+      - workflowmanager
+      - microservices
       
   # UCIS4EQ Dashboard service
   dashboard:

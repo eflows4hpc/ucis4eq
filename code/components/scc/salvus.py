@@ -38,7 +38,8 @@ from ucis4eq.misc import config, microServiceABC
 from ucis4eq.launchers import scriptABC
 import ucis4eq.dal as dal
 import ucis4eq as ucis4eq
-from ucis4eq.dal import staticDataMap
+from ucis4eq.dal import staticDataMap, staticDataAccess, dataStructure
+
 
 ################################################################################
 # Methods and classes
@@ -91,7 +92,7 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create(machine['repository'], **dal.config)
+        dataRepo = staticDataAccess.repositories.create(machine['repository'], **dal.config)
 
         # Enable multiline writting
         yaml.SafeDumper.org_represent_str = yaml.SafeDumper.represent_str
@@ -203,7 +204,7 @@ class SalvusRun(microServiceABC.MicroServiceABC):
                 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create(machine['repository'], **dal.config)
+        dataRepo = staticDataAccess.repositories.create(machine['repository'], **dal.config)
         
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + body["trial"] + "/"
@@ -272,7 +273,7 @@ class SalvusPost(microServiceABC.MicroServiceABC):
         self.setMainRepository(machine['repository'])           
 
         # Creating the repository instance for data transfer    
-        dataRepo = dal.repositories.create(machine['repository'], **dal.config)        
+        dataRepo = staticDataAccess.repositories.create(machine['repository'], **dal.config)        
         
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + body["trial"] + "/"
@@ -347,15 +348,15 @@ class SalvusPostSwarm(microServiceABC.MicroServiceABC):
         self.setMainRepository(machine['repository'])           
 
         # Creating the repository instance for data transfer    
-        dataRepo = dal.repositories.create(machine['repository'], **dal.config)        
+        dataRepo = staticDataAccess.repositories.create(machine['repository'], **dal.config)        
         
         # Create the directory for the current execution
-        bpath = body['base'] + "/" + body['domain']['id'] + "/"
+        bpath = body['base'] + "/"
         workSpace = "/workspace/runs/" + bpath
         os.makedirs(workSpace, exist_ok=True)       
         
         dname = "salvus_post_swarm"
-        pattern = "/trial_" + body['domain']['id'] + "*/"
+        pattern = "/trial_" + "*/"
         root = dataRepo.path + "/"
         pworkpath = root + bpath + "/" + dname
         sworkpath = root + body['base'] + pattern + "salvus/"
@@ -412,39 +413,45 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         Call the Salvus-Flow Marta's wrapper (Postprocessing scripts)
         """
         
-        # Obtain the domain in DB
-        domain = self.db["Domains"].find_one({"id": body['domain']['id']})
-        
         # Initialization
         result = {}
         
         # Select target machinef
-        machine = body['resources']     
+        machine = body['resources']
         
         # Set repository
         self.setMainRepository(machine['repository'])           
 
         # Creating the repository instance for data transfer    
-        dataRepo = dal.repositories.create(machine['repository'], **dal.config)        
+        dataRepo = staticDataAccess.repositories.create(machine['repository'], **dal.config)        
+
+        # Create the data structure
+        regionName = body['region']['id'] + "_DATA"
+        dformat =  body['region']['file_structure']
+        dataFormat = dataStructure.formats[dformat]()
+        dataFormat.setMainRepository(machine['repository'])
+        dataFormat.prepare(regionName)        
         
         # Create the directory for the current execution
-        bpath = body['base'] + "/" + body['domain']['id'] + "/"
+        bpath = body['base'] + "/"
         workSpace = "/workspace/runs/" + bpath
         os.makedirs(workSpace, exist_ok=True)       
         
         
         dname = "salvus_plots"
-        pattern = "/" + body['domain']['id'] + "/salvus_post_swarm"
+        pattern = "/" + "salvus_post_swarm"
         root = dataRepo.path + "/"
         pworkpath = root + bpath + "/" + dname
         sworkpath = root + body['base'] + pattern + "/"
         
         # Prepare script's arguments
         commands = []
+        
+        topogrid = dataFormat.getPathTo('topography', "grid")
         # ... for plotting
         binary = "python "  + self.filePing['salvus_wrapper_plot']
         args = "--processeddata '" + sworkpath + "' " +\
-               "--topogrid " + self.filePing[domain["files"]["grid_topo"]]
+               "--topogrid " + topogrid
         commands.append((binary, args))
         
         # ... move to proper directory
@@ -494,9 +501,10 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
                               workSpace + body['base'] + ".tar.gz")
     
         # Upload results to B2DROP
-        b2drop = dal.repositories.create(dal.repository, **dal.config)
+        b2drop = staticDataAccess.repositories.create(dal.repository, **dal.config)
+        outputPath = dal.config[dal.repository]["output"]
         
-        rpath = "ChEESE/PD1/Runs/" + body["base"] + "_" + body['domain']['id']  + "/"
+        rpath = outputPath + body["base"] + "_" + body['region']['id']  + "/"
         lpath = workSpace
         
         ## Create remote path
@@ -540,7 +548,7 @@ class SalvusPing(microServiceABC.MicroServiceABC):
                 
         # Creating the repository instance for data transfer    
         # TODO: Select the repository from the DB 'Resources' document
-        dataRepo = dal.repositories.create(machine['repository'], **dal.config)
+        dataRepo = staticDataAccess.repositories.create(machine['repository'], **dal.config)
         
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + body["trial"] + "/"

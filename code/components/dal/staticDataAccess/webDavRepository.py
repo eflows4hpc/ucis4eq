@@ -21,7 +21,7 @@
 
 ################################################################################
 # Module imports
-from ucis4eq.dal.staticDataAccess import RepositoryABC
+from ucis4eq.dal.staticDataAccess.staticDataAccess import RepositoryABC
 
 # Load NextCloud API
 from webdav3.client import Client
@@ -50,6 +50,11 @@ class WebDavRepository(RepositoryABC):
     def mkdir(self, rpath):
         # Create remote folder
         self._client.mkdir(rpath)
+        
+    def tree(self, rpath):
+        # List files from a remote path
+        print("WARNING: Obtaining list of files from WebDavRepository is unsuported yet")
+        return None
 
     def downloadFile(self, remote, local):
         # Download file

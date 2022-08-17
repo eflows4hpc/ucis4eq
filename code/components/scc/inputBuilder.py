@@ -34,7 +34,7 @@ from flask import jsonify
 # Internal
 from ucis4eq.misc import config, microServiceABC
 import ucis4eq as ucis4eq
-from ucis4eq.dal import staticDataMap
+from ucis4eq.dal import staticDataMap, dataStructure
 
 ################################################################################
 # Methods and classes
@@ -66,37 +66,57 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         """
         # Initialize inputP dict
         inputP = {}
-        
+                        
         # Select target machine
         machine = body['resources']
         
         # Set repository
         self.setMainRepository(machine['repository'])        
-
-        # Obtain information from the DB
-        # Notice that more than one results can be returned.
-        # We always take the first one
-        receivers = self.db["Receivers"].find_one({"id": body['domain']['region']})
-
-        #print({str(k).encode("utf-8"): v for k,v in receivers["infrastructures"].items()}, flush=True)
-        domain = self.db["Domains"].find_one({"id": body['domain']['id']})
-
+        
+        # Create the data structure
+        regionName = body['region']['id']
+        dformat =  body['region']['file_structure']
+        dataFormat = dataStructure.formats[dformat]()
+        dataFormat.prepare(regionName)    
+        
+        # Select an available ensamble
+        receiversFileName = body['region']['path'] + "/" + dataFormat.getPathTo('receivers') + \
+                            "/receivers.json"
+                            
+        # Read the input from file 
+        with open(receiversFileName, 'r') as f:
+            receivers = json.load(f)
+        
+        # Create the data structure
+        regionName = body['region']['id'] + "_DATA"
+        dataFormat = dataStructure.formats[dformat]()
+        dataFormat.setMainRepository(machine['repository'])
+        dataFormat.prepare(regionName)
+        
         # Build the set of parameters in a YAML
         # TODO
-        self.general['simulation_length_in_s'] = domain['parameters']['simulation_length']
-        self.general['fmax_in_hz'] = domain['parameters']['freq_max']
+        self.general['fmax_in_hz'] = body['setup']['freq']
         self.general['generate_mesh'] = "no"
         self.general['overwrite_mesh_path'] = "no"
         
-        self.geometry['coordinates'] = domain['model']['geometry']
-        self.geometry['region_ID'] = domain['region']
-                
+        self.geometry['coordinates'] = body['region']['max_latitude']
+        self.geometry['coordinates'] = body['region']['max_longitude']
+        self.geometry['coordinates'] = body['region']['min_latitude']
+        self.geometry['coordinates'] = body['region']['min_longitude']        
+        self.geometry['coordinates'] = body['region']['depth_in_m']        
+        self.geometry['region_ID'] = body['region']['id']
+    
         paths = {}
-        files = ["mesh_precomputed", "mesh_onthefly", "velocity_model",
-                 "topography", "bathymetry"]
-        for file in files:
-            if not domain['files'][file] == "":
-                paths[file] = self.filePing[domain['files'][file]]
+        
+        paths['mesh_precomputed'] = dataFormat.getPathTo('meshes', [str(body['setup']['freq'])])
+        paths['mesh_onthefly'] = ""
+        paths['velocity_model'] = dataFormat.getPathTo('velocity_model')
+        if not paths['velocity_model']:
+            paths['velocity_model'] = "csem"
+            
+        paths['topography'] = dataFormat.getPathTo('topography', ["topography"])
+        paths['bathymetry'] = dataFormat.getPathTo('bathymetry')
+        
         self.geometry['filepaths'] = paths
     
         self.source['magnitude'] = body['event']["magnitude"]

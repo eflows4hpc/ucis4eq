@@ -51,7 +51,11 @@ class Factory():
             name = list(options)[0]
             
         return name, options[name]
-
+        
+    # Method to obtain an specific builder
+    def __getitem__(self, key):
+        return self._builders[key]
+            
     # Method for look and returning the correct builder for a concrete instance
     def create(self, key, **kwargs):
         builder = self._builders.get(key)
