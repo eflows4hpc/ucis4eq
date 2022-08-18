@@ -102,8 +102,11 @@ class PDRunnerBuilder:
         user = DAINT["user"]
         url = DAINT["url"]
         path = DAINT["path"]
-        setup = DAINT["setup"]           
-        resources = DAINT["resources"]
+        if "setup" in DAINT.keys():
+            setup = DAINT["setup"]           
+        else:
+            setup = None
+        resources = DAINT["resources"]              
         proxy = DAINT["proxy"]
         # WARNING!!!: We dont want to do this as a Singleton
         #if not self._instance:

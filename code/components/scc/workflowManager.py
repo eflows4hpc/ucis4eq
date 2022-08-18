@@ -343,10 +343,10 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
             compss_wait_on(all_results)
             
             # Call postprocessing swarm
-            output_swarm = run_salvus_post_swarm(eid, basename, domain, resources)
+            output_swarm = run_salvus_post_swarm(eid, basename, resources)
     
             # General post-processing for generating plots
-            result = run_salvus_plots(eid, output_swarm, basename, domain, resources)
+            result = run_salvus_plots(eid, output_swarm, basename, resources)
     
             # Set the event with SUCCESS state    
             compss_wait_on(result)   
