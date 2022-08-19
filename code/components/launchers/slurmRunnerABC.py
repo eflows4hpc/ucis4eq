@@ -123,19 +123,23 @@ class SlurmRunnerABC(RunnerABC, ABC):
                                       stderr=subprocess.PIPE,
                                       encoding='utf8')
                                       
-            # Check for and error
+            # Check for a connection error:
+            # if the connection fails, wait for 15 s and try to reconnect
             if process.returncode != 0:
-                raise Exception("Command '" + self.baseCmd + " " + remote + " " 
-                                + cmd + "' failed. Error: " + process.stderr)
+                time.sleep(60)
+                continue
+                # raise Exception("Command '" + self.baseCmd + " " + remote + " "
+                #                 + cmd + "' failed. Error: " + process.stderr)
             
             # Set a message
             self.message = process.stdout.rstrip()
 
-            # Stop condition
+            # Stop condition:
+            # if the job is not in the queue, stop checking and assume that the job is finished
             if process.stdout == "":
                 break
             else:
-                time.sleep(10)
+                time.sleep(60)
 
         # Results are available
         self.resultAvailable.set()                         
