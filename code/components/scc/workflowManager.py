@@ -346,7 +346,7 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
             output_swarm = run_salvus_post_swarm(eid, basename, resources)
     
             # General post-processing for generating plots
-            result = run_salvus_plots(eid, output_swarm, basename, resources)
+            result = run_salvus_plots(eid, output_swarm, region, basename, resources)
     
             # Set the event with SUCCESS state    
             compss_wait_on(result)   
@@ -509,11 +509,12 @@ def run_salvus_post_swarm(event_id, base, resources):
     
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="SalvusPlots", service_name="salvus",
-      payload='{ "id" : {{event_id}}, "base" : "{{base}}", "resources" : {{resources}} }',
+      payload='{ "id" : {{event_id}}, "region" : {{region}}, "base" : "{{base}}", \
+                 "resources" : {{resources}} }',
       produces='{"result" : "{{return_0}}"}')
 #@task(returns=1, results=COLLECTION_IN)
 @task(returns=1)
-def run_salvus_plots(event_id, salvus_post_results, base, resources):
+def run_salvus_plots(event_id, salvus_post_results, region, base, resources):
     """
     """
     pass    
