@@ -98,17 +98,18 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
         self.general['fmax_in_hz'] = body['setup']['freq']
         self.general['generate_mesh'] = "no"
         self.general['overwrite_mesh_path'] = "no"
-        
-        self.geometry['coordinates'] = body['region']['max_latitude']
-        self.geometry['coordinates'] = body['region']['max_longitude']
-        self.geometry['coordinates'] = body['region']['min_latitude']
-        self.geometry['coordinates'] = body['region']['min_longitude']        
-        self.geometry['coordinates'] = body['region']['depth_in_m']        
+
+        self.geometry['coordinates'] = {} 
+        self.geometry['coordinates']['max_latitude']  = body['region']['max_latitude']
+        self.geometry['coordinates']['max_longitude'] = body['region']['max_longitude']
+        self.geometry['coordinates']['min_latitude']  = body['region']['min_latitude']
+        self.geometry['coordinates']['min_longitude'] = body['region']['min_longitude']        
+        self.geometry['coordinates']['depth_in_m']    = body['region']['depth_in_m']        
         self.geometry['region_ID'] = body['region']['id']
     
         paths = {}
         
-        paths['mesh_precomputed'] = dataFormat.getPathTo('meshes', [str(body['setup']['freq'])])
+        paths['mesh_precomputed'] = dataFormat.getPathTo('meshes', [str(body['setup']['freq']), ".h5"])
         paths['mesh_onthefly'] = ""
         paths['velocity_model'] = dataFormat.getPathTo('velocity_model')
         if not paths['velocity_model']:
