@@ -450,8 +450,11 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         topogrid = dataFormat.getPathTo('topography', "grid")
         # ... for plotting
         binary = "python "  + self.filePing['salvus_wrapper_plot']
-        args = "--processeddata '" + sworkpath + "' " +\
-               "--topogrid " + topogrid
+        args = "--processeddata '" + sworkpath + "' "
+        
+        if topogrid:
+               args = args + "--topogrid " + topogrid
+               
         commands.append((binary, args))
         
         # ... move to proper directory
@@ -504,7 +507,7 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         b2drop = staticDataAccess.repositories.create(dal.repository, **dal.config)
         outputPath = dal.config[dal.repository]["output"]
         
-        rpath = outputPath + body["base"] + "_" + body['region']['id']  + "/"
+        rpath = outputPath + "/" + body["base"] + "_" + body['region']['id']  + "/"
         lpath = workSpace
         
         ## Create remote path
