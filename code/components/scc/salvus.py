@@ -388,7 +388,7 @@ class SalvusPostSwarm(microServiceABC.MicroServiceABC):
         dataRepo.uploadFile(rworkpath, script) 
         
         # Submit and wait for finish
-        #submission.run(dataRepo.path + "/" + rworkpath)
+        submission.run(dataRepo.path + "/" + rworkpath)
     
         # Return list of Id of the newly created item
         return jsonify(result = result, response = 201)
