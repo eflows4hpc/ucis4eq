@@ -446,12 +446,14 @@ class SalvusPlots(microServiceABC.MicroServiceABC):
         
         # Prepare script's arguments
         commands = []
-        
-        topogrid = dataFormat.getPathTo('topography', "grid")
+
+        topogrid = dataFormat.getPathTo('topography', ["grid"])
         # ... for plotting
         binary = "python "  + self.filePing['salvus_wrapper_plot']
-        args = "--processeddata '" + sworkpath + "' " +\
-               "--topogrid " + topogrid
+        args = "--processeddata '" + sworkpath + "' " \
+
+        if topogrid:
+            args = args + "--topogrid " + topogrid
         commands.append((binary, args))
         
         # ... move to proper directory
