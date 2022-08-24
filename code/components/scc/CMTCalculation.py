@@ -49,7 +49,7 @@ from ucis4eq.dal import staticDataMap, dataStructure
 class Event():
     
     # Initialization method
-    def __init__(self, lat, lon, depth, mag, strike=0., dip=0., rake=0.):
+    def __init__(self, lat, lon, depth, mag, strike=0., dip=0., rake=0., datetime=None):
         """
         Initialize the event instance    
         """
@@ -60,6 +60,10 @@ class Event():
         self.strike = strike
         self.dip = dip
         self.rake = rake
+        if datetime is not None:
+            self.datetime = obspy.UTCDateTime(datetime)
+        else:
+            self.datetime = None
 
     def __repr__(self):
         return "Event()"
@@ -179,10 +183,12 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         
         # Set an input event with an unknown CMT
         e = body['event']
+        print(e)
         self.event = Event(e['latitude'], 
                            e['longitude'], 
                            e['depth'], 
-                           e['magnitude']
+                           e['magnitude'],
+                           datetime=e['time']
                           )
         
         # Obtain Focal Mechanisms
@@ -199,27 +205,40 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         This method obtains the Focal Mechanism from an historical provided 
         earthquakes events
         """
-    
+
         # Retrieve the historical information from a past events catalog
+        # MPC note that origins have a [0] and [1] indices; [0] (reforigin) is the initial estimate
+        # while [1] (CMTorigin) are the updated values; the date and time varies by just a few seconds
+        # but the location may have had significant updates; hence, from the catalog we use the updated CMTorigin
+
         hEvents = []
         # For each event in the catalog, extract the FM, Mg and position
-        # (only for events which mg >= MagnitudThreshold)
+        # (only for events for which we are above the threshold i.e. mag >= magnitudethreshold)
         for e in self.cat:
-            if  e.magnitudes[0]['mag'] >= self.setup['magnitudethreshold']:
-                fm = e.focal_mechanisms[0]['nodal_planes'].nodal_plane_1 
+            if e.magnitudes[0]['mag'] >= self.setup['magnitudethreshold']:
+                fm = e.focal_mechanisms[0]['nodal_planes'].nodal_plane_1
+
+                # MPC identify if the given event is a historical event that already exists in the catalog
+                # if it exists, we have to exclude it to make the test realistic
+                # ToDo verify if we don't exclude anything if it is a new event, but I think it is OK
+                if ((self.event.datetime - 600) < e.origins[1]['time'] < (self.event.datetime + 600)) and \
+                    (e.magnitudes[0]['mag'] == self.event.mag):
+                    print(e)
+                    continue
+
                 hEvents.append(Event(e.origins[1]['latitude'],
                                      e.origins[1]['longitude'],
                                      e.origins[1]['depth'],
                                      e.magnitudes[0]['mag'],
-                                     fm.strike, 
-                                     fm.dip,
-                                     fm.rake
+                                     strike=fm.strike,
+                                     dip=fm.dip,
+                                     rake=fm.rake
                                     )
                              )
                         
         # Print the total number of events in the catalog and known focal
         # mechanisms
-        #print("Total number of events: " + str(len(hEvents)))
+        print("Total number of events: " + str(len(hEvents)))
 
         # Initialization
         vectorDistances = np.zeros((len(hEvents), 11))

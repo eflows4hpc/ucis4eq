@@ -332,8 +332,8 @@ class WSEvents(WSGeneral):
                 self.events.append({'time': e['time'], 'event': id})
 
                 # Convert event timestamp in a readable format
-                e['time'] = datetime.datetime.utcfromtimestamp(e['time']).strftime('%d/%m/%Y, %H:%M:%S')
-                
+                #['time'] = datetime.datetime.utcfromtimestamp(e['time']).strftime('%d/%m/%Y, %H:%M:%S')
+                e['time'] = datetime.datetime.utcfromtimestamp(e['time']).strftime('%Y/%m/%d, %H:%M:%S')
                 # Add the agency information
                 e['agency'] = r
 

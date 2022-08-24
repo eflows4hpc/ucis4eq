@@ -931,7 +931,8 @@ def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake, seed):
         alert['latitude'] = float(lat)
         alert['longitude'] = float(lon)
         alert['depth'] = float(depth)
-        alert['time'] = datetime.datetime.now(datetime.timezone.utc).strftime('%d/%m/%Y, %H:%M:%S')
+        alert['time'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y/%m/%d, %H:%M:%S')
+        #alert['time'] = datetime.datetime.now(datetime.timezone.utc).strftime('%d/%m/%Y, %H:%M:%S')
         alert['elapsedtime'] = 0
         alert['cmt'] = {agency: {
                                       'strike': stk,
