@@ -32,17 +32,13 @@ import obspy
 import numpy as np
 from flask import jsonify
 from haversine import haversine
-from sklearn.cluster import DBSCAN 
-from sklearn.preprocessing import StandardScaler 
-from sklearn.preprocessing import normalize 
-from sklearn.decomposition import PCA 
+from sklearn.cluster import DBSCAN
 from sklearn.neighbors import NearestNeighbors
 from kneed import KneeLocator
 from obspy.imaging.beachball import aux_plane
 
 # Internal
 import ucis4eq
-import ucis4eq.dal as dal
 from ucis4eq.misc import config, microServiceABC
 from ucis4eq.dal import staticDataMap, dataStructure
 
@@ -270,8 +266,8 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             vecStrikeNeig = distFiltered[0:k,4]
             vecDipNeig = distFiltered[0:k,5]
             vecRakeNeig = distFiltered[0:k,6]
-            
-            # Check if the the number of neighbors found was enough
+
+            # Check if the number of neighbors found was enough
             if (kmin <= k) or (k == len(distSorted)):
                 break
             
@@ -279,7 +275,6 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             threshold = threshold * growthrate
 
         #print("Neighbors found:", str(k), "Final threshold:", str(threshold), "meters")
-        
         
         # Check if the algorithm can continue
         if k < kmin:
@@ -306,37 +301,51 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             #print("[" + name + "]"+ " --> " + str(e))
             cmts.update({name: e.toJSON()})
             aux_plane_k = aux_plane(distFiltered[i, 4],distFiltered[i, 5],distFiltered[i, 6])
-            AuxNodalPlanes.append(Event(distFiltered[i,9],distFiltered[i,10],distFiltered[i,8],distFiltered[i,7],aux_plane_k[0],aux_plane_k[1],aux_plane_k[2]))  
+            AuxNodalPlanes.append(Event(distFiltered[i,9],distFiltered[i,10],distFiltered[i,8],distFiltered[i,7],aux_plane_k[0],aux_plane_k[1],aux_plane_k[2]))
             contNodalPlanes += 1
             e = AuxNodalPlanes[contNodalPlanes]
-            cmts.update({"k-" + str(i+1) + "_AuxPlane" : e.toJSON()})           
-            
-        ########################################    
-        # Cluster results 
-        X_results = np.zeros((k,4))
-        distancesEvents = np.zeros(k)
+            cmts.update({"k-" + str(i + 1) + "_AuxPlane": e.toJSON()})
+
+        # Clustering results
+        # MPC adding here the missing part of Marisol's method
+        # an update that first orders the nodal planes before clustering
+
         cont = -1
-        dataCoordinatesCentroidEvent = (self.event.lat,self.event.lon) 
+        X_results_FM = np.zeros((k, 3))
+        for ll in range(0, k):
+            if vecMagNeig[ll] != 0:
+                cont += 1
+                auxplane_vector = aux_plane(vecStrikeNeig[ll], vecDipNeig[ll], vecRakeNeig[ll])
+                if auxplane_vector[0] < vecStrikeNeig[ll]:
+                    X_results_FM[cont, :] = auxplane_vector
+                else:
+                    X_results_FM[cont, :] = np.array([vecStrikeNeig[ll], vecDipNeig[ll], vecRakeNeig[ll]])
+
+        X_results = np.zeros((k, 4))
+
+        dataCoordinatesCentroidEvent = (self.event.lat, self.event.lon)
         profEvent = self.event.depth
         #print('profEvent',profEvent,flush=True)
         hEventsCluster = []
-         
-        for kk in range(0,k):
+
+        cont = -1
+        for kk in range(0, k):
             if vecMagNeig[kk] != 0:
                 cont += 1
-                X_results[cont,0] = vecStrikeNeig[kk]
-                X_results[cont,1] = vecDipNeig[kk]
-                X_results[cont,2] = vecRakeNeig[kk]                  
-                distEpicentral =  haversine(dataCoordinatesCentroidEvent, (vecLatNeig[kk],vecLonNeig[kk]))
-                #print('distEpicentral',distEpicentral)
-                #print('vecDepNeig[kk]',vecDepNeig[kk])
-                #print('profEvent/1000',profEvent/1000,flush=True)
-                distancesEvents[cont] = np.sqrt(distEpicentral**2 + ((profEvent/1000) - (vecDepNeig[kk]/1000))**2)
-                #print('distancesEvents[cont]',distancesEvents[cont],flush=True)
-                X_results[cont, 3] = distancesEvents[cont] 
-                #print('X_results[cont,:]',  X_results[cont,:],flush=True)
-        
-        ## DBSCAN hyperparameters 
+                # X_results[cont,0:3] = X_results_FM[cont,:]
+                # distEpicentral = haversine(dataCoordinatesCentroidEvent, (vecLatNeig[kk],vecLonNeig[kk]))
+                X_results[cont, 0:3] = X_results_FM[cont, :]
+                distEpicentral = haversine(dataCoordinatesCentroidEvent, (vecLatNeig[kk], vecLonNeig[kk]))
+                X_results[cont, 3] = np.sqrt(distEpicentral ** 2 + ((profEvent / 1000) - (vecDepNeig[kk] / 1000)) ** 2)
+
+                # print('distEpicentral',distEpicentral)
+                # print('vecDepNeig[kk]',vecDepNeig[kk])
+                # print('profEvent/1000',profEvent/1000,flush=True)
+                # distancesEvents[cont] = np.sqrt(distEpicentral**2 + ((profEvent/1000) - (vecDepNeig[kk]/1000))**2)
+                # print('distancesEvents[cont]',distancesEvents[cont],flush=True)
+                # X_results[cont, 3] = distancesEvents[cont]
+                # print('X_results[cont,:]',  X_results[cont,:], flush=True)
+        ## DBSCAN hyperparameters
         nearest_neighbors = NearestNeighbors(n_neighbors=2)
         neighbors = nearest_neighbors.fit(X_results[0:cont+1,:])
         distances, indices = neighbors.kneighbors(X_results[0:cont+1,:])
@@ -344,12 +353,7 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         i = np.arange(len(distances))
         knee = KneeLocator(i, distances, S=1, curve='convex', direction='increasing', interp_method='polynomial')
         clustering = DBSCAN(eps = distances[knee.knee], min_samples=2).fit(X_results[0:cont+1,:])
-        labels = clustering.labels_
-        #print('labels',labels,flush=True)
-        counts = np.bincount(labels[labels >= 0])
-        top_labels = np.argsort(-counts)[:2]
-        n_clusters_ = len(set(labels)) 
-        #print('n_clusters_',n_clusters_,flush=True)
+
         X_resultsCluster = np.zeros((cont+1,9))
         X_resultsCluster[:,0:4] = X_results[0:cont+1,:]
         X_resultsCluster[:,4] = clustering.labels_        
