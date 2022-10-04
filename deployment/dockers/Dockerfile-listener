@@ -23,7 +23,7 @@ ADD code/services/listener.py /root/services/listener.py
 RUN echo "python /root/services/listener.py config_events" >> /root/services/start.sh
 
 # Add UCIS4EQ Code
-RUN mv /usr/local/lib/python3.7/site-packages/ucis4eq /usr/local/lib/python3.5/site-packages/ucis4eq
+RUN mv /usr/local/lib/python3.8/site-packages/ucis4eq /usr/local/lib/python3.5/site-packages/ucis4eq
 
 # Entry point
 ENTRYPOINT ["sh", "/root/services/start.sh"]

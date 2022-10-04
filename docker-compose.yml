@@ -63,6 +63,9 @@ services:
     image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
     environment:
       - UCIS4EQ_LOCATION=${LOCATION}
+    volumes:
+      - ./data/project.xml:/opt/project.xml
+      - ./data/resources.xml:/opt/resources.xml      
     network_mode: "host"
     restart: always      
 
