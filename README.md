@@ -78,7 +78,7 @@ IMPORTANT: During first deployment, some images will be created for adding user'
 
 ### 2 - Trigger a manual alert
 ```
-curl -X POST -H 'Content-Type: application/json' -d @data/SAMOS_EQ_Event_DEMO.json http://127.0.0.1:5001/WMEmulator
+curl -X POST -H 'Content-Type: application/json' -d @data/SAMOS_EQ_Event_DEMO.json http://127.0.0.1:5001/PyCOMPSsWM
 ```
 
 ### 3 - Event follow-up in the Dashboard
