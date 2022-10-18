@@ -43,9 +43,15 @@ class PDSlurmRunner(SlurmRunnerABC):
         # Select the resources for the given stage
         # TODO: Control that provided stage exist
         args = self.resources[stage]        
-        print(args)
+        
+        # Check if a job name was provided
+        if "name" in args.keys():
+            name = args['name']
+        else:
+            name = stage        
+        
         # Add rules to the slurm script
-        lines.append("#SBATCH --job-name=" + stage)
+        lines.append("#SBATCH --job-name=" + name)
         lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(args['wtime'])))
         lines.append("#SBATCH --tasks-per-node=" + str(args['tasks-per-node']))
         lines.append("#SBATCH --ntasks=" + str(int(args['nodes']) * int(args['tasks-per-node'])))
@@ -74,23 +80,6 @@ class PDSlurmRunner(SlurmRunnerABC):
 
         for line in add_lines:
             lines.append(line)
-
-        # Piz Daint MPI setup
-        # lines.append("export LD_LIBRARY_PATH=/opt/cray/pe/mpt/7.7.15/gni/mpich-gnu-abi/8.2/lib:$LD_LIBRARY_PATH")
-        # lines.append("export CRAY_CUDA_MPS=1")
-        
-        # Additional instructions
-        # lines.append("set -e")
-
-        # Enabling Singulatity
-        # lines.append("module load singularity")
-        
-        # Enabling Cheese environment (that includes Salvus)
-        # lines.append("source activate cheese")
-                
-        # Enabling Cheese environment (that includes Salvus)
-        # lines.append("module switch PrgEnv-cray PrgEnv-gnu")
-        # lines.append("module switch cray-mpich cray-mpich-abi")
 
         return lines        
     

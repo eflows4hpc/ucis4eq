@@ -50,6 +50,10 @@ RUN wget http://compss.bsc.es/repo/sc/stable/COMPSs_2.10.1.tar.gz; \
 # ... Install dill (for COMPSs)
 RUN pip install dill
 
+# Make PyCOMPSs to reach right python version
+RUN rm /usr/bin/python3; \
+    ln -s /usr/local/bin/python3.8 /usr/bin/python3
+
 # Obtain the EQ Temporal Workflow Manager Emulator
 ADD code/services/workflowManagerService.py /root/services/workflowManagerService.py
 

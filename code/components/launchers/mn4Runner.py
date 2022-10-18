@@ -43,9 +43,15 @@ class MN4SlurmRunner(SlurmRunnerABC):
         # Select the resources for the given stage
         # TODO: Control that provided stage exist
         args = self.resources[stage]
+        
+        # Check if a job name was provided
+        if "name" in args.keys():
+            name = args['name']
+        else:
+            name = stage
 
         # Add rules to the slurm script
-        lines.append("#SBATCH --job-name=" + stage)        
+        lines.append("#SBATCH --job-name=" + name)        
         lines.append("#SBATCH --time=" + time.strftime('%H:%M:%S', time.gmtime(args['wtime'])))
         lines.append("#SBATCH --nodes=" + str(args['nodes']))
         lines.append("#SBATCH --tasks-per-node=" + str(args['tasks-per-node']))
@@ -68,20 +74,13 @@ class MN4SlurmRunner(SlurmRunnerABC):
         # Initialize list of instructions
         lines = []
         
-        # Additional instructions
-        lines.append("set -e")
-
-        # Enabling Singulatity
-        lines.append("module load singularity")
-                
-        # Enabling UCIS4EQ environment (that includes Salvus)
-        #lines.append("module load ANACONDA/5.0.1")
-        lines.append("source activate cheese")
+        # TODO: Control that provided stage exist
+        args = self.resources[stage]
         
-        # Loading and setting up MPI        
-        lines.append("module load fabric")
-        lines.append("export I_MPI_EXTRA_FILESYSTEM_LIST=gpfs")
-        lines.append("export I_MPI_EXTRA_FILESYSTEM=on")
+        add_lines = args['environment']
+
+        for line in add_lines:
+            lines.append(line)
         
         return lines
     

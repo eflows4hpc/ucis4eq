@@ -22,6 +22,8 @@ from dash.dependencies import Input, Output, State
 
 from obspy.imaging.beachball import beachball
 import ucis4eq.dal as dal
+from ucis4eq.dal import staticDataAccess
+
 from ucis4eq.scc.event import EventCountry
 
 import pandas as pd
@@ -31,16 +33,19 @@ GEOTIFF_MARKER_ID = "geotiff-marker-id"
 COORDINATE_CLICK_ID = "coordinate-click-id"
 
 progressValues = {
-   'EventDomains': { 'value': 1, 'init':0 },
-   'CMTInputs': { 'value': 1, 'init': 1},
-   'computeResources': { 'value': 1 , 'init': 2},
-   'CMTCalculation': { 'value': 1, 'init': 3},
-   'SourceType': { 'value': 1, 'init': 4},
-   'SlipGenGP': { 'value': 5, 'init': 5},
+   'EventRegion': { 'value': 1, 'init':0 },
+   'EventRegion': { 'value': 1, 'init':1 },
+   'ComputeResources': { 'value': 1 , 'init': 2},
+   'CMTInputs': { 'value': 1, 'init': 3},
+   'CMTCalculation': { 'value': 1, 'init': 4},
+   'SourceType': { 'value': 1, 'init': 5},
+   'SlipGenGPSetup': { 'value': 1, 'init': 6},
+   'SlipGenGP': { 'value': 3, 'init': 7},
    'InputParametersBuilder': { 'value': 1, 'init': 10},
    'SalvusPrepare': { 'value': 7, 'init': 11},
-   'SalvusRun': { 'value':  70, 'init': 18},
-   'SalvusPost': { 'value': 5, 'init': 88},
+   'SalvusRun': { 'value':  65, 'init': 18},
+   'SalvusPost': { 'value': 5, 'init': 83},
+   'SalvusPostSwarm': { 'value': 5, 'init': 88},
    'SalvusPlots': { 'value': 7, 'init': 93}
 }
 
@@ -53,7 +58,7 @@ trialProgressValues = {
 }
 
 doneSelectedRow = None
-domainSelectedRow = None
+regionID = None
 
 figureOptions = {
   "PGA": {
@@ -90,13 +95,13 @@ figureOptions = {
     "Components": {
       "pattern": "[ENZ]",
       "units": {
-        "%g": "percent"
+        "cm/s": "cm_s"
       }
     },
     "Maximum": {
       "pattern": "max",
       "units": {
-        "%g": "percent"
+        "cm/s": "cm_s"
       }
     }
   },
@@ -114,6 +119,20 @@ figureOptions = {
       }
     }
   },
+  "duration_AI": {
+    "Components": {
+      "pattern": "[ENZ]",
+      "units": {
+        "s": "_s"
+      }
+    },
+    "Maximum": {
+      "pattern": "max",
+      "units": {
+        "s": "_s"
+      }
+    }
+  },  
   "CAV": {
     "Components": {
       "pattern": "[ENZ]",
@@ -286,7 +305,6 @@ def render_content(tab):
 
     elif tab == 'tab-4':
         content = html.Div(id='tab-table-4')
-        domains = html.Div(id='tab-domains-4')
         plots = html.Div(id='tab-plots-4')
 
         modal =  html.Div([dbc.Modal([
@@ -305,7 +323,6 @@ def render_content(tab):
                             content,
                             getLoading('tab-table-4'),
                             modal,
-                            domains,
                             getLoading('tab-plots-4'),
                             ])
 
@@ -476,10 +493,10 @@ def showEvent(layer, latitude, longitude):
             },
             "id": 1,
             "region": 1,
-            "mlat" : "$model.geometry.min_latitude",
-            "Mlat" : "$model.geometry.max_latitude",
-            "mlon" : "$model.geometry.min_longitude",
-            "Mlon" : "$model.geometry.max_longitude"
+            "mlat" : "$min_latitude",
+            "Mlat" : "$max_latitude",
+            "mlon" : "$min_longitude",
+            "Mlon" : "$max_longitude"
          }
        },
        {
@@ -496,12 +513,12 @@ def showEvent(layer, latitude, longitude):
 
     #for region in self.db['Regions'].aggregate(regionPipeline):
 
-    col = dal.database["Domains"]
-    domains = list(col.aggregate(regionPipeline))
+    col = dal.database["Regions"]
+    region = list(col.aggregate(regionPipeline))
     sitesMarkers = {}
     if domains:
         col = dal.database["Receivers"]
-        sitesTypes = col.find_one({"id": domains[0]['region']})
+        sitesTypes = col.find_one({"id": region['id']})
         for siteType in sitesTypes:
             if not isinstance(sitesTypes[siteType], dict):
                 continue
@@ -701,17 +718,10 @@ def dropDownMenus():
             value=None,
             placeholder="Select metric"
         )
-    fourth = dcc.Dropdown(
-            id='fourth-dropdown',
-            options=[],
-            value=None,
-            placeholder="Select trial"
-        )
     
-    content = html.Div(children=[dbc.Row([dbc.Col(first, width=2), 
-                                          dbc.Col(second, width=2),
-                                          dbc.Col(third, width=2),
-                                          dbc.Col(fourth, width=6)], 
+    content = html.Div(children=[dbc.Row([dbc.Col(first, width=4), 
+                                          dbc.Col(second, width=4),
+                                          dbc.Col(third, width=4)], 
              style = {"width": "100%"} )], className = "card")
     return content
 
@@ -745,77 +755,38 @@ def updateSecondDropdown(value1, value2):
     for units in figureOptions[value1][value2]['units'].keys():
         options.append({"label": units, "value": units})
 
-    return options
-    
-@app.callback(
-    Output("fourth-dropdown", "options"),
-    [Input("first-dropdown", "value"),
-     Input("second-dropdown", "value"),
-     Input("third-dropdown", "value")],
-)
-def updateThirdDropdown(value1, value2, value3):
-
-    if not (value1 and value2 and value3):
-        return dash.no_update
-
-    options = []
-
-    request = [
-        {
-            "$match": {
-                "requestId":  doneSelectedRow['Run'],
-                 "inputs.trial": {"$ne" : None} 
-                }
-        },
-        {
-            "$group": { 
-                "_id": { "trial": "$inputs.trial"},
-                } 
-        }
-    ] 
-        
-    col = dal.database["ServiceRuns"]
-    cursor= col.aggregate(request)   
-    
-    for trial in cursor:    
-        name = trial["_id"]["trial"]
-
-        options.append({"label": name.split("/")[-1], "value": name})            
-    
-    return options    
-
+    return options  
 
 @app.callback(
     Output("plotFigures", "children"),
     [Input("first-dropdown", "value"),
      Input("second-dropdown", "value"),
-     Input("third-dropdown", "value"),
-     Input("fourth-dropdown", "value")],
+     Input("third-dropdown", "value")],
 )
-def buildpattern(value1, value2, value3, value4):
+def buildpattern(value1, value2, value3):
 
-    if not (doneSelectedRow and domainSelectedRow
+    if not (doneSelectedRow and regionID
             and value1 and value2 and value3):
         return dash.no_update
-
+        
     if value2 in figureOptions[value1].keys() and value3 in figureOptions[value1][value2]['units'].keys():
 
         # Pattern (    # PGV.*(E|N|Z).*cm_s.*)
         pattern = value1 + "*" + figureOptions[value1][value2]['pattern'] +\
          "*" + figureOptions[value1][value2]['units'][value3] + "*"
-
+         
         # Make the query
         fieldsEQ = {}
         col = dal.database["Requests"]
         request = list(col.find({"_id": ObjectId(doneSelectedRow['Run'])}))[0]
 
-        path = "event_" + request['uuid'] + "_" + domainSelectedRow['Model'] + "/"
-        filenames = value4 + "/*/" + pattern
-        
+        path = "event_" + request['uuid'] + "_" + regionID + "/"
+        filenames = "/*/*/" + pattern
+                
         # Create the directory for the current execution
         workSpace = "/workspace/runs/" + path
         os.makedirs(workSpace, exist_ok=True)
-
+        
         files = glob.glob(workSpace + "/" + filenames)
 
         images = []
@@ -1474,6 +1445,23 @@ def queryDoneJobs(value):
               Input('tableDone', "derived_virtual_selected_rows"))
 def queryDomains(data, idx):
 
+
+
+    columns = ['Region']
+
+    df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
+
+    content= html.Div(
+                    children=[
+                    ]
+                )
+    return content
+
+@app.callback(Output('modal-plots-body', 'children'),
+              Input('tableDone', "derived_viewport_data"),
+              Input('tableDone', "derived_virtual_selected_rows"))
+def plotResults(data, idx):
+
     fieldsEQ = {}
 
     if not idx or len(idx) == 0:
@@ -1490,13 +1478,11 @@ def queryDomains(data, idx):
             },
             "id": 1,
             "region": 1,
-            "mlat" : "$model.geometry.min_latitude",
-            "Mlat" : "$model.geometry.max_latitude",
-            "mlon" : "$model.geometry.min_longitude",
-            "Mlon" : "$model.geometry.max_longitude",
-            "Depth" : "$model.geometry.depth_in_m",
-            "Mfreq" : "$parameters.freq_max",
-            "Slength" : "$parameters.simulation_length"
+            "mlat" : "$min_latitude",
+            "Mlat" : "$max_latitude",
+            "mlon" : "$min_longitude",
+            "Mlon" : "$max_longitude",
+            "Depth" : "$depth_in_m",
          }
        },
        {
@@ -1513,89 +1499,28 @@ def queryDomains(data, idx):
 
     #for region in self.db['Regions'].aggregate(regionPipeline):
 
-    col = dal.database["Domains"]
-    domains = list(col.aggregate(regionPipeline))
+    col = dal.database["Regions"]
+    region = list(col.aggregate(regionPipeline))[0]
 
-    i = 0
-    for domain in domains:
-        fieldsEQ[str(i)] = {
-            'Region': domain['region'],
-            'Model': domain['id'],
-            'Max. Frequency (HZs)':  domain['Mfreq'],
-            'Simulation length (s)': domain['Slength'],
-        }
-        i = i + 1;
-
-    columns = ['Region', 'Model', 'Max. Frequency (HZs)', 'Simulation length (s)']
-
-    df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
-
-    content= html.Div(
-                    children=[
-                        html.Div(
-                            className = "card",
-                            children = [
-                                dash_table.DataTable(
-                                    id='tableDomains',
-                                    columns=[{"name": i, "id": i}
-                                             for i in columns],
-                                    data=df.to_dict('records'),
-                                    sort_action="native",
-                                    sort_mode='multi',
-                                    row_selectable='single',
-                                    style_data={
-                                        'color': 'black',
-                                        'backgroundColor': 'white',
-                                        'textAlign': 'center',
-                                        'border': 'none',
-                                    },
-                                    style_data_conditional=[
-                                        {
-                                            'if': {'row_index': 'odd'},
-                                            'backgroundColor': 'rgb(247, 247, 240)',
-                                        }
-                                    ],
-                                    style_header={
-                                        'backgroundColor': 'rgb(227, 98, 9)',
-                                        'color': 'black',
-                                        'fontWeight': 'bold',
-                                        'textAlign': 'center'
-                                    }
-                                )
-                            ]
-                        )
-                    ]
-                )
-    return content
-
-@app.callback(Output('modal-plots-body', 'children'),
-              Input('tableDomains', "derived_viewport_data"),
-              Input('tableDomains', "derived_virtual_selected_rows"))
-def plotResults(data, idx):
-
-    if not (data and idx):
-        return dash.no_update
-
-    global domainSelectedRow
-    domainSelectedRow = data[idx[0]]
-    
     # Make the query
     fieldsEQ = {}
     col = dal.database["Requests"]
     request = list(col.find({"_id": ObjectId(doneSelectedRow['Run'])}))[0]
 
-    path = "event_" + request['uuid'] + "_" + domainSelectedRow['Model'] + "/"
+    global regionID
+    regionID = region['id']
+    path = "event_" + request['uuid'] + "_" + region['id'] + "/"
     filename = "event_" + request['uuid'] + ".tar.gz"
 
     # Creating the repository instance for data transfer
     # TODO: Select the repository from the DB 'Resources' document
-    dataRepo = dal.repositories.create(dal.repository, **dal.config)
+    dataRepo = staticDataAccess.repositories.create(dal.repository, **dal.config)
 
     # Create the directory for the current execution
     workSpace = "/workspace/runs/" + path
     os.makedirs(workSpace, exist_ok=True)
 
-    rpath = "ChEESE/PD1/Runs/" + path + filename
+    rpath = "UCIS4EQ/Runs/" + path + filename
     lpath = workSpace + filename
 
     # Download results from HPC machine
@@ -1606,7 +1531,7 @@ def plotResults(data, idx):
     tar = tarfile.open(lpath, "r:gz")
     tar.extractall(path=workSpace)
     tar.close()
-
+    
     figures = html.Div(id="plotFigures", className="card",
                        children=[html.H3('Figures will appear here')])          
           
@@ -1614,7 +1539,7 @@ def plotResults(data, idx):
     
 @app.callback(
     Output("modal-plots", "is_open"),
-    [Input('tableDomains', "derived_virtual_selected_rows")],
+    [Input('tableDone', "derived_virtual_selected_rows")],
     [State("modal-plots", "is_open")],
 )
 def toggle_modal_plots(n1, is_open):
