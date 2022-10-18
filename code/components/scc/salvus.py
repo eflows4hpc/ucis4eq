@@ -217,9 +217,9 @@ class SalvusRun(microServiceABC.MicroServiceABC):
         commands = []
         
         # ... build command for job monitoring
-        binary = "python "  + self.filePing['salvus_job_tracker']
-        args = body['input'] + " $PWD 10 snapshots &"
-        commands.append((binary, args))
+        #binary = "python "  + self.filePing['salvus_job_tracker']
+        #args = body['input'] + " $PWD 10 snapshots &"
+        #commands.append((binary, args))
         
         # ... build command for the modeling
         binary = submission.getMPICommand() + self.filePing['salvus_compute'] +\
