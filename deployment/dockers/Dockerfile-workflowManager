@@ -39,8 +39,10 @@ RUN apt-get update && apt-get install -y git; \
     pip install maven pycompss
   
 # ... and COMPSs
-RUN wget http://compss.bsc.es/repo/sc/stable/COMPSs_2.10.1.tar.gz; \
-    tar -xvzf COMPSs_2.10.1.tar.gz;\
+#RUN wget http://compss.bsc.es/repo/sc/stable/COMPSs_2.10.1.tar.gz; \
+#    tar -xvzf COMPSs_2.10.1.tar.gz;\
+RUN wget http://compss.bsc.es/repo/sc/stable/COMPSs_eflows4hpc.tar.gz; \
+    tar -xvzf COMPSs_eflows4hpc.tar.gz;\
     cd COMPSs;\
     ./install /opt/COMPSs/;\
     cd ..;\

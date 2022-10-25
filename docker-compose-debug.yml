@@ -70,6 +70,7 @@ services:
     environment:
       - UCIS4EQ_LOCATION=${LOCATION}
       - PYTHONUNBUFFERED=1
+      - COMPSS_HTTP_POOL_SIZE=100
     volumes:
       - ./data/project.xml:/opt/project.xml
       - ./data/resources.xml:/opt/resources.xml          
