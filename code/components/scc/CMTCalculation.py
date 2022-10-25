@@ -195,8 +195,9 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         cmts = self._getFocalMechanism()
         
         # Append input CMT's to the list of calculated ones
-        if "cmt" in body['event'].keys():
-            cmts.update(body['event']["cmt"])
+        # MPC commenting this because we don't necessarily want to simulate that every time.
+        # if "cmt" in body['event'].keys():
+        #     cmts.update(body['event']["cmt"])
 
         return jsonify(result = cmts, response = 201)
                         
@@ -223,7 +224,9 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                 # ToDo verify if we don't exclude anything if it is a new event, but I think it is OK
                 if ((self.event.datetime - 600) < e.origins[1]['time'] < (self.event.datetime + 600)) and \
                     (e.magnitudes[0]['mag'] == self.event.mag):
-                    print(e)
+                    print("\n Skipping target event in the catalog: \n", flush=True)
+                    print(e, flush=True)
+                    print("\n", flush=True)
                     continue
 
                 hEvents.append(Event(e.origins[1]['latitude'],
