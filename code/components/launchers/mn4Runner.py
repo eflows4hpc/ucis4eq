@@ -59,6 +59,10 @@ class MN4SlurmRunner(SlurmRunnerABC):
         lines.append("#SBATCH --error=" + stage + ".e")
         lines.append("#SBATCH --output=" + stage + ".o")
         lines.append("#SBATCH --qos=" + args['qos'])
+        
+        if "constraint" in args.keys():
+            lines.append("#SBATCH --constraint=" + args['constraint'])
+            
         #lines.append("#SBATCH --partition=main")
         #lines.append("#SBATCH --reservation=ChEESE21_test")
 

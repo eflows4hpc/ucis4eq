@@ -1,33 +1,37 @@
 {
   "MN4": {
-    "user": "bsc21253",
+    "user": "pozn93214",
     "url": "mn3.bsc.es",
     "path": "/gpfs/scratch/bsc21/bsc21253/eFlows/UCIS4EQ/",
     "resources": {
       "SlipGenGP": {
+        "name": "urgent___192837",
         "wtime": 360,
         "nodes": 1,
         "tasks-per-node": 1,
-        "qos": "debug",
+        "qos": "class_a",
         "environment": [
           "module load singularity"
         ]        
       },
       "SalvusPrepare": {
+        "name": "urgent___192837",
         "wtime": 1800,
         "nodes": 1,
         "tasks-per-node": 1,
-        "qos": "debug",
+        "constraint": "highmem",
+        "qos": "class_a",
         "environment": [
           "module load ANACONDA/5.0.1",
           "source activate salvus"
         ]   
       },
       "SalvusRun": {
-        "wtime": 2400,
-        "nodes": 10,
+        "name": "urgent___192837",
+        "wtime": 16200,
+        "nodes": 45,
         "tasks-per-node": 48,
-        "qos": "debug",
+        "qos": "class_a",
         "environment":[
           "module load fabric",
           "export I_MPI_EXTRA_FILESYSTEM_LIST=gpfs",
@@ -35,30 +39,33 @@
         ]
       },
       "SalvusPost": {
-        "wtime": 1800,
+        "name": "urgent___192837",
+        "wtime": 3600,
         "nodes": 1,
         "tasks-per-node": 48,
-        "qos": "debug",
+        "qos": "class_a",
         "environment": [
           "module load ANACONDA/5.0.1",
           "source activate salvus"
         ]
       },
       "SalvusPostSwarm": {
-        "wtime": 1800,
+        "name": "urgent___192837",
+        "wtime": 3600,
         "nodes": 1,
         "tasks-per-node": 48,
-        "qos": "debug",
+        "qos": "class_a",
         "environment": [
           "module load ANACONDA/5.0.1",
           "source activate salvus"
         ]
       },      
       "SalvusPlots": {
-        "wtime": 1800,
+        "name": "urgent___192837",
+        "wtime": 3600,
         "nodes": 1,
         "tasks-per-node": 48,
-        "qos": "debug",
+        "qos": "class_a",
         "environment": [
           "module load ANACONDA/5.0.1",
           "source activate salvus"

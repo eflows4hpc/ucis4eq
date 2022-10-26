@@ -217,7 +217,7 @@ class EventSetup(microServiceABC.MicroServiceABC):
         
         # TODO: Add a clever way of setting that parameters from a set of options 
         setup = {} 
-        setup["fmax_policy"] = "min"
+        setup["fmax_policy"] = "max"
         setup["source_ensemble"] = "statisticalCMT"
 
         # Return the event setup
