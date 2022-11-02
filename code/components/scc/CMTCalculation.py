@@ -220,11 +220,12 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                 fm = e.focal_mechanisms[0]['nodal_planes'].nodal_plane_1
 
                 # MPC identify if the given event is a historical event that already exists in the catalog
-                # if it exists, we have to exclude it to make the test realistic
+                # if it exists, we have to exclude it to make the test realistic; cannot do the exclusion by magnitude,
+                # as the magnitudes can vary between the agencies.
                 # ToDo verify if we don't exclude anything if it is a new event, but I think it is OK
-                if ((self.event.datetime - 600) < e.origins[1]['time'] < (self.event.datetime + 600)) and \
-                    (e.magnitudes[0]['mag'] == self.event.mag):
-                    print("\n Skipping target event in the catalog: \n", flush=True)
+                if ((self.event.datetime - 20) < e.origins[1]['time'] < (self.event.datetime + 20)): #and \
+                    #(e.magnitudes[0]['mag'] == self.event.mag):
+                    print("\nINFO: (CMT calculation) Skipping target event in the catalog: \n", flush=True)
                     print(e, flush=True)
                     print("\n", flush=True)
                     continue
@@ -241,7 +242,7 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                         
         # Print the total number of events in the catalog and known focal
         # mechanisms
-        print("Total number of events: " + str(len(hEvents)))
+        print("\nINFO: (CMT calculation) Total number of events: " + str(len(hEvents)))
 
         # Initialization
         vectorDistances = np.zeros((len(hEvents), 11))
@@ -316,7 +317,18 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         contNodalPlanes += 1
         e = AuxNodalPlanes[contNodalPlanes]
         cmts.update({"Median_AuxPlane" : e.toJSON()})
-        for i in range(0,self.setup['output']['focalmechanisms']):
+
+        if kmin < self.setup['output']['focalmechanisms']:
+            nb_nearest_neighbours = kmin
+            print("\nWARNING: (CMT calculation) The requested number of focal mechanisms for the nearest neighbour algorithm (%i)"
+                  "is larger than the minimum number of neigbours found (%i) in the specified radius (%f m). "
+                  "Therefore, the algorithm will output all of the focal mechanisms found. \n"
+                  %(self.setup['output']['focalmechanisms'], kmin, threshold),
+                  flush=True)
+        else:
+            nb_nearest_neighbours = self.setup['output']['focalmechanisms']
+
+        for i in range(0, nb_nearest_neighbours):
             #hEvents[distFiltered[0:self.setup['output']['focalmechanisms'], 0]]:
             name = "k-" + str(i+1) +  ""             
             e = hEvents[int(distFiltered[i, 0])]
@@ -374,114 +386,120 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         distances = np.sort(distances[:,1], axis=0)
         i = np.arange(len(distances))
         knee = KneeLocator(i, distances, S=1, curve='convex', direction='increasing', interp_method='polynomial')
-        clustering = DBSCAN(eps = distances[knee.knee], min_samples=2).fit(X_results[0:cont+1,:])
 
-        X_resultsCluster = np.zeros((cont+1,9))
-        X_resultsCluster[:,0:4] = X_results[0:cont+1,:]
-        X_resultsCluster[:,4] = clustering.labels_        
-        vecNumElementsCluster = np.zeros(cont+1)
-        contCluster = 0
-        contNumberCluster = -1
-        for iCluster in np.arange(min(X_resultsCluster[:,4]),max(X_resultsCluster[:,4])+1):
-          contNumberCluster += 1
-          for kk in range(0,cont+1):
-            if X_resultsCluster[kk,4] == iCluster:
-              contCluster += 1
-          vecNumElementsCluster[contNumberCluster] = contCluster
-          contCluster = 0    
-   
-        percentageEachCluster = np.zeros(contNumberCluster+1)
-        sumTotEvents = sum(vecNumElementsCluster[0:contNumberCluster+1])
-  
-        for ij in np.arange(contNumberCluster+1):
-          percentageEachCluster[ij] = vecNumElementsCluster[ij]/sumTotEvents
-        
-        contNumberCluster = -1
-        for iCluster in np.arange(min(X_resultsCluster[:,4]),max(X_resultsCluster[:,4])+1):
-            contNumberCluster += 1
-            for kk in range(0,cont+1):               
+        try:
+            clustering = DBSCAN(eps = distances[knee.knee], min_samples=2).fit(X_results[0:cont+1,:])
+            X_resultsCluster = np.zeros((cont+1,9))
+            X_resultsCluster[:,0:4] = X_results[0:cont+1,:]
+            X_resultsCluster[:,4] = clustering.labels_
+            vecNumElementsCluster = np.zeros(cont+1)
+            contCluster = 0
+            contNumberCluster = -1
+            for iCluster in np.arange(min(X_resultsCluster[:,4]),max(X_resultsCluster[:,4])+1):
+              contNumberCluster += 1
+              for kk in range(0,cont+1):
                 if X_resultsCluster[kk,4] == iCluster:
-                    X_resultsCluster[kk,5] = percentageEachCluster[contNumberCluster]
-                    X_resultsCluster[kk,6] = vecLatNeig[kk]
-                    X_resultsCluster[kk,7] = vecLonNeig[kk]
-                    X_resultsCluster[kk,8] = vecDepNeig[kk]
-                    
-        # For each cluster obtained the median and the mean of the FM considering each angle as independent variable. Compare with the k-closest neighbors
-                    
-        X_resultsSortCluster = X_resultsCluster[X_resultsCluster[0:cont+1,4].argsort()]  
-      
-        VecTempClusterMean = np.zeros((contNumberCluster+1,3))
-        VecTempClusterStd = np.zeros((contNumberCluster+1,3))
-        VecTempClusterMedian = np.zeros((contNumberCluster+1,3)) 
-        VecCentroides = np.zeros((contNumberCluster+1,3))
-        VecCentroidesStd =  np.zeros((contNumberCluster+1,3))
-        contTmp = -1
-        contClustMean = -1
-    
-        for jj in np.arange(contNumberCluster+1):           
-            #print('jj',jj)
-            contTmpIni = int(contTmp + 1)
-            contTmpFin = int(contTmpIni + vecNumElementsCluster[jj]-1)
-            #print('contTmpIni',contTmpIni,flush=True)
-            #print('contTmpFin',contTmpFin,flush=True)  
-            #for ij in np.arange(contTmpIni,contTmpFin+1):
-            #  print('X_resultsSortCluster[int(ij),:]',X_resultsSortCluster[int(ij),:],flush=True) 
-            VecTempClusterMean[jj,0] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,0])  #mean Strike,Dip,Rake Cluster
-            VecTempClusterStd[jj,0] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,0])  #mean Strike,Dip,Rake Cluster
-            VecTempClusterMedian[jj,0] = np.percentile(X_resultsSortCluster[contTmpIni:contTmpFin+1,0], 50, interpolation = 'midpoint')
-            VecTempClusterMean[jj,1] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,1])  #mean Strike,Dip,Rake Cluster
-            VecTempClusterStd[jj,1] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,1])  #mean Strike,Dip,Rake Cluster
-            VecTempClusterMedian[jj,1] = np.percentile(X_resultsSortCluster[contTmpIni:contTmpFin+1,1], 50, interpolation = 'midpoint')
-            VecTempClusterMean[jj,2] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,2])  #mean Strike,Dip,Rake Cluster
-            VecTempClusterStd[jj,2] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,2])  #mean Strike,Dip,Rake Cluster
-            VecTempClusterMedian[jj,2] = np.percentile(X_resultsSortCluster[contTmpIni:contTmpFin+1,2], 50, interpolation = 'midpoint')
-            VecCentroides[jj,0] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,6]) #Latitude
-            VecCentroides[jj,1] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,7]) #Longitude
-            VecCentroides[jj,2] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,8]) #Depth
-            VecCentroidesStd[jj,0] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,6]) #Latitude
-            VecCentroidesStd[jj,1] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,7]) #Longitude
-            VecCentroidesStd[jj,2] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,8]) #Depth  
-            contTmp = contTmpFin 
-            ## Mean Clustering Solutions
-            #contClustMean = contClustMean + 1
-            #hEventsCluster.append(Event(VecCentroides[jj,0],
-             #                    VecCentroides[jj,1],
-             #                   VecCentroides[jj,2],    
-             #                   0.0,
-             #                    VecTempClusterMean[jj,0],
-             #                    VecTempClusterMean[jj,1],
-             #                    VecTempClusterMean[jj,2]
-             #                    )
-             #                )
-            #name = "ClustMean-" + str(jj+1) +  ""
-            #e = hEventsCluster[int(contClustMean)]            
-            #print("[" + name + "]"+ " --> " + str(e))
-            #cmts.update({name: e.toJSON()})        
-            #######
-            
-            ## Median Clustering Solution
-            contClustMean = contClustMean + 1
-            hEventsCluster.append(Event(VecCentroides[jj,0],
-                                 VecCentroides[jj,1],
-                                 VecCentroides[jj,2],    
-                                 0.0,
-                                 VecTempClusterMedian[jj,0],
-                                 VecTempClusterMedian[jj,1],
-                                 VecTempClusterMedian[jj,2]
+                  contCluster += 1
+              vecNumElementsCluster[contNumberCluster] = contCluster
+              contCluster = 0
+
+            percentageEachCluster = np.zeros(contNumberCluster+1)
+            sumTotEvents = sum(vecNumElementsCluster[0:contNumberCluster+1])
+
+            for ij in np.arange(contNumberCluster+1):
+              percentageEachCluster[ij] = vecNumElementsCluster[ij]/sumTotEvents
+
+            contNumberCluster = -1
+            for iCluster in np.arange(min(X_resultsCluster[:,4]),max(X_resultsCluster[:,4])+1):
+                contNumberCluster += 1
+                for kk in range(0,cont+1):
+                    if X_resultsCluster[kk,4] == iCluster:
+                        X_resultsCluster[kk,5] = percentageEachCluster[contNumberCluster]
+                        X_resultsCluster[kk,6] = vecLatNeig[kk]
+                        X_resultsCluster[kk,7] = vecLonNeig[kk]
+                        X_resultsCluster[kk,8] = vecDepNeig[kk]
+
+            # For each cluster obtained the median and the mean of the FM considering each angle as independent variable. Compare with the k-closest neighbors
+
+            X_resultsSortCluster = X_resultsCluster[X_resultsCluster[0:cont+1,4].argsort()]
+
+            VecTempClusterMean = np.zeros((contNumberCluster+1,3))
+            VecTempClusterStd = np.zeros((contNumberCluster+1,3))
+            VecTempClusterMedian = np.zeros((contNumberCluster+1,3))
+            VecCentroides = np.zeros((contNumberCluster+1,3))
+            VecCentroidesStd =  np.zeros((contNumberCluster+1,3))
+            contTmp = -1
+            contClustMean = -1
+
+            for jj in np.arange(contNumberCluster+1):
+                #print('jj',jj)
+                contTmpIni = int(contTmp + 1)
+                contTmpFin = int(contTmpIni + vecNumElementsCluster[jj]-1)
+                #print('contTmpIni',contTmpIni,flush=True)
+                #print('contTmpFin',contTmpFin,flush=True)
+                #for ij in np.arange(contTmpIni,contTmpFin+1):
+                #  print('X_resultsSortCluster[int(ij),:]',X_resultsSortCluster[int(ij),:],flush=True)
+                VecTempClusterMean[jj,0] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,0])  #mean Strike,Dip,Rake Cluster
+                VecTempClusterStd[jj,0] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,0])  #mean Strike,Dip,Rake Cluster
+                VecTempClusterMedian[jj,0] = np.percentile(X_resultsSortCluster[contTmpIni:contTmpFin+1,0], 50, interpolation = 'midpoint')
+                VecTempClusterMean[jj,1] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,1])  #mean Strike,Dip,Rake Cluster
+                VecTempClusterStd[jj,1] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,1])  #mean Strike,Dip,Rake Cluster
+                VecTempClusterMedian[jj,1] = np.percentile(X_resultsSortCluster[contTmpIni:contTmpFin+1,1], 50, interpolation = 'midpoint')
+                VecTempClusterMean[jj,2] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,2])  #mean Strike,Dip,Rake Cluster
+                VecTempClusterStd[jj,2] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,2])  #mean Strike,Dip,Rake Cluster
+                VecTempClusterMedian[jj,2] = np.percentile(X_resultsSortCluster[contTmpIni:contTmpFin+1,2], 50, interpolation = 'midpoint')
+                VecCentroides[jj,0] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,6]) #Latitude
+                VecCentroides[jj,1] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,7]) #Longitude
+                VecCentroides[jj,2] = np.mean(X_resultsSortCluster[contTmpIni:contTmpFin+1,8]) #Depth
+                VecCentroidesStd[jj,0] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,6]) #Latitude
+                VecCentroidesStd[jj,1] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,7]) #Longitude
+                VecCentroidesStd[jj,2] = np.std(X_resultsSortCluster[contTmpIni:contTmpFin+1,8]) #Depth
+                contTmp = contTmpFin
+                ## Mean Clustering Solutions
+                #contClustMean = contClustMean + 1
+                #hEventsCluster.append(Event(VecCentroides[jj,0],
+                 #                    VecCentroides[jj,1],
+                 #                   VecCentroides[jj,2],
+                 #                   0.0,
+                 #                    VecTempClusterMean[jj,0],
+                 #                    VecTempClusterMean[jj,1],
+                 #                    VecTempClusterMean[jj,2]
+                 #                    )
+                 #                )
+                #name = "ClustMean-" + str(jj+1) +  ""
+                #e = hEventsCluster[int(contClustMean)]
+                #print("[" + name + "]"+ " --> " + str(e))
+                #cmts.update({name: e.toJSON()})
+                #######
+
+                ## Median Clustering Solution
+                contClustMean = contClustMean + 1
+                hEventsCluster.append(Event(VecCentroides[jj,0],
+                                     VecCentroides[jj,1],
+                                     VecCentroides[jj,2],
+                                     0.0,
+                                     VecTempClusterMedian[jj,0],
+                                     VecTempClusterMedian[jj,1],
+                                     VecTempClusterMedian[jj,2]
+                                     )
                                  )
-                             )            
-            name = "ClustMedian-" + str(jj+1) +  ""
-            e = hEventsCluster[int(contClustMean)]
-            #print("[" + name + "]"+ " --> " + str(e))
-            cmts.update({name: e.toJSON()})    
-            
-            ## AuxPlanes_Median Clustering Solution
-            aux_plane_Clust = aux_plane(VecTempClusterMedian[jj,0],VecTempClusterMedian[jj,1],VecTempClusterMedian[jj,2])
-            AuxNodalPlanes.append(Event(VecCentroides[jj,0],VecCentroides[jj,1],VecCentroides[jj,2],0.0,aux_plane_Clust[0],aux_plane_Clust[1],aux_plane_Clust[2]))             
-            contNodalPlanes += 1
-            e = AuxNodalPlanes[contNodalPlanes]
-            cmts.update({"ClustMedian-" + str(jj+1) + "_AuxPlane" : e.toJSON()})
-                     
-        # Return the JSON file!!!!        
+                name = "ClustMedian-" + str(jj+1) +  ""
+                e = hEventsCluster[int(contClustMean)]
+                #print("[" + name + "]"+ " --> " + str(e))
+                cmts.update({name: e.toJSON()})
+
+                ## AuxPlanes_Median Clustering Solution
+                aux_plane_Clust = aux_plane(VecTempClusterMedian[jj,0],VecTempClusterMedian[jj,1],VecTempClusterMedian[jj,2])
+                AuxNodalPlanes.append(Event(VecCentroides[jj,0],VecCentroides[jj,1],VecCentroides[jj,2],0.0,aux_plane_Clust[0],aux_plane_Clust[1],aux_plane_Clust[2]))
+                contNodalPlanes += 1
+                e = AuxNodalPlanes[contNodalPlanes]
+                cmts.update({"ClustMedian-" + str(jj+1) + "_AuxPlane" : e.toJSON()})
+
+        except ValueError:
+            print("\nWARNING: (CMT calculation) There is a ValueError in the DBSCAN clustering algorithm, see log for details. "
+                  "Most likely the number of events in the neighbourhood was too small. \n",
+                  flush=True
+                  )
+        # Return the JSON file!!!!
         return cmts
       
