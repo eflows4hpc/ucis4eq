@@ -1,6 +1,6 @@
 {
   "BSC_B2DROP": {
-    "user": "juan.rodriguez@bsc.es",
+    "user": "b2drop_username",
     "pass": "my_amazing_password",
     "url": "https://b2drop.bsc.es/remote.php/webdav/",
     "datamapping": "UCIS4EQ/StaticDataMappingV2.json",
@@ -10,14 +10,14 @@
     "path": "/workspace/"
   },
   "BSC_DT":{
-    "user": "bsc21253",
+    "user": "mn4_username",
     "url": "dt01.bsc.es",
-    "path": "/gpfs/scratch/bsc21/bsc21253/eFlows/UCIS4EQ"    
+    "path": "/path/on/machine/to/UCIS4EQ"
   },
   "ETH_DAINT":{
-    "user": "jrodrgue",
+    "user": "pd_username",
     "url": "daint.cscs.ch",
-    "proxy": "jrodrgue@ela.cscs.ch",
-    "path": "/project/s1040/mpienkow/UCIS4EQ/"
+    "proxy": "pd_username@ela.cscs.ch",
+    "path": "/path/on/machine/to/UCIS4EQ/"
   }
 }

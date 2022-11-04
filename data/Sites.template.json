@@ -1,8 +1,7 @@
-{
-  "MN4": {
-    "user": "bsc21253",
+{ "MN4": {
+    "user": "mn4_username",
     "url": "mn3.bsc.es",
-    "path": "/gpfs/scratch/bsc21/bsc21253/eFlows/UCIS4EQ/",
+    "path": "/path/on/machine/to/UCIS4EQ_run/",
     "resources": {
       "SlipGenGP": {
         "wtime": 360,
