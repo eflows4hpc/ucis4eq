@@ -23,6 +23,7 @@
 # Module imports
 import subprocess
 import os
+import time
 
 from ucis4eq.dal.staticDataAccess.staticDataAccess import RepositoryABC
 
@@ -59,8 +60,25 @@ class SSHRepository(RepositoryABC):
         # Perform the operation
         command = ["ssh", self.proxyFlag, self.proxyCmd, remote, "mkdir -p", 
                        os.path.join(self.path, rpath)]
-        subprocess.run(list(filter(None, command)))
-        
+        command_trials = 0
+        while True:
+            process = subprocess.run(list(filter(None, command)), capture_output=True)
+
+            if process.returncode != 0:
+                if command_trials < 3:
+                    print("\nWARNING: Command '" + "ssh " + remote + " mkdir -p " + os.path.join(self.path, rpath)
+                          + "' failed. Error: " + process.stderr.decode("utf-8").split("\n")[:-1]
+                          + "Retrying in 15 seconds.", flush=True)
+                    time.sleep(15)
+                    command_trials += 1
+                    continue
+                else:
+                    raise Exception("Command '" + "ssh " + remote + " mkdir -p " + os.path.join(self.path, rpath)
+                                    + "' failed three times in a row. Error: "
+                                    + process.stderr.decode("utf-8").split("\n")[:-1])
+            else:
+                break
+
     def tree(self, rpath):    
         
         # Create remote folder
@@ -70,10 +88,28 @@ class SSHRepository(RepositoryABC):
         # Perform the operation
         command = ["ssh", self.proxyFlag, self.proxyCmd, remote, "find", 
                        os.path.join(self.path, rpath)]
-        output=subprocess.run(list(filter(None, command)), capture_output=True)        
+
+        command_trials = 0
+        while True:
+            process = subprocess.run(list(filter(None, command)), capture_output=True)
+
+            if process.returncode != 0:
+                if command_trials < 3:
+                    print("\nWARNING: Command '" + "ssh " + remote + " find " + os.path.join(self.path, rpath)
+                          + "' failed. Error: " + process.stderr.decode("utf-8").split("\n")[:-1]
+                          + "Retrying in 15 seconds.", flush=True)
+                    time.sleep(15)
+                    command_trials += 1
+                    continue
+                else:
+                    raise Exception("Command '" + "ssh " + remote + " find " + os.path.join(self.path, rpath)
+                                    + "' failed three times in a row. Error: "
+                                    + process.stderr.decode("utf-8").split("\n")[:-1])
+            else:
+                break
 
         # Parse output and return
-        return output.stdout.decode("utf-8").split("\n")[:-1]
+        return process.stdout.decode("utf-8").split("\n")[:-1]
                  
     def downloadFile(self, remote, local):
         
@@ -86,7 +122,25 @@ class SSHRepository(RepositoryABC):
     
         # Perform the operation
         command = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, local]
-        subprocess.run(list(filter(None, command)))
+
+        command_trials = 0
+        while True:
+            process = subprocess.run(list(filter(None, command)), capture_output=True)
+
+            if process.returncode != 0:
+                if command_trials < 3:
+                    print("\nWARNING: Command '" + self.baseCmd + " " + remote + " " + local
+                          + "' failed. Error: " + process.stderr.decode("utf-8").split("\n")[:-1]
+                          + "Retrying in 15 seconds.", flush=True)
+                    time.sleep(15)
+                    command_trials += 1
+                    continue
+                else:
+                    raise Exception("Command '" + + self.baseCmd + " " + remote + " " + local
+                                    + "' failed three times in a row. Error: "
+                                    + process.stderr.decode("utf-8").split("\n")[:-1])
+            else:
+                break
         
     def uploadFile(self, remote, local):
         # Build the remote filename
@@ -99,7 +153,25 @@ class SSHRepository(RepositoryABC):
     
         # Perform the operation
         command = [self.baseCmd, self.proxyFlag, self.proxyCmd, local, remote]
-        subprocess.run(list(filter(None, command)))
+
+        command_trials = 0
+        while True:
+            process = subprocess.run(list(filter(None, command)), capture_output=True)
+
+            if process.returncode != 0:
+                if command_trials < 3:
+                    print("\nWARNING: Command '" + self.baseCmd + " " + local + " " + remote
+                          + "' failed. Error: " + process.stderr.decode("utf-8").split("\n")[:-1]
+                          + "Retrying in 15 seconds.", flush=True)
+                    time.sleep(15)
+                    command_trials += 1
+                    continue
+                else:
+                    raise Exception("Command '" + + self.baseCmd + " " + local + " " + remote
+                                    + "' failed three times in a row. Error: "
+                                    + process.stderr.decode("utf-8").split("\n")[:-1])
+            else:
+                break
               
     def __del__(self):
         pass

@@ -79,16 +79,29 @@ class SlurmRunnerABC(RunnerABC, ABC):
 
         # Run the command and wait
         command = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, tcmd]
-        process = subprocess.run(list(filter(None, command)),
-                                  stdout=subprocess.PIPE,
-                                  stdin=subprocess.PIPE,
-                                  stderr=subprocess.PIPE,
-                                  encoding='utf8')
 
         # Check for and error
-        if process.returncode != 0:
-            raise Exception("Command '" + self.baseCmd + " " + remote + " " 
-                            + tcmd + "' failed. Error: " + process.stderr)
+        command_trials = 0
+        while True:
+            process = subprocess.run(list(filter(None, command)),
+                                     stdout=subprocess.PIPE,
+                                     stdin=subprocess.PIPE,
+                                     stderr=subprocess.PIPE,
+                                     encoding='utf8')
+
+            if process.returncode != 0:
+                if command_trials < 3:
+                    print("\nWARNING: Command '" + self.baseCmd + " " + remote + " " + tcmd
+                          + "' failed. Error: " + process.stderr + "Retrying in 15 seconds.", flush=True)
+                    time.sleep(15)
+                    command_trials += 1
+                    continue
+                else:
+                    raise Exception("Command '" + self.baseCmd + " " + remote + " "
+                                   + tcmd + "' failed three times in a row. Error: " + process.stderr)
+            else:
+                break
+
 
         # Obtain the job ID
         jobId = [x.strip() for x in process.stdout.split(' ')][3]
@@ -127,6 +140,8 @@ class SlurmRunnerABC(RunnerABC, ABC):
             # if the connection fails, wait for 15 s and try to reconnect
             if process.returncode != 0:
                 time.sleep(60)
+                print("\nWARNING: Command that checks the job status '" + self.baseCmd + " " + remote + " " + cmd
+                      + "' failed. Error: " + process.stderr + "Retrying in 60 seconds.", flush=True)
                 continue
                 # raise Exception("Command '" + self.baseCmd + " " + remote + " "
                 #                 + cmd + "' failed. Error: " + process.stderr)
@@ -136,6 +151,8 @@ class SlurmRunnerABC(RunnerABC, ABC):
 
             # Stop condition:
             # if the job is not in the queue, stop checking and assume that the job is finished
+            # MPC ToDo here if the job is not in the queue it is assumed to be finished successfully,
+            # but it is not actually always true. Need a different mechanism of checking and/or retrying.
             if process.stdout == "":
                 break
             else:

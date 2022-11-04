@@ -62,16 +62,26 @@ class LocalRunner(RunnerABC):
         
     # Run locally and wait
     def run(self, cmd):
-        # Run the command and wait
-        process = subprocess.run(cmd, stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding='utf8')
 
-        # Check for an error
-        if process.returncode != 0:
-            raise Exception("Command '" + cmd + "' failed. Error: " + process.stderr)
-            pass              
+        command_trials = 0
+        while True:
+            # Run the command and wait
+            process = subprocess.run(cmd, stdout=subprocess.PIPE,
+                                     stdin=subprocess.PIPE,
+                                     stderr=subprocess.PIPE,
+                                     encoding='utf8')
+            if process.returncode != 0:
+                if command_trials < 3:
+                    print("\nWARNING: Command '" + cmd
+                          + "' failed. Error: " + process.stderr + "Retrying in 15 seconds.", flush=True)
+                    time.sleep(15)
+                    command_trials += 1
+                    continue
+                else:
+                    raise Exception("Command '" + cmd
+                                   + "' failed three times in a row. Error: " + process.stderr)
+            else:
+                break
         
 class LocalRunnerBuilder:
     def __init__(self):
