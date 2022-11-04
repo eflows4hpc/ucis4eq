@@ -62,12 +62,16 @@ class SSHRepository(RepositoryABC):
                        os.path.join(self.path, rpath)]
         command_trials = 0
         while True:
-            process = subprocess.run(list(filter(None, command)), capture_output=True)
+            process = subprocess.run(list(filter(None, command)),
+                                      stdout=subprocess.PIPE,
+                                      stdin=subprocess.PIPE,
+                                      stderr=subprocess.PIPE,
+                                      encoding='utf8')
 
             if process.returncode != 0:
                 if command_trials < 3:
                     print("\nWARNING: Command '" + "ssh " + remote + " mkdir -p " + os.path.join(self.path, rpath)
-                          + "' failed. Error: " + process.stderr.decode("utf-8").split("\n")[:-1]
+                          + "' failed. Error: " + process.stderr
                           + "Retrying in 15 seconds.", flush=True)
                     time.sleep(15)
                     command_trials += 1
@@ -75,7 +79,7 @@ class SSHRepository(RepositoryABC):
                 else:
                     raise Exception("Command '" + "ssh " + remote + " mkdir -p " + os.path.join(self.path, rpath)
                                     + "' failed three times in a row. Error: "
-                                    + process.stderr.decode("utf-8").split("\n")[:-1])
+                                    + process.stderr)
             else:
                 break
 
@@ -96,7 +100,7 @@ class SSHRepository(RepositoryABC):
             if process.returncode != 0:
                 if command_trials < 3:
                     print("\nWARNING: Command '" + "ssh " + remote + " find " + os.path.join(self.path, rpath)
-                          + "' failed. Error: " + process.stderr.decode("utf-8").split("\n")[:-1]
+                          + "' failed. Error: " + process.stderr.decode("utf-8")#.split("\n")[:-1]
                           + "Retrying in 15 seconds.", flush=True)
                     time.sleep(15)
                     command_trials += 1
@@ -104,7 +108,7 @@ class SSHRepository(RepositoryABC):
                 else:
                     raise Exception("Command '" + "ssh " + remote + " find " + os.path.join(self.path, rpath)
                                     + "' failed three times in a row. Error: "
-                                    + process.stderr.decode("utf-8").split("\n")[:-1])
+                                    + process.stderr.decode("utf-8"))#.split("\n")[:-1])
             else:
                 break
 
@@ -125,20 +129,24 @@ class SSHRepository(RepositoryABC):
 
         command_trials = 0
         while True:
-            process = subprocess.run(list(filter(None, command)), capture_output=True)
+            process = subprocess.run(list(filter(None, command)),
+                                      stdout=subprocess.PIPE,
+                                      stdin=subprocess.PIPE,
+                                      stderr=subprocess.PIPE,
+                                      encoding='utf8')
 
             if process.returncode != 0:
                 if command_trials < 3:
                     print("\nWARNING: Command '" + self.baseCmd + " " + remote + " " + local
-                          + "' failed. Error: " + process.stderr.decode("utf-8").split("\n")[:-1]
+                          + "' failed. Error: " + process.stderr
                           + "Retrying in 15 seconds.", flush=True)
                     time.sleep(15)
                     command_trials += 1
                     continue
                 else:
-                    raise Exception("Command '" + + self.baseCmd + " " + remote + " " + local
+                    raise Exception("Command '" + self.baseCmd + " " + remote + " " + local
                                     + "' failed three times in a row. Error: "
-                                    + process.stderr.decode("utf-8").split("\n")[:-1])
+                                    + process.stderr)
             else:
                 break
         
@@ -156,20 +164,25 @@ class SSHRepository(RepositoryABC):
 
         command_trials = 0
         while True:
-            process = subprocess.run(list(filter(None, command)), capture_output=True)
+            process = subprocess.run(list(filter(None, command)),
+                                      stdout=subprocess.PIPE,
+                                      stdin=subprocess.PIPE,
+                                      stderr=subprocess.PIPE,
+                                      encoding='utf8')
 
             if process.returncode != 0:
                 if command_trials < 3:
                     print("\nWARNING: Command '" + self.baseCmd + " " + local + " " + remote
-                          + "' failed. Error: " + process.stderr.decode("utf-8").split("\n")[:-1]
+                          + "' failed. Error: " + process.stderr
                           + "Retrying in 15 seconds.", flush=True)
                     time.sleep(15)
                     command_trials += 1
                     continue
                 else:
-                    raise Exception("Command '" + + self.baseCmd + " " + local + " " + remote
+                    print(process.stderr)
+                    raise Exception("Command '" + self.baseCmd + " " + local + " " + remote
                                     + "' failed three times in a row. Error: "
-                                    + process.stderr.decode("utf-8").split("\n")[:-1])
+                                    + process.stderr)
             else:
                 break
               
