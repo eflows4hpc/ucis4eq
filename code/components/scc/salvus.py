@@ -62,6 +62,9 @@ class SalvusWrapperSubmision(scriptABC.ScriptABC):
             self.lines.append("")
             self.lines.append(command[0] + " " + command[1])
 
+        self.lines.append("")
+        self.lines.append("touch SUCCESS")
+
         # Save the script to disk
         return self._saveScript(path)
 

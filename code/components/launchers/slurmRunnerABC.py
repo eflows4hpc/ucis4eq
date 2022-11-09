@@ -106,7 +106,7 @@ class SlurmRunnerABC(RunnerABC, ABC):
         # Obtain the job ID
         jobId = [x.strip() for x in process.stdout.split(' ')][3]
         
-        thread = threading.Thread(target=self._waitForSlurmJob, args=(jobId,))
+        thread = threading.Thread(target=self._waitForSlurmJob, args=(jobId,path))
         thread.start()
 
         # Wait for the process to finish
@@ -116,7 +116,7 @@ class SlurmRunnerABC(RunnerABC, ABC):
             pass
             
     # Wait for a Slurm job to finish
-    def _waitForSlurmJob(self, jobId):
+    def _waitForSlurmJob(self, jobId, rundir):
 
         # Remote connection    
         remote = self.user + "@" + self.url    
@@ -154,9 +154,45 @@ class SlurmRunnerABC(RunnerABC, ABC):
             # MPC ToDo here if the job is not in the queue it is assumed to be finished successfully,
             # but it is not actually always true. Need a different mechanism of checking and/or retrying.
             if process.stdout == "":
-                break
+                command = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, "find", rundir + "/SUCCESS"]
+
+                process = subprocess.run(list(filter(None, command)),
+                                         stdout=subprocess.PIPE,
+                                         stdin=subprocess.PIPE,
+                                         stderr=subprocess.PIPE,
+                                         encoding='utf8')
+                if "SUCCESS" in process.stdout:
+                    # Results are available
+                    print("INFO: the job submitted in %s completed successfully." %rundir)
+                    self.resultAvailable.set()
+                    break
+                else:
+                    # Results are not available, the job is not in the queue but seems like it did not complete
+                    # successfully either.
+
+                    # MPC Dump info from .e and .o to the log?
+                    command_e = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, "cat", rundir + "/*.e"]
+                    command_o = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, "cat", rundir + "/*.o"]
+                    process_e = subprocess.run(list(filter(None, command_e)),
+                                             stdout=subprocess.PIPE,
+                                             stdin=subprocess.PIPE,
+                                             stderr=subprocess.PIPE,
+                                             encoding='utf8')
+                    process_o = subprocess.run(list(filter(None, command_o)),
+                                             stdout=subprocess.PIPE,
+                                             stdin=subprocess.PIPE,
+                                             stderr=subprocess.PIPE,
+                                             encoding='utf8')
+
+                    print("\nWARNING: something went wrong in %s." %rundir)
+                    print("\nWARNING: stderr: \n" + process_e.stdout)
+                    print("\nWARNING: stdout: \n" + process_o.stdout)
+
+                    self.resultAvailable.clear()
+                    raise Exception(
+                        "The job submitted in %s seems to not have completed successfully. Automatic "
+                        "resubmission is not implemented yet, please check the error manually." %rundir)
+
             else:
                 time.sleep(60)
 
-        # Results are available
-        self.resultAvailable.set()                         

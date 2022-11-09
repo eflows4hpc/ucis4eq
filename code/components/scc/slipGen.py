@@ -62,7 +62,10 @@ class SlipGenSubmision(ScriptABC):
         self.lines.append(" ".join(cmd))
         
         # Additional instructions
-        self.lines.append("")        
+        self.lines.append("")
+
+        self.lines.append("")
+        self.lines.append("touch SUCCESS")
 
         # Save the script to disk
         return self._saveScript(path)
