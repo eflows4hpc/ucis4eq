@@ -124,12 +124,11 @@ class SlurmRunnerABC(RunnerABC, ABC):
 
             thread = threading.Thread(target=self._waitForSlurmJob, args=(jobId,path))
             thread.start()
-
-        # Wait for the process to finish
-        timeout = 5
-        while not self.resultAvailable.wait(timeout=timeout):
-            #print('\r{}'.format(self.message), end='', flush=True)
-            pass
+            # Wait for the process to finish
+            timeout = 5
+            while not self.resultAvailable.wait(timeout=timeout):
+                #print('\r{}'.format(self.message), end='', flush=True)
+                pass
             
     # Wait for a Slurm job to finish
     def _waitForSlurmJob(self, jobId, rundir):
@@ -261,6 +260,7 @@ class SlurmRunnerABC(RunnerABC, ABC):
                         # MPC ToDo finish this: ideally we'd like to resubmit here automatically...
                         print("\nWARNING: something went wrong with the Salvus simulation in %s. "
                               "This should be resubmitted and will run." % rundir)
+                        raise Exception("Salvus failed in %s" %rundir)
                         # # ToDo I need to add here the buffer that the ssh command doesn't fail.
                         # # MPC clean up: remove all core.* files from the directory.
                         # command_r = [self.baseCmd, self.proxyFlag, self.proxyCmd, remote, "rm", rundir + "/core.*"]
