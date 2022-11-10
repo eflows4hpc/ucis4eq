@@ -36,7 +36,7 @@ from pycompss.api.parameter import *
 from pycompss.api.http import http
 from pycompss.api.api import compss_wait_on, compss_barrier
 from pycompss.api.task import task
-#from pycompss.api.on_failure import on_failure
+from pycompss.api.on_failure import on_failure
 
 # Internal
 import ucis4eq
@@ -335,9 +335,9 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                         all_results.append(run_salvus_post(eid, result, path, 
                                         resources))        
                         
-                        break
-                    break
-                break
+                        # break
+                    # break
+                # break
     
             #TODO: Be sure this continue being necessary
             compss_wait_on(all_results)
@@ -431,6 +431,7 @@ def compute_resources(event_id, region):
     pass    
 
 #@on_failure(management='IGNORE', returns=0)    
+@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="preGraves-Pitarka", service_name="slipgen",
       payload='{ "id" : {{event_id}}, "region": {{region}}, "setup": {{setup}} }', 
       produces='{"result" : "{{return_0}}" }')
@@ -441,6 +442,7 @@ def graves_pitarka_setup(event_id, region, setup):
     pass      
     
 #@on_failure(management='IGNORE', returns=0)
+@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="Graves-Pitarka", service_name="slipgen",
       payload='{ "event" : {{alert}}, "id" : {{event_id}}, "CMT" : {{cmt}}, \
                  "trial" : "{{trial}}", "region": {{region}}, "setup" : {{setup}}, \
@@ -453,6 +455,7 @@ def compute_graves_pitarka(event_id, alert, trial, cmt, region, setup, resources
     pass
     
 #@on_failure(management='IGNORE', returns=0)
+@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="inputParametersBuilder", service_name="microServices",
       payload='{ "id" : {{event_id}}, "event" : {{alert}}, "CMT" : {{cmt}}, \
                  "rupture" : {{rupture}}, "region" : {{region}}, \
@@ -465,6 +468,7 @@ def build_input_parameters(event_id, alert, cmt, rupture, region, resources, set
     pass
     
 #@on_failure(management='IGNORE', returns=0)
+@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="SalvusPrepare", service_name="salvus",
       payload='{ "id" : {{event_id}}, "trial" : "{{trial}}", \
                  "input" : {{input}}, "resources" : {{resources}} }',
@@ -476,6 +480,7 @@ def build_salvus_parameters(event_id, trial, input, resources):
     pass
     
 #@on_failure(management='IGNORE', returns=0)
+@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="SalvusRun", service_name="salvus",
       payload='{ "id" : {{event_id}}, "trial" : "{{trial}}", \
                  "input" : {{input}}, "resources" : {{resources}} }',
@@ -487,6 +492,7 @@ def run_salvus(event_id, trial, input, resources):
     pass
     
 #@on_failure(management='IGNORE', returns=0)
+@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="SalvusPost", service_name="salvus",
       payload='{ "id" : {{event_id}}, "trial" : "{{trial}}", \
                  "resources" : {{resources}} }',
@@ -498,6 +504,7 @@ def run_salvus_post(event_id, salvus_result, trial, resources):
     pass    
     
 #@on_failure(management='IGNORE', returns=0)
+@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="SalvusPostSwarm", service_name="salvus",
       payload='{ "id" : {{event_id}}, "base" : "{{base}}", "resources" : {{resources}} }',
       produces='{"result" : "{{return_0}}"}')
@@ -508,6 +515,7 @@ def run_salvus_post_swarm(event_id, base, resources):
     pass       
     
 #@on_failure(management='IGNORE', returns=0)
+@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="SalvusPlots", service_name="salvus",
       payload='{ "id" : {{event_id}}, "region" : {{region}}, "base" : "{{base}}", \
                  "resources" : {{resources}} }',
