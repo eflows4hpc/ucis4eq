@@ -59,6 +59,15 @@ services:
     depends_on:
       - base
 
+  # PyCOMPSs Simulation
+  simulation:
+    image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/simulation
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-simulationServices
+    depends_on:
+      - base
+
   # UCIS4EQ Slipgen service
   slipgen:
     image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/slipgen

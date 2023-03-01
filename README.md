@@ -95,3 +95,34 @@ Open a browser and go to http://127.0.0.1:8050/
 ## Quickstart tutorial
 
 Independently from the above, this repo contains a quickstart tutorial in PDF format to guide you step by step through basic installation and launch on the BSC infrastructure.
+
+## Development Instructions:
+
+To build the services (no push, must be done manually):
+
+```
+docker-compose -f docker-compose-build.yml build
+```
+
+To debug just code (no changes in dependencies):
+
+```
+SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose -f docker-compose-debug.yml up
+```
+
+If you want to start only a service (DAL is started because of dependencies): 
+
+```
+SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose -f docker-compose-debug.yml up <service> 
+```
+To Run with PyCOMPSs in HPC Workflow run with this 
+``` 
+HPC_RUN_PYCOMPSS=True SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose -f docker-compose-debug.yml up simulation workflowmanager slipgen microservices listener
+```
+
+
+
+ 
+
+
+>>>>>>> cdc6337... Updates PyCOMPSs HPC workflow

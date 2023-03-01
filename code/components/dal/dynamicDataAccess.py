@@ -65,7 +65,7 @@ class DAL(microServiceABC.MicroServiceABC):
         db = dal.database
         
         # Create collection (Remove previous one)
-        db[dal.StaticDataMappingDocument].drop() 
+        db[dal.StaticDataMappingDocument].drop()
         col = self._createCollection(db, lpath,
                 dal.StaticDataMappingDocument)
         
@@ -115,10 +115,16 @@ class DAL(microServiceABC.MicroServiceABC):
                         
             # Get the set of collections already set in DAL
             list = collection.distinct( "id" )
-                
-            ## Insert the new ones
-            for item in fdata['documents']:
-                if not item['id'] in list:
-                    collection.insert_one(item)
+
+            if "documents" in fdata:
+                ## Insert the new ones
+                for item in fdata['documents']:
+                    if not item['id'] in list:
+                        collection.insert_one(item)
+            else:
+                ## Insert the new ones
+                for item in fdata['docFuments']:
+                    if not item['id'] in list:
+                        collection.insert_one(item)
 
         return collection

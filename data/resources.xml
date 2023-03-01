@@ -13,4 +13,8 @@
 		<ServiceName>slipgen</ServiceName>
 	</Http>
 
+  <Http BaseUrl="http://127.0.0.1:5004/">
+		<ServiceName>simulation</ServiceName>
+	</Http>
+
 </ResourcesList>

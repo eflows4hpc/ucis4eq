@@ -23,6 +23,7 @@
 # Module imports
 #from __future__ import annotations
 import os
+import traceback
 from abc import ABC, abstractmethod
 
 import ucis4eq
@@ -51,7 +52,6 @@ class StaticDataMap():
         col = dal.database[dal.StaticDataMappingDocument]
         query = { "used_by": {"$eq": name} } 
         docs = col.find(query)
-                    
         # Files map
         self._values = {}
         for doc in docs:
@@ -130,9 +130,8 @@ def build(cls):
     "Static data file mapping"
     class BuildStaticDataMap(cls):
 
-        
-        def __init__(self, *args, **kargs):
-                        
+
+        def __init__(self, *args, **kwargs):
             # Obtain the basename class name 
             className = self.__class__.__bases__[0].__name__
                                 
@@ -143,7 +142,7 @@ def build(cls):
             self.filePing = StaticDataMap(className, quiet=True)
             
             # Initialize base class
-            super(BuildStaticDataMap, self).__init__(*args, **kargs)
+            super(BuildStaticDataMap, self).__init__(*args, **kwargs)
             
         def setMainRepository(self, repo):
             self.filePing.setMainRepository(repo)

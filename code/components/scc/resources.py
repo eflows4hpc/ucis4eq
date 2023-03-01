@@ -63,15 +63,18 @@ class ComputeResources(microServiceABC.MicroServiceABC):
         
         # Decide what site to use among the availables
         resource = None
-        
-        resources = self.db.Resources.find({}, {'_id': False}).sort('order', 1)
-        for site in list(resources):
-            if site['id'] in launchers.config.keys():
+
+        resources = list(self.db.Resources.find({}, {'_id': False}).sort('order', 1))
+        for site in resources:
+            if site['id'] in launchers.config:
                 resource = site
                 break
-                
+
+        tmp = resource['id']
+        conf = launchers.config[tmp]
+        conf.update(resource)
         # Create a launcher to obtain the Setup
-        launcher = launchers.launchers.create(resource['id'], **launchers.config)
+        launcher = launchers.launchers.create(tmp, **conf)
         if launcher.setup:
             resource['setup'] = launcher.setup
             

@@ -58,12 +58,13 @@ def postRequest(fn):
         try:
             #print("INFO: Received JSON: " + str(request.get_json()))
             body = ast.literal_eval(json.dumps(request.get_json()))
-        except:
+        except Exception as e:
             # Bad request as request body is not available
             # MPC printing information for debugging
-            print("Error in JSON request. Received the following JSON: " + str(request.get_json()))
-            traceback.print_exc()
-            return "Error in JSON request format " + str(request.get_json()), 400
+            print(e)
+            import traceback
+            traceback.format_exc()
+            return str(e), 400
 
         # Call the decorated method passing it the input JSON
         return fn(body)

@@ -58,10 +58,12 @@ class WebDavRepository(RepositoryABC):
 
     def downloadFile(self, remote, local):
         # Download file
+        print("Downloading webdav " + str(remote) + " to " + str(local) )
         self._client.download_sync(remote_path=remote, local_path=local)
         
     def uploadFile(self, remote, local):
         # Upload file
+        print(f"Uploading '{local}' to '{remote}'")
         self._client.upload_sync(remote_path=remote, local_path=local)
         
     def __del__(self):
