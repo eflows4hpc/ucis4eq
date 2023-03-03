@@ -36,19 +36,19 @@ RUN pip3 install flask pymongo requests; pip3 install webdavclient3
 ADD deployment/dockers/thirdparties/gp-slip-gen.tar.gz /opt/
 
 # Prepare the service to run
-RUN mkdir /opt/services;
+RUN mkdir /root/services;
 
 # Expose the Flask application port
 EXPOSE 5002
 
 # Obtain the slipGenService App
-ADD code/services/slipGenService.py /opt/services/slipGenService.py
+ADD code/services/slipGenService.py /root/services/slipGenService.py
 
 # Prepare an script able to start the slip-generator service
-RUN echo "python3 /opt/services/slipGenService.py" >> /opt/services/start.sh
+RUN echo "python3 /root/services/slipGenService.py" >> /root/services/start.sh
 
 # Add UCIS4EQ Code
 ADD code/components /usr/lib/python3/dist-packages/ucis4eq
 
 # Start a shell
-ENTRYPOINT ["/bin/bash", "/opt/scripts/launcher.sh"]
+ENTRYPOINT ["/bin/bash", "/root/services/start.sh"]

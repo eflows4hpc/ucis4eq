@@ -21,8 +21,7 @@ services:
       - ./data/Sites.json:/opt/Sites.json
       - ./code/services/slipGenService.py:/opt/services/slipGenService.py
       - ./code/components/:/usr/local/lib/python3.7/dist-packages/ucis4eq
-
-    entrypoint: ["/bin/bash", "/opt/services/start.sh"]
+    #entrypoint: ["/bin/bash", "/opt/services/start.sh"]
 
   # UCIS4EQ Salvus
   salvus:
@@ -41,8 +40,7 @@ services:
       - ./data/Sites.json:/opt/Sites.json      
       - ./code/services/salvusService.py:/opt/services/salvusService.py
       - ./code/components/:/usr/local/lib/python3.8/site-packages/ucis4eq
-            
-    entrypoint: ["/bin/bash", "/opt/services/start.sh"]
+    #entrypoint: ["/bin/bash", "/opt/services/start.sh"]
       
   # UCIS4EQ Micro-services 
   microservices:

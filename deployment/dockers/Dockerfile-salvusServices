@@ -7,18 +7,15 @@ FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest AS build
 
 # Install dependencies
 RUN pip install --upgrade setuptools; pip install numpy flask pymongo pyyaml requests; pip install obspy webdavclient3
-
-# Prepare the service to run
-RUN mkdir -p /opt/services;
     
 # Expose the Flask application port
 EXPOSE 5003
 
 # Obtain the SalvusService App
-ADD code/services/salvusService.py /opt/services/salvusService.py
+ADD code/services/salvusService.py /root/services/salvusService.py
 
 # Prepare an script able to start the slip-generator service
-RUN echo "python /opt/services/salvusService.py" >> /opt/services/start.sh
+RUN echo "python /root/services/salvusService.py" >> /root/services/start.sh
  
 # Start a shell
-ENTRYPOINT ["/bin/bash", "/root/scripts/launcher.sh"]
+ENTRYPOINT ["/bin/bash", "/root/services/start.sh"]
