@@ -91,7 +91,8 @@ services:
       
   # UCIS4EQ Dashboard service
   dashboard:
-    container_name: ucis4eq_dashboard     
+    # One line below edited out by [ckb: 20230207-110322]
+    #container_name: ucis4eq_dashboard
     build: 
       context: .      
       dockerfile: deployment/dockers/Dockerfile-credentials

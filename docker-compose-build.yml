@@ -23,7 +23,10 @@ services:
 
   # UCIS4EQ Workflow manager services    
   workflowmanager:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager     
+#    image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager     
+    image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanagerfixed
+    environment:
+      - COMPSS_HTTP_POOL_SIZE=100    
     build: 
       context: .      
       dockerfile: deployment/dockers/Dockerfile-workflowManager 
