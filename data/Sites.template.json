@@ -16,6 +16,7 @@
         "wtime": 1800,
         "nodes": 1,
         "tasks-per-node": 1,
+        "constraint_optional": "highmem",
         "qos": "debug",
         "environment": [
           "module load ANACONDA/5.0.1",

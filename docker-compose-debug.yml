@@ -40,7 +40,8 @@ services:
       - ./data/DAL.json:/opt/DAL.json
       - ./data/Sites.json:/opt/Sites.json      
       - ./code/services/salvusService.py:/opt/services/salvusService.py
-      - ./code/components/:/usr/local/lib/python3.7/site-packages/ucis4eq
+      - ./code/components/:/usr/local/lib/python3.8/site-packages/ucis4eq
+            
     entrypoint: ["/bin/bash", "/opt/services/start.sh"]
       
   # UCIS4EQ Micro-services 
@@ -70,6 +71,7 @@ services:
     environment:
       - UCIS4EQ_LOCATION=${LOCATION}
       - PYTHONUNBUFFERED=1
+      - COMPSS_HTTP_POOL_SIZE=100
     volumes:
       - ./data/project.xml:/opt/project.xml
       - ./data/resources.xml:/opt/resources.xml          
