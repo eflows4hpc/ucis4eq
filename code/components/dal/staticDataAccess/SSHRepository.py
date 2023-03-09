@@ -70,14 +70,16 @@ class SSHRepository(RepositoryABC):
 
             if process.returncode != 0:
                 if command_trials < 3:
-                    print("\nWARNING: Command '" + "ssh " + remote + " mkdir -p " + os.path.join(self.path, rpath)
+                    print("\nWARNING: Command '" + "ssh " + self.proxyFlag + " " + self.proxyCmd + " " + remote
+                          + " mkdir -p " + os.path.join(self.path, rpath)
                           + "' failed. Error: " + process.stderr
                           + "Retrying in 15 seconds.", flush=True)
                     time.sleep(15)
                     command_trials += 1
                     continue
                 else:
-                    raise Exception("Command '" + "ssh " + remote + " mkdir -p " + os.path.join(self.path, rpath)
+                    raise Exception("Command '" + "ssh " + self.proxyFlag + " " + self.proxyCmd + " " + remote
+                                    + " mkdir -p " + os.path.join(self.path, rpath)
                                     + "' failed three times in a row. Error: "
                                     + process.stderr)
             else:
@@ -99,14 +101,16 @@ class SSHRepository(RepositoryABC):
 
             if process.returncode != 0:
                 if command_trials < 3:
-                    print("\nWARNING: Command '" + "ssh " + remote + " find " + os.path.join(self.path, rpath)
+                    print("\nWARNING: Command '" + "ssh " + self.proxyFlag + " " + self.proxyCmd
+                          + " " + remote + " find " + os.path.join(self.path, rpath)
                           + "' failed. Error: " + process.stderr.decode("utf-8")#.split("\n")[:-1]
                           + "Retrying in 15 seconds.", flush=True)
                     time.sleep(15)
                     command_trials += 1
                     continue
                 else:
-                    raise Exception("Command '" + "ssh " + remote + " find " + os.path.join(self.path, rpath)
+                    raise Exception("Command '" + "ssh " + self.proxyFlag + " " + self.proxyCmd
+                                    + " " + remote + " find " + os.path.join(self.path, rpath)
                                     + "' failed three times in a row. Error: "
                                     + process.stderr.decode("utf-8"))#.split("\n")[:-1])
             else:
@@ -137,14 +141,16 @@ class SSHRepository(RepositoryABC):
 
             if process.returncode != 0:
                 if command_trials < 3:
-                    print("\nWARNING: Command '" + self.baseCmd + " " + remote + " " + local
+                    print("\nWARNING: Command '" + self.baseCmd + " " + self.proxyFlag + " "
+                          + self.proxyCmd + " " + remote + " " + local
                           + "' failed. Error: " + process.stderr
                           + "Retrying in 15 seconds.", flush=True)
                     time.sleep(15)
                     command_trials += 1
                     continue
                 else:
-                    raise Exception("Command '" + self.baseCmd + " " + remote + " " + local
+                    raise Exception("Command '" + self.baseCmd + " " + self.proxyFlag + " "
+                                    + self.proxyCmd + " " + remote + " " + local
                                     + "' failed three times in a row. Error: "
                                     + process.stderr)
             else:
@@ -172,7 +178,8 @@ class SSHRepository(RepositoryABC):
 
             if process.returncode != 0:
                 if command_trials < 3:
-                    print("\nWARNING: Command '" + self.baseCmd + " " + local + " " + remote
+                    print("\nWARNING: Command '" + self.baseCmd + " " + self.proxyFlag + " "
+                          + self.proxyCmd + " " + local + " " + remote
                           + "' failed. Error: " + process.stderr
                           + "Retrying in 15 seconds.", flush=True)
                     time.sleep(15)
@@ -180,7 +187,8 @@ class SSHRepository(RepositoryABC):
                     continue
                 else:
                     print(process.stderr)
-                    raise Exception("Command '" + self.baseCmd + " " + local + " " + remote
+                    raise Exception("Command '" + self.baseCmd + " " + self.proxyFlag + " "
+                                    + self.proxyCmd + " " + local + " " + remote
                                     + "' failed three times in a row. Error: "
                                     + process.stderr)
             else:
