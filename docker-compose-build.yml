@@ -7,14 +7,14 @@ services:
   
   # UCIS4EQ Base
   base:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/base     
-    build: 
-      context: .      
-      dockerfile: deployment/dockers/Dockerfile-base  
+    image: registry.gitlab.com/martapien/ucis4eq-containers/base
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-base
       
   # UCIS4EQ Micro services      
   microservices:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/microservices     
+    image: registry.gitlab.com/martapien/ucis4eq-containers/microservices     
     build: 
       context: .      
       dockerfile: deployment/dockers/Dockerfile-microServices   
@@ -23,8 +23,7 @@ services:
 
   # UCIS4EQ Workflow manager services    
   workflowmanager:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanager
-    #image: registry.gitlab.com/cheese-coe/ucis4eq/workflowmanagerfixed
+    image: registry.gitlab.com/martapien/ucis4eq-containers/workflowmanager
     environment:
       - COMPSS_HTTP_POOL_SIZE=100    
     build: 
@@ -35,7 +34,7 @@ services:
       
   # UCIS4EQ Dashboard service    
   dashboard:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/dashboard     
+    image: registry.gitlab.com/martapien/ucis4eq-containers/dashboard     
     build: 
       context: .      
       dockerfile: deployment/dockers/Dockerfile-dashboard                
@@ -44,7 +43,7 @@ services:
       
   # UCIS4EQ Listener service    
   listener:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/listener     
+    image: registry.gitlab.com/martapien/ucis4eq-containers/listener     
     build: 
       context: .      
       dockerfile: deployment/dockers/Dockerfile-listener      
@@ -53,7 +52,7 @@ services:
       
   # UCIS4EQ Salvus service
   salvus:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/salvus     
+    image: registry.gitlab.com/martapien/ucis4eq-containers/salvus     
     build: 
       context: .      
       dockerfile: deployment/dockers/Dockerfile-salvusServices      
@@ -62,7 +61,7 @@ services:
       
   # UCIS4EQ Slipgen service
   slipgen:
-    image: registry.gitlab.com/cheese-coe/ucis4eq/slipgen     
+    image: registry.gitlab.com/martapien/ucis4eq-containers/slipgen     
     build: 
       context: .      
       dockerfile: deployment/dockers/Dockerfile-slipGen  

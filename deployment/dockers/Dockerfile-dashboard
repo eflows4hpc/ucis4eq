@@ -3,7 +3,7 @@
 ###############################################################################
 
 # Obtain a clean Ubuntu distribution
-FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest AS build
+FROM registry.gitlab.com/martapien/ucis4eq-containers/base:latest AS build
 
 # Expose the Flask application port
 EXPOSE 6001

@@ -3,7 +3,7 @@
 ###############################################################################
 
 # syntax=docker/dockerfile:experimental
-FROM registry.gitlab.com/cheese-coe/ucis4eq/base:latest AS build
+FROM registry.gitlab.com/martapien/ucis4eq-containers/base:latest AS build
 
 # Install dependencies
 RUN pip install --upgrade setuptools; pip install numpy flask pymongo pyyaml requests; pip install obspy webdavclient3

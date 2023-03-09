@@ -6,45 +6,51 @@ version: '3.7'
 services:
   # UCIS4EQ Slip Generator service  
   slipgen:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/slipgen
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV
+        PD_USER: $PD_USER
+        IMAGE: registry.gitlab.com/martapien/ucis4eq-containers/slipgen
     network_mode: "host"
-    environment:
-      - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     volumes:
       - ./data/DAL.json:/opt/DAL.json
       - ./data/Sites.json:/opt/Sites.json
-      - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
-      - ~/.ssh/known_hosts:/root/.ssh/known_hosts
     restart: always    
     depends_on:
       - DAL    
 
   # UCIS4EQ Salvus
   salvus:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/salvus
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV
+        PD_USER: $PD_USER
+        IMAGE: registry.gitlab.com/martapien/ucis4eq-containers/salvus
     network_mode: "host"
-    environment:
-      - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     volumes:
       - ./data/DAL.json:/opt/DAL.json
       - ./data/Sites.json:/opt/Sites.json
-      - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
-      - ~/.ssh/known_hosts:/root/.ssh/known_hosts
     restart: always    
     depends_on:
       - DAL    
       
   # UCIS4EQ Micro-services 
   microservices:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/microservices
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV
+        PD_USER: $PD_USER
+        IMAGE: registry.gitlab.com/martapien/ucis4eq-containers/microservices
     network_mode: "host"
-    environment:
-      - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     volumes:
       - ./data/DAL.json:/opt/DAL.json
       - ./data/Sites.json:/opt/Sites.json
-      - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
-      - ~/.ssh/known_hosts:/root/.ssh/known_hosts
     restart: always        
     depends_on:
       - DAL
@@ -82,11 +88,13 @@ services:
       
   # UCIS4EQ Dashboard service
   dashboard:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/dashboard
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-credentials
+      args:
+        SSH_PRV: $SSH_PRV
+        PD_USER: $PD_USER
+        IMAGE: registry.gitlab.com/martapien/ucis4eq-containers/dashboard
     network_mode: "host"
-    environment:
-      - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     volumes:
       - ./data/DAL.json:/opt/DAL.json
-      - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
-      - ~/.ssh/known_hosts:/root/.ssh/known_hosts
