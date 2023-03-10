@@ -145,7 +145,7 @@ class SalvusPrepare(microServiceABC.MicroServiceABC):
         dataRepo.uploadFile(rworkpath, pfile)
         
         # Submit and wait for finish
-        submission.run(dataRepo.path + "/" + rworkpath)
+        #submission.run(dataRepo.path + "/" + rworkpath)
 
         # Get the path to the Salvus input parameters
         result['salvus_input'] = dataRepo.path + "/" + rworkpath + "/salvus_input_rupture.toml"
@@ -574,7 +574,9 @@ class SalvusPing(microServiceABC.MicroServiceABC):
             with open(lfile, 'r') as f:
                 progress = json.load(f)
         except FileNotFoundError:
-                progress = None
+            # MPC jsonify(result=None) throws an error later, so print a more meaningful message
+            print("ERROR: file %s that was meant to be downloaded from %s was not found." %(lfile, rfile) )
+            progress = None
             
         # Return list of Id of the newly created item
         return jsonify(result = progress, response = 201)

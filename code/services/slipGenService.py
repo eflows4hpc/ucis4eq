@@ -40,27 +40,29 @@ from ucis4eq.scc.slipGen import SlipGenGP, SlipGenGPSetup
 ################################################################################
 slipGenServiceApp = Flask(__name__)
 
+
 # POST request decorator
 def postRequest(fn):
     @wraps(fn)
     def wrapped(*args, **kwargs):
-        
+
         """
         Function to dispatch new events.
         """
         # Create new events
         try:
+            #print("INFO: Received JSON: " + str(request.get_json()))
             body = ast.literal_eval(json.dumps(request.get_json()))
         except:
             # Bad request as request body is not available
-            # Add message for debugging purpose
-            print("Error in JSON request")
+            # Add message for debugging purposes [commit aa4808f: mpc]
+            print("Error in JSON request. Received the following JSON: " + str(request.get_json()))
             traceback.print_exc()
-            return "Error in JSON request format ", 400
+            return "Error in JSON request format " + str(request.get_json()), 400
 
         # Call the decorated method passing it the input JSON
         return fn(body)
-        
+
     return wrapped
 
 # Base root of the micro-services Hub
@@ -77,11 +79,11 @@ def get_initial_response():
     resp = jsonify(message)
     # Returning the object
     return resp
-    
+
 ################################################################################
 # Services definition
 ################################################################################
-    
+
 # Determine the kind of source for the simulation
 @slipGenServiceApp.route("/preGraves-Pitarka", methods=['POST'])
 @postRequest
@@ -89,8 +91,8 @@ def slipGenGPSetupService(body):
     """
     Call component implementing this service
     """
-    return SlipGenGPSetup().entryPoint(body)    
-    
+    return SlipGenGPSetup().entryPoint(body)
+
 # Determine the kind of source for the simulation
 @slipGenServiceApp.route("/Graves-Pitarka", methods=['POST'])
 @postRequest
