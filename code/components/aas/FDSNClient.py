@@ -244,6 +244,8 @@ class WSEvents(WSGeneral):
             # Read the set of events
             cat = obspy.read_events(file, "QUAKEML")
         except Exception as error:
+            # MPC printing information for debugging
+            print("ERROR: reading the events from file %s failed." %file)
             return False, {}
 
         #print("[", name, "] --> ", cat.count(),"events found")

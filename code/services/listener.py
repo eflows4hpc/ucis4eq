@@ -27,7 +27,7 @@ import traceback
 import argparse
 import json
 
-from ucis4eq.aas import FSDNClient
+from ucis4eq.aas import FDSNClient
 
 ################################################################################
 # Methods and classes
@@ -54,9 +54,9 @@ def main():
         args = parser()
 
         if( args.config == "config_events" ):
-            ws = FSDNClient.WSEvents().start(args.config)
+            ws = FDSNClient.WSEvents().start(args.config)
         else:
-            ws = FSDNClient.WSGeneral().start(args.config)
+            ws = FDSNClient.WSGeneral().start(args.config)
 
     except Exception as error:
         print("Exception in code:")
