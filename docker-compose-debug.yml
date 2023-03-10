@@ -14,7 +14,7 @@ services:
     volumes:
       - ./data/DAL.json:/opt/DAL.json
       - ./data/Sites.json:/opt/Sites.json
-      - ./code/services/slipGenService.py:/opt/services/slipGenService.py
+      - ./code/services/slipGenService.py:/root/services/slipGenService.py
       - ./code/components/:/usr/lib/python3/dist-packages/ucis4eq
       - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
       - ~/.ssh/known_hosts:/root/.ssh/known_hosts
@@ -29,7 +29,7 @@ services:
     volumes:
       - ./data/DAL.json:/opt/DAL.json
       - ./data/Sites.json:/opt/Sites.json      
-      - ./code/services/salvusService.py:/opt/services/salvusService.py
+      - ./code/services/salvusService.py:/root/services/salvusService.py
       - ./code/components/:/usr/local/lib/python3.8/site-packages/ucis4eq
       - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
       - ~/.ssh/known_hosts:/root/.ssh/known_hosts
