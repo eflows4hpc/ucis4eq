@@ -9,17 +9,17 @@ mkdir -p deployment/dockers/ data/
 echo "Downloading files from repository ..."
 
 echo "... for service deployment..."
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/docker-compose.yml/raw?ref=marta_devel' > docker-compose.yml
-#curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/deployment%2Fdockers%2FDockerfile-credentials/raw?ref=master' > deployment/dockers/Dockerfile-credentials
+curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/docker-compose.yml/raw?ref=marta_devel' > docker-compose.yml
+#curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/deployment%2Fdockers%2FDockerfile-credentials/raw?ref=master' > deployment/dockers/Dockerfile-credentials
 
 echo "... for compute and data repositories setup..."
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FDAL.template.json/raw?ref=marta_devel' > data/DAL.json
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSites.template.json/raw?ref=marta_devel' > data/Sites.json
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2Fresources.xml/raw?ref=marta_devel' > data/resources.xml
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2Fproject.xml/raw?ref=marta_devel' > data/project.xml
+curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FDAL.template.json/raw?ref=marta_devel' > data/DAL.json
+curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSites.template.json/raw?ref=marta_devel' > data/Sites.json
+curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2Fresources.xml/raw?ref=marta_devel' > data/resources.xml
+curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2Fproject.xml/raw?ref=marta_devel' > data/project.xml
 
 #echo "... and an known event..."
-#curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSAMOS_EQ_Event_DEMO.json/raw?ref=master' > data/SAMOS_EQ_Event_DEMO.json
+#curl --silent GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSAMOS_EQ_Event_DEMO.json/raw?ref=master' > data/SAMOS_EQ_Event_DEMO.json
 
 echo "All DONE!"
 
