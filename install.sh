@@ -13,8 +13,8 @@ curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://
 #curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/deployment%2Fdockers%2FDockerfile-credentials/raw?ref=master' > deployment/dockers/Dockerfile-credentials
 
 echo "... for compute and data repositories setup..."
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FDAL.json/raw?ref=marta_devel' > data/DAL.template.json
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSites.json/raw?ref=marta_devel' > data/Sites.template.json
+curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FDAL.template.json/raw?ref=marta_devel' > data/DAL.json
+curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2FSites.template.json/raw?ref=marta_devel' > data/Sites.json
 curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2Fresources.xml/raw?ref=marta_devel' > data/resources.xml
 curl --silent GET --header 'PRIVATE-TOKEN: glpat-dgzSye-G9fZZkuE2nYyo' 'https://gitlab.com/api/v4/projects/12232768/repository/files/data%2Fproject.xml/raw?ref=marta_devel' > data/project.xml
 
