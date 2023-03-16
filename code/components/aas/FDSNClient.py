@@ -245,7 +245,11 @@ class WSEvents(WSGeneral):
             cat = obspy.read_events(file, "QUAKEML")
         except Exception as error:
             # MPC printing information for debugging
-            print("ERROR: reading the events from file %s failed." %file)
+            # MPC the listener pings the FDSN services every 60s and updates the files in
+            # /tmp/ucis4eq-aas-listener/temporary_data
+            # If one of the agencies does not give a response, the file AGENCY_NAME.response
+            # in the tmp directory is going to be empty, which is what this exception catches.
+            # print("WARNING: reading the events from file %s failed." %file)
             return False, {}
 
         #print("[", name, "] --> ", cat.count(),"events found")
