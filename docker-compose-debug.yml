@@ -87,6 +87,7 @@ services:
       - ./data/Sites.json:/opt/Sites.json      
       - ./code/components/:/usr/local/lib/python3.5/site-packages/ucis4eq
       - ./code/services/listener.py:/root/services/listener.py
+      - ./results/listener:/tmp/ucis4eq-aas-listener/temporary_data/
     restart: always      
     depends_on:
       - DAL
