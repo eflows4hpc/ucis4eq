@@ -1,6 +1,6 @@
 # UCIS4EQ
 
-The system provides the services needed for dealing with an urgent computing
+UCIS4EQ provides the services needed for dealing with an urgent computing
 scenario.
 
 ## Disclaimer
