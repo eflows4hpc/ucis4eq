@@ -1,4 +1,6 @@
-# UCIS4EQ Instalation 
+#!/usr/bin/bash
+
+# UCIS4EQ Instalation
 echo "Welcome to UCIS4EQ instalation"
 
 # Creating the dir structure
@@ -9,18 +11,23 @@ mkdir -p deployment/dockers/ data/
 echo "Downloading files from repository ..."
 
 echo "... for service deployment..."
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-75-FV88yWpzpCZJvoKfe' 'https://gitlab.com/api/v4/projects/43953314/repository/files/docker-compose.yml/raw?ref=marta_devel' > docker-compose.yml
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-75-FV88yWpzpCZJvoKfe' 'https://gitlab.com/api/v4/projects/43953314/repository/files/docker-compose-add-ssh-key-to-docker.yml/raw?ref=marta_devel' > docker-compose-add-ssh-key-to-docker.yml
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-75-FV88yWpzpCZJvoKfe' 'https://gitlab.com/api/v4/projects/43953314/repository/files/deployment%2Fdockers%2FDockerfile-credentials/raw?ref=marta_devel' > deployment/dockers/Dockerfile-credentials
+# The PRIVATE-TOKEN provided below gives full programmatic read access to the 
+# code repository and to the Docker image registry. The user's scope is 
+# assimilated to that of a "maintainer". The Project Access Token (PAT) expires
+# in 2033.08.03.
+
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/docker-compose.yml/raw?ref=migration-fixes' > docker-compose.yml
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/docker-compose-add-ssh-key-to-docker.yml/raw?ref=migration-fixes' > docker-compose-add-ssh-key-to-docker.yml
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/deployment%2Fdockers%2FDockerfile-credentials/raw?ref=migration-fixes' > deployment/dockers/Dockerfile-credentials
 
 echo "... for compute and data repositories setup..."
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-75-FV88yWpzpCZJvoKfe' 'https://gitlab.com/api/v4/projects/43953314/repository/files/data%2FDAL.template.json/raw?ref=marta_devel' > data/DAL.json
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-75-FV88yWpzpCZJvoKfe' 'https://gitlab.com/api/v4/projects/43953314/repository/files/data%2FSites.template.json/raw?ref=marta_devel' > data/Sites.json
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-75-FV88yWpzpCZJvoKfe' 'https://gitlab.com/api/v4/projects/43953314/repository/files/data%2Fresources.xml/raw?ref=marta_devel' > data/resources.xml
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-75-FV88yWpzpCZJvoKfe' 'https://gitlab.com/api/v4/projects/43953314/repository/files/data%2Fproject.xml/raw?ref=marta_devel' > data/project.xml
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2FDAL.template.json/raw?ref=migration-fixes' > data/DAL.json
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2FSites.template.json/raw?ref=migration-fixes' > data/Sites.json
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2Fresources.xml/raw?ref=migration-fixes' > data/resources.xml
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2Fproject.xml/raw?ref=migration-fixes' > data/project.xml
 
 echo "... and a test event..."
-curl --silent GET --header 'PRIVATE-TOKEN: glpat-75-FV88yWpzpCZJvoKfe' 'https://gitlab.com/api/v4/projects/43953314/repository/files/data%2FMED_SAMOS_IZMIR_IRIS_test.json/raw?ref=marta_devel' > data/MED_SAMOS_IZMIR_IRIS_test.json
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2FMED_SAMOS_IZMIR_IRIS_test.json/raw?ref=migration-fixes' > data/MED_SAMOS_IZMIR_IRIS_test.json
 
 echo "All DONE!"
 
