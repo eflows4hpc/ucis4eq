@@ -1,0 +1,1011 @@
+{
+  "documents": [
+    {
+      "id": "config_events",
+      "alias": [
+        "config_events.json",
+        "configEvents",
+        "aas_setup"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/AAS/config_events.json"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "001",
+      "FAIRness": 4,
+      "description": "",
+      "metadata": {
+        "data_category": "system setup",
+        "repository_location": "",
+        "author": "Juan E. Rodríguez",
+        "naming_conventions": "",
+        "size": ""
+      },
+      "used_by": [
+        "WSEvents",
+        "WSGeneral"
+      ]
+    },
+    {
+      "id": "dataPGA",
+      "alias": [
+        "PGADB",
+        "DATAPGA"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/PGA_database"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "001",
+      "FAIRness": 4,
+      "description": "Seismic hazard data. Peak Ground Acceleration PGA with 10% probability of exceedance in 50 years, corresponding to a return period of 475 years.",
+      "metadata": {
+        "data_category": "experimental data",
+        "repository_location": "http://gmo.gfz-potsdam.de/pub/data_details/data_details_frame.html",
+        "author": "Global Seismic Hazard Assessment Program (GSHAP).",
+        "naming_conventions": "Each data record in the seimic hazard data file has 3 fields: longitude, latitude, PGA value",
+        "size": "189 MB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "salvus_setup",
+      "alias": [],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/salvus_urgent_simulations_setup/data/salvus_parameters_template/salvus_parameters.yaml"
+        },
+        "ETH_DAINT": {
+          "path": "/project/s1040/mpienkow/UCIS4EQ/salvus_parameters.yaml"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "setup",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "BSC",
+        "contact": "juan.rodriguez@bsc.es",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "SalvusPrepare",
+        "SalvusPost"
+      ]
+    },
+    {
+      "id": "MED_SAMOS_IZMIR_DATA",
+      "type": "Folder",
+      "alias": [],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/data/MED_SAMOS_IZMIR"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/data/MED_SAMOS_IZMIR"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "HPC Salvus data",
+        "repository_location": "CSCS Piz Daint",
+        "author": "ETH",
+        "contact": "marta.pienkowska@erdw.ethz.ch",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "InputParametersBuilder",
+        "MartaSalvusData"
+      ]
+    },
+    {
+      "id": "ICE_SISZ_DATA",
+      "type": "Folder",
+      "alias": [],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/data/ICE_SISZ"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/data/ICE_SISZ"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "HPC Salvus data",
+        "repository_location": "CSCS Piz Daint",
+        "author": "ETH",
+        "contact": "marta.pienkowska@erdw.ethz.ch",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "InputParametersBuilder",
+        "MartaSalvusData"
+      ]
+    },
+    {
+      "id": "MED_KOS_BODRUM_DATA",
+      "type": "Folder",
+      "alias": [],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/data/MED_KOS_BODRUM"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/data/MED_KOS_BODRUM"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "HPC Salvus data",
+        "repository_location": "CSCS Piz Daint",
+        "author": "ETH",
+        "contact": "marta.pienkowska@erdw.ethz.ch",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "InputParametersBuilder",
+        "MartaSalvusData"
+      ]
+    },
+    {
+      "id": "EASTERN_MEDITERRANEAN_SAMOSIZMIR_DATA",
+      "type": "Folder",
+      "alias": [],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/data/EASTERN_MEDITERRANEAN_SAMOSIZMIR"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/data/EASTERN_MEDITERRANEAN_SAMOSIZMIR"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "data",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "BSC",
+        "contact": "juan.rodriguez@bsc.es",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "InputParametersBuilder",
+        "MartaSalvusData"
+      ]
+    },
+    {
+      "id": "salvus_compute",
+      "alias": [
+        "salvusCompute",
+        "salvus_binary"
+      ],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/Salvus/bin/salvus"
+        },
+        "ETH_DAINT": {
+          "path": "/users/mpienkow/Salvus/bin/salvus"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "software",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "BSC",
+        "contact": "juan.rodriguez@bsc.es",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "SalvusRun"
+      ]
+    },
+    {
+      "id": "salvus_job_tracker",
+      "alias": [
+        "salvustracker",
+        "salvus_tracker",
+        "job_tracker"
+      ],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/salvus_urgent_simulations_setup/utils/job_tracker.py"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/salvus_urgent_wrapper/utils/job_tracker.py"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "software",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "ETH",
+        "contact": "marta.pienkowska@erdw.ethz.ch",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "SalvusRun"
+      ]
+    },
+    {
+      "id": "salvus_wrapper",
+      "alias": [
+        "salvuswrapper",
+        "salvus_urgent_simulations_setup",
+        "generate_salvus_input.py",
+        "generate_salvus_input"
+      ],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/salvus_urgent_simulations_setup/salvus_urgent_wrapper/salvus_preprocess/salvus_preprocess.py"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/salvus_urgent_wrapper/salvus_urgent_wrapper/salvus_preprocess/salvus_preprocess.py"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "software",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "ETH",
+        "contact": "marta.pienkowska@erdw.ethz.ch",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "SalvusPrepare",
+        "SalvusPost"
+      ]
+    },
+    {
+      "id": "salvus_wrapper_post",
+      "alias": [
+        "salvuswrapperpost",
+        "salvus_urgent_simulations_setup_post",
+        "process_outputs.py",
+        "process_outputs"
+      ],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/salvus_urgent_simulations_setup/salvus_urgent_wrapper/salvus_postprocess/process_outputs.py"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/salvus_urgent_wrapper/salvus_urgent_wrapper/salvus_postprocess/process_outputs.py"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "software",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "ETH",
+        "contact": "marta.pienkowska@erdw.ethz.ch",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "SalvusPost"
+      ]
+    },
+    {
+      "id": "salvus_wrapper_post_swarm",
+      "alias": [
+        "salvuswrapperpostswarm",
+        "salvus_urgent_simulations_setup_post_swarm",
+        "process_outputs_swarm.py",
+        "process_outputs_swarm"
+      ],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/salvus_urgent_simulations_setup/salvus_urgent_wrapper/salvus_postprocess/process_outputs_swarm.py"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/salvus_urgent_wrapper/salvus_urgent_wrapper/salvus_postprocess/process_outputs_swarm.py"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "software",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "ETH",
+        "contact": "marta.pienkowska@erdw.ethz.ch",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "SalvusPostSwarm"
+      ]
+    },
+    {
+      "id": "salvus_wrapper_plot",
+      "alias": [
+        "salvuswrapperplot",
+        "salvus_urgent_simulations_setup_plot",
+        "plot_outputs.py",
+        "plot_outputs"
+      ],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/salvus_urgent_simulations_setup/salvus_urgent_wrapper/salvus_plot/plot_outputs.py"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/salvus_urgent_wrapper/salvus_urgent_wrapper/salvus_plot/plot_outputs.py"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "software",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "ETH",
+        "contact": "marta.pienkowska@erdw.ethz.ch",
+        "naming_conventions": "",
+        "format_used_by": "Salvus"
+      },
+      "used_by": [
+        "SalvusPlots"
+      ]
+    },
+    {
+      "id": "slipgen.singularity",
+      "alias": [
+        "slipgen",
+        "gp",
+        "gpsingularity",
+        "slipgen.simg"
+      ],
+      "repositories": {
+        "BSC_DT": {
+          "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/slipgen/slipgen.simg"
+        },
+        "ETH_DAINT": {
+          "path": "/scratch/snx3000/mpienkow/UCIS4EQ/slipgen/slipgen.simg"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "software",
+        "repository_location": "Barcelona Supercomputing Center",
+        "author": "BSC",
+        "contact": "juan.rodriguez@bsc.es",
+        "naming_conventions": "",
+        "format_used_by": "Slip generator"
+      },
+      "used_by": [
+        "SlipGenGP"
+      ]
+    },
+    {
+      "id": "Samos_init_slip_np1",
+      "alias": [],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Data/SlipDistributions/Samos_init_slip_np1.txt"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "init slip",
+        "repository_location": "",
+        "author": "",
+        "contact": "",
+        "naming_conventions": "",
+        "format_used_by": "Slip generator"
+      },
+      "used_by": [
+        "SlipGenGP"
+      ]
+    },
+    {
+      "id": "Samos_init_slip_np2",
+      "alias": [],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Data/SlipDistributions/Samos_init_slip_np2.txt"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "004",
+      "metadata": {
+        "data_category": "init slip",
+        "repository_location": "",
+        "author": "",
+        "contact": "",
+        "naming_conventions": "",
+        "format_used_by": "Slip generator"
+      },
+      "used_by": [
+        "SlipGenGP"
+      ]
+    },
+    {
+      "id": "initSlip21june2000",
+      "alias": [
+        "slip21june2000",
+        "init_slip_21june2000_Perdersen2003"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Data/SlipDistributions/init_slip_21june2000_Perdersen2003.txt"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "404",
+      "metadata": {
+        "data_category": "data",
+        "repository_location": "Icelandic Meteorological Office",
+        "author": "Icelandic Meteorological Office,IMO",
+        "contact": "Dr. Benedikt Halldorssonm, benedikt@vedur.is",
+        "naming_conventions": "Depth [km], Vp [km/s], Vs [km/s], Rho, Qp, Qs",
+        "format_used_by": "Slip generator"
+      },
+      "used_by": [
+        "SlipGenGP"
+      ]
+    },
+    {
+      "id": "ICE_SISZ",
+      "type": "Folder",
+      "alias": [
+        "IcelandSISZ"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Data/Regions/ICE_SISZ"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "005",
+      "FAIRness": 4,
+      "description": "South Iceland Seismic Zone data",
+      "metadata": {
+        "region": "ICE_SISZ",
+        "data_category": "experimental data",
+        "repository_location": "http://https://ds.iris.edu/spud/momenttensor",
+        "author": [
+          "Global CMT project, http://www.globalcmt.org",
+          "https://doi.org/10.1785/0220120032"
+        ],
+        "size": "1 MB"
+      },
+      "used_by": [
+        "EventRegion",
+        "SlipGenGPSetup",
+        "MartaSalvusData"
+      ]
+    },
+    {
+      "id": "EASTERN_MEDITERRANEAN_SAMOSIZMIR",
+      "type": "Folder",
+      "alias": [
+        "SAMOSIZMIR"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Data/Regions/EASTERN_MEDITERRANEAN_SAMOSIZMIR"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "017",
+      "FAIRness": 4,
+      "description": "Eastern mediterranean SamosIzmiz data",
+      "metadata": {
+        "region": "EASTERN_MEDITERRANEAN_SAMOSIZMIR",
+        "data_category": "experimental data",
+        "repository_location": "http://https://ds.iris.edu/spud/momenttensor",
+        "author": [
+          "Global CMT project, http://www.globalcmt.org",
+          "https://doi.org/10.1785/0220120032",
+          "BSC",
+          "ETH"
+        ],
+        "size": "1 MB"
+      },
+      "used_by": [
+        "EventRegion",
+        "SlipGenGPSetup",
+        "MartaSalvusData"
+      ]
+    },
+    {
+      "id": "MED_KOS_BODRUM",
+      "type": "Folder",
+      "alias": [],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Data/Regions/MED_KOS_BODRUM"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "017",
+      "FAIRness": 4,
+      "description": "Mediterranean Kos Bodrum use case data",
+      "metadata": {
+        "region": "MED_KOS_BODRUM",
+        "data_category": "pre-processing data",
+        "repository_location": "B2DROP",
+        "author": [
+          "Global CMT project, http://www.globalcmt.org",
+          "https://doi.org/10.1785/0220120032",
+          "ETH"
+        ],
+        "size": "1 MB"
+      },
+      "used_by": [
+        "EventRegion",
+        "SlipGenGPSetup",
+        "MartaSalvusData"
+      ]
+    },
+    {
+      "id": "MED_SAMOS_IZMIR",
+      "type": "Folder",
+      "alias": [],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Data/Regions/MED_SAMOS_IZMIR"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "017",
+      "FAIRness": 4,
+      "description": "Mediterranean Samos Izmir use case data",
+      "metadata": {
+        "region": "MED_SAMOS_IZMIR",
+        "data_category": "pre-processing data",
+        "repository_location": "B2DROP",
+        "author": [
+          "Global CMT project, http://www.globalcmt.org",
+          "https://doi.org/10.1785/0220120032",
+          "BSC",
+          "ETH"
+        ],
+        "size": "1 MB"
+      },
+      "used_by": [
+        "EventRegion",
+        "SlipGenGPSetup",
+        "MartaSalvusData"
+      ]
+    },
+    {
+      "id": "Classifier_RF1990-6",
+      "alias": [
+        "Classifier_RF1990-6FeaturesPGA",
+        "Classifier_RF1990-6FeaturesPGA.sav"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/MLmodels/Classifier_RF1990-6FeaturesPGA.sav"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "007",
+      "FAIRness": 4,
+      "description": "Random Forest classifier model to determine a probable damage earthquake",
+      "metadata": {
+        "classifier": "Random Forest",
+        "data_category": "model",
+        "author": "Marisol Monterrubio-Velasco",
+        "size": "2.2 MB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "Classifier_SVM1990-6",
+      "alias": [
+        "Classifier_SVM1990-6FeaturesPGA",
+        "Classifier_SVM1990-6FeaturesPGA.sav"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/MLmodels/Classifier_SVM1990-6FeaturesPGA.sav"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "008",
+      "FAIRness": 4,
+      "description": "Support Vector Machine classifier model to determine a probable damage earthquake",
+      "metadata": {
+        "classifier": "Support Vector Machine",
+        "data_category": "model",
+        "author": "Marisol Monterrubio-Velasco",
+        "size": "15 KB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "Classifier_XGB1990-6",
+      "alias": [
+        "Classifier_XGB1990-6FeaturesPGA",
+        "Classifier_XGB1990-6FeaturesPGA.sav"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/MLmodels/Classifier_XGB1990-6FeaturesPGA.sav"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "009",
+      "FAIRness": 4,
+      "description": "XG Boost classifier model to determine a probable damage earthquake",
+      "metadata": {
+        "classifier": "XGBoost",
+        "data_category": "model",
+        "author": "Marisol Monterrubio-Velasco",
+        "size": "125 KB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "DataBase_LatLon",
+      "alias": [
+        "Lat-Lon_DataBase"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/Other_databases/DataBase_LatLon"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "010",
+      "FAIRness": 4,
+      "description": "Data base used in the automatic index Priority mictroservice to test the new earthquake as potentialy damaging. This database is obtained in a post-processing and including five different catalogs and databases: Historical earthquake database, Socio-economical databases, and PGA data base.",
+      "metadata": {
+        "data_category": "experimental data",
+        "author": "Marisol Monterrubio-Velasco",
+        "naming_conventions": [
+          "Country",
+          "Hour",
+          "FocalDepth",
+          "Magnitude",
+          "Intensity",
+          "Latitude",
+          "Longitude",
+          "HumanSeat",
+          "IncomingSal",
+          "InfIndex",
+          "PopSize",
+          "IndexQuality",
+          "PGAMean",
+          "PGAStd"
+        ],
+        "size": "41 KB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "Full_DataBase",
+      "alias": [
+        "full_indexPriority_DataBase"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/Other_databases/Full_DataBase"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "011",
+      "FAIRness": 4,
+      "description": "Similar database as DataBase_LatLon but include all the fields and columns in the Historical earthquake database",
+      "metadata": {
+        "data_category": "experimental data",
+        "author": "Marisol Monterrubio-Velasco",
+        "size": "192 KB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "VecKPGA_FULL_DataBase",
+      "alias": [
+        "VecKPGA_FULL_DataBase.dat"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/Other_databases/VecKPGA_FULL_DataBase.dat"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "011",
+      "FAIRness": 4,
+      "description": "Similar database as DataBase_LatLon but include all the fields and columns in the Historical earthquake database",
+      "metadata": {
+        "data_category": "experimental data",
+        "author": "Marisol Monterrubio-Velasco",
+        "size": ""
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "UnionFiles_Total_File_Filled",
+      "alias": [
+        "Complete Country-SocioEconomical DataBase"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/Other_databases/UnionFiles_Total_File_Filled.dat"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "012",
+      "FAIRness": 4,
+      "description": "Similar database as DataBase_LatLon but include all the fields and columns in the Historical earthquake database",
+      "metadata": {
+        "data_category": "experimental data",
+        "author": "Marisol Monterrubio-Velasco",
+        "naming_conventions": "Country, HumanSeat,IncomingSal,InfIndex,PopSize,IndexQuality",
+        "size": "5 KB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "Countries_OnShore",
+      "alias": [
+        "Countries",
+        "Countries catalog onshore",
+        "Countries_onshore",
+        "OnShore_Countries"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/Other_databases/Countries_OnShore.geojson"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "014",
+      "FAIRness": 4,
+      "description": "Countries Onshore data base in geojson format",
+      "metadata": {
+        "data_category": "database",
+        "repository_location": "https://github.com/datasets/geo-countries",
+        "licence": "Open Data Commons Public Domain Dedication and License.",
+        "author": "-- ",
+        "size": "1 KB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "Countries_OffShore",
+      "alias": [
+        "Countries offhore",
+        "Countries catalog offshore",
+        "Countries_offshore",
+        "Offshore_Countries"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/SCC/indexPriority/Other_databases/Countries_OffShore.json"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "017",
+      "FAIRness": 4,
+      "description": "Countries Offshore data base in geojson format",
+      "metadata": {
+        "data_category": "database",
+        "repository_location": "https://www.marineregions.org/downloads.php eez_v11.json",
+        "licence": "Attribution 4.0 International (CC BY 4.0) ",
+        "author": "-- ",
+        "size": "383 MB"
+      },
+      "used_by": [
+        "IndexPriority"
+      ]
+    },
+    {
+      "id": "dataStructure",
+      "alias": [
+        "region geometry",
+        "inputs region",
+        "Regions"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/DALv2/DataStructure.json"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "015",
+      "FAIRness": 4,
+      "description": "input parameters related to the region where the earthquake occurs",
+      "metadata": {
+        "data_category": "experiment data",
+        "author": "Juan E. Rodríguez",
+        "size": "1 KB"
+      },
+      "used_by": [
+        "DALService"
+      ]
+    },
+    {
+      "id": "regions",
+      "alias": [
+        "region geometry",
+        "inputs region",
+        "Regions"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/DALv2/Regions.json"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "015",
+      "FAIRness": 4,
+      "description": "input parameters related to the region where the earthquake occurs",
+      "metadata": {
+        "data_category": "experiment data",
+        "author": "Juan E. Rodríguez",
+        "size": "1 KB"
+      },
+      "used_by": [
+        "DALService"
+      ]
+    },
+    {
+      "id": "components",
+      "alias": [
+        "services",
+        "Components"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/DALv2/Components.json"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "016",
+      "FAIRness": 4,
+      "description": "UCIS4EQ components definitions",
+      "metadata": {
+        "data_category": "experiment data",
+        "author": "Juan E. Rodríguez",
+        "size": "1 KB"
+      },
+      "used_by": [
+        "DALService"
+      ]
+    },
+    {
+      "id": "authors",
+      "alias": [
+        "Authors"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/DALv2/Authors.json"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "016",
+      "FAIRness": 4,
+      "description": "UCIS4EQ authors registry",
+      "metadata": {
+        "data_category": "experiment data",
+        "author": "Juan E. Rodríguez",
+        "size": "1 KB"
+      },
+      "used_by": [
+        "DALService"
+      ]
+    },
+    {
+      "id": "repositories",
+      "alias": [
+        "Repositories",
+        "dataaccess"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/DALv2/Repositories.json"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "003",
+      "FAIRness": 4,
+      "description": "All the available Respositories. The purpose of this file is to assure the replication of the information",
+      "metadata": {
+        "author": "Juan Esteban Rodríguez and Marisol Monterrubio-Velasco"
+      },
+      "used_by": [
+        "DALService"
+      ]
+    },
+    {
+      "id": "resources",
+      "alias": [
+        "Resources",
+        "dataaccess"
+      ],
+      "repositories": {
+        "BSC_B2DROP": {
+          "path": "UCIS4EQ/Setup/DALv2/Resources.json"
+        },
+        "Local": {
+          "path": "XXX"
+        }
+      },
+      "doi": "003",
+      "FAIRness": 4,
+      "description": "All the available Respositories. The purpose of this file is to assure the replication of the information",
+      "metadata": {
+        "author": "Juan Esteban Rodríguez and Marisol Monterrubio-Velasco"
+      },
+      "used_by": [
+        "DALService"
+      ]
+    }
+  ]
+}

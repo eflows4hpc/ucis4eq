@@ -19,11 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-################################################################################
-# Module imports
+# ###############################################################################
 
-# System imports
-import sys
+#import sys
 import json
 import ast
 import traceback
@@ -36,10 +34,11 @@ from flask import Flask, request, jsonify
 from ucis4eq.scc.workflowManager import WorkflowManagerEmulator, PyCommsWorkflowManager
 #from ucis4eq.scc.workflowManagerExperimental import DaskWorkflowManager
 
-################################################################################
+# ###############################################################################
 # Dispatcher App creation
-################################################################################
+# ###############################################################################
 workflowManagerServiceApp = Flask(__name__)
+
 
 # POST request decorator
 def postRequest(fn):
@@ -65,6 +64,7 @@ def postRequest(fn):
 
     return wrapped
 
+
 # Base root of the micro-services Hub
 @workflowManagerServiceApp.route("/")
 def get_initial_response():
@@ -80,9 +80,10 @@ def get_initial_response():
     # Returning the object
     return resp
 
-################################################################################
+# ###############################################################################
 # Services definition
-################################################################################
+# ###############################################################################
+
 
 # Determine the kind of source for the simulation
 @workflowManagerServiceApp.route("/WMEmulator", methods=['POST'])
@@ -91,8 +92,8 @@ def workflowManagerEmulatorService(body):
     """
     Call component implementing this micro service
     """
-
     return WorkflowManagerEmulator().entryPoint(body)
+
 
 # Determine the kind of source for the simulation
 @workflowManagerServiceApp.route("/PyCOMPSsWM", methods=['POST'])
@@ -101,13 +102,12 @@ def PyCommsWorkflowManagerService(body):
     """
     Call component implementing this micro service
     """
-
     return PyCommsWorkflowManager().entryPoint(body)
 
 
-################################################################################
+# ###############################################################################
 # Start the micro-services aplication
-################################################################################
+# ###############################################################################
 
 if __name__ == '__main__':
     # Running app in debug mode

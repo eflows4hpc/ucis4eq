@@ -9,6 +9,7 @@
 # Imports
 from setuptools.command.install import install
 
+
 def name():
     ''' Set name for ucis4eq package.
 
@@ -51,6 +52,7 @@ def get_ext_modules():
         numpy_includes = []
 
     return numpy_includes
+
 
 if __name__ == '__main__':
     from setuptools import setup

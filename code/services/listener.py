@@ -19,52 +19,48 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-################################################################################
-# Module imports
+# ###############################################################################
+
+#import os, json
 import sys
-import os
 import traceback
 import argparse
-import json
-
 from ucis4eq.aas import FDSNClient
 
-################################################################################
+# ###############################################################################
+
 # Methods and classes
 
-# Arguments parser
-def parser():
 
+def parser():
     # Parse the arguments
     parser = argparse.ArgumentParser(
         prog='listener',
         description='FDSN-WS Listener')
     parser.add_argument('config', help='Remote JSON configuration file')
     parser.add_argument('-p', dest='opid',
-        help='Wait for a given PID before start')
+                        help='Wait for a given PID before start')
     args = parser.parse_args()
-
     # Return them
     return args
+
 
 # Main Method
 def main():
     try:
         # Call the parser
         args = parser()
-
-        if( args.config == "config_events" ):
+        if (args.config == "config_events"):
             ws = FDSNClient.WSEvents().start(args.config)
         else:
             ws = FDSNClient.WSGeneral().start(args.config)
-
     except Exception as error:
         print("Exception in code:")
-        print('-'*80)
+        print('-' * 80)
         traceback.print_exc(file=sys.stdout)
-        print('-'*80)
+        print('-' * 80)
 
-################################################################################
+# ###############################################################################
 # Run the program
 if __name__ == "__main__":
     main()

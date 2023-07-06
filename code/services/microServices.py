@@ -19,13 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-################################################################################
+# ###############################################################################
 # Module imports
 
-# System imports
-import sys
-import os
-import json
+# import sys, os, json
 import ast
 import traceback
 from functools import wraps
@@ -37,7 +34,7 @@ from flask import Flask, request, jsonify
 from ucis4eq.misc import config
 from ucis4eq.scc.event import EventRegistration, EventRegion, EventCountry, EventSetState, EventSetup
 from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs, CMTSeisEnsMan
-from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource 
+from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource
 from ucis4eq.scc.inputBuilder import InputParametersBuilder
 from ucis4eq.scc.indexPriority import IndexPriority
 from ucis4eq.scc.resources import ComputeResources
@@ -45,16 +42,16 @@ import ucis4eq
 import ucis4eq.dal as dal
 from ucis4eq.dal import dynamicDataAccess
 
-################################################################################
+# ###############################################################################
 # Dispatcher App creation
-################################################################################
+# ###############################################################################
 microServicesApp = Flask(__name__)
+
 
 # POST request decorator
 def postRequest(fn):
     @wraps(fn)
     def wrapped(*args, **kwargs):
-        
         """
         Function to dispatch new events.
         """
@@ -71,34 +68,35 @@ def postRequest(fn):
 
         # Call the decorated method passing it the input JSON
         return fn(body)
-        
+
     return wrapped
+
 
 # Task to run before first request
 @microServicesApp.before_first_request
 def initializeDALData():
     dynamicDataAccess.DAL().entryPoint()
 
+
 # Base root of the micro-services Hub
 @microServicesApp.route("/")
 def get_initial_response():
     """Welcome message for the API."""
-        
     # Message to the user
     message = {
         'apiVersion': 'v1.0',
         'status': '200',
         'message': 'Welcome to the UCIS4EQ Micro-Services Hub for PD1'
     }
-    
     # Making the message looks good
     resp = jsonify(message)
     # Returning the object
     return resp
-    
-################################################################################
+
+# ###############################################################################
 # Services definition
-################################################################################
+# ###############################################################################
+
 
 # Initialize DAL Data
 @microServicesApp.route("/dal", methods=['POST'])
@@ -107,8 +105,8 @@ def initializeDALService(body):
     """
     Call component implementing this micro service
     """
-
     return dynamicDataAccess.DAL().entryPoint()
+
 
 # CMT Input generation
 @microServicesApp.route("/precmt", methods=['POST'])
@@ -119,6 +117,7 @@ def CMTInputsService(body):
     """
     return CMTInputs().entryPoint(body)
 
+
 # CMT Aproximation
 @microServicesApp.route("/cmt", methods=['POST'])
 @postRequest
@@ -126,9 +125,9 @@ def CMTCalculationService(body):
     """
     Call component implementing this micro service
     """
-    
     return CMTCalculation().entryPoint(body)
-    
+
+
 # CMT SeisEnsMan
 @microServicesApp.route("/cmtSeisEnsMan", methods=['POST'])
 @postRequest
@@ -136,9 +135,9 @@ def CMTSeisEnsManService(body):
     """
     Call component implementing this micro service
     """
-    
+
     return CMTSeisEnsMan().entryPoint(body)
-    
+
 
 # Index Priority
 @microServicesApp.route("/indexPriority", methods=['POST'])
@@ -147,8 +146,8 @@ def indexPriorityService(body):
     """
     Call component implementing this micro service
     """
-        
     return IndexPriority().entryPoint(body)
+
 
 # Determine the kind of source for the simulation
 @microServicesApp.route("/sourceType", methods=['POST'])
@@ -157,7 +156,6 @@ def sourceTypeService(body):
     """
     Call component implementing this micro service
     """
-    
     return SourceType().entryPoint(body)
 
 
@@ -168,8 +166,8 @@ def punctualSourceService(body):
     """
     Call component implementing this micro service
     """
-    
     return PunctualSource().entryPoint(body)
+
 
 # Calculate the punctual source for an event
 @microServicesApp.route("/inputParametersBuilder", methods=['POST'])
@@ -178,9 +176,9 @@ def YAMLBuilderService(body):
     """
     Call component implementing this micro service
     """
-    
     return InputParametersBuilder().entryPoint(body)
-    
+
+
 # Incomming event registration
 @microServicesApp.route("/eventRegistration", methods=['POST'])
 @postRequest
@@ -189,7 +187,8 @@ def eventDispatcherService(body):
     Call component implementing this micro service
     """
     return EventRegistration().entryPoint(body)
-    
+
+
 # Incomming event registration
 @microServicesApp.route("/eventSetState", methods=['POST'])
 @postRequest
@@ -197,7 +196,8 @@ def eventSetStateService(body):
     """
     Call component implementing this micro service
     """
-    return EventSetState().entryPoint(body) 
+    return EventSetState().entryPoint(body)
+
 
 # Event domains detection
 @microServicesApp.route("/eventRegion", methods=['POST'])
@@ -207,7 +207,8 @@ def eventRegionService(body):
     Call component implementing this micro service
     """
     return EventRegion().entryPoint(body)
-    
+
+
 # Event domains detection
 @microServicesApp.route("/eventSetup", methods=['POST'])
 @postRequest
@@ -217,6 +218,7 @@ def eventSetupService(body):
     """
     return EventSetup().entryPoint(body)
 
+
 # Event region detection
 @microServicesApp.route("/eventCountry", methods=['POST'])
 @postRequest
@@ -225,7 +227,8 @@ def eventCountryService(body):
     Call component implementing this micro service
     """
     return EventCountry().entryPoint(body)
-    
+
+
 # Computing resources service
 @microServicesApp.route("/computeResources", methods=['POST'])
 @postRequest
@@ -233,11 +236,11 @@ def computeResourcesService(body):
     """
     Call component implementing this micro service
     """
-    return ComputeResources().entryPoint(body)    
+    return ComputeResources().entryPoint(body)
 
-################################################################################
+# ###############################################################################
 # Start the micro-services aplication
-################################################################################
+# ###############################################################################
 
 if __name__ == '__main__':
     # Running app in debug mode

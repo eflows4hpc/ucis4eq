@@ -4,66 +4,66 @@
 version: '3.7'
 
 services:
-  
+
   # UCIS4EQ Base
   base:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/base
+    image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/base
     build:
       context: .
       dockerfile: deployment/dockers/Dockerfile-base
-      
-  # UCIS4EQ Micro services      
+
+  # UCIS4EQ Micro services
   microservices:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/microservices     
-    build: 
-      context: .      
-      dockerfile: deployment/dockers/Dockerfile-microServices   
+    image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/microservices
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-microServices
     depends_on:
       - base
 
-  # UCIS4EQ Workflow manager services    
+  # UCIS4EQ Workflow manager services
   workflowmanager:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/workflowmanager
+    image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/workflowmanager
     environment:
-      - COMPSS_HTTP_POOL_SIZE=100    
-    build: 
-      context: .      
-      dockerfile: deployment/dockers/Dockerfile-workflowManager 
+      - COMPSS_HTTP_POOL_SIZE=100
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-workflowManager
     depends_on:
       - base
-      
-  # UCIS4EQ Dashboard service    
+
+  # UCIS4EQ Dashboard service
   dashboard:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/dashboard     
-    build: 
-      context: .      
-      dockerfile: deployment/dockers/Dockerfile-dashboard                
+    image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/dashboard
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-dashboard
     depends_on:
       - base
-      
-  # UCIS4EQ Listener service    
+
+  # UCIS4EQ Listener service
   listener:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/listener     
-    build: 
-      context: .      
-      dockerfile: deployment/dockers/Dockerfile-listener      
+    image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/listener
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-listener
     depends_on:
       - base
-      
+
   # UCIS4EQ Salvus service
   salvus:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/salvus     
-    build: 
-      context: .      
-      dockerfile: deployment/dockers/Dockerfile-salvusServices      
+    image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/salvus
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-salvusServices
     depends_on:
       - base
-      
+
   # UCIS4EQ Slipgen service
   slipgen:
-    image: registry.gitlab.com/martapien/ucis4eq-containers/slipgen     
-    build: 
-      context: .      
-      dockerfile: deployment/dockers/Dockerfile-slipGen  
+    image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/slipgen
+    build:
+      context: .
+      dockerfile: deployment/dockers/Dockerfile-slipGen
 
-            
+

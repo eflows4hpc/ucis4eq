@@ -52,4 +52,5 @@ docs/_build/
 # DAL and Sites json specified locally
 Sites.json*
 DAL.json*
+*_marta-gitlab
 

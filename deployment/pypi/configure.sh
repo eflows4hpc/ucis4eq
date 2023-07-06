@@ -17,14 +17,14 @@
 #                                                                              #
 # **************************************************************************** #
 
-################################################################################
+# ###############################################################################
 # UCIS4EQ module publication 
-################################################################################
+# ###############################################################################
 
 # Check the latest UCIS4EQ version published
 pip install yolk3k
 
-if [ $(yolk -V ucis4eq | awk '{print $2}') = $CI_COMMIT_TAG ]
+if [ "$(yolk -V ucis4eq | awk '{print $2}')" = "$CI_COMMIT_TAG" ]
 then
   echo "UCIS4EQ is already up to date"
   exit 0
@@ -38,8 +38,8 @@ fi
 pip install twine #==3.0.0
 pip install --upgrade keyrings.alt
 cp -R code/components deployment/pypi/ucis4eq
-find deployment/pypi/ucis4eq/ -type d -name "__pycache__" | xargs rm -fr
-cd deployment/pypi/
+find deployment/pypi/ucis4eq/ -type d -name "__pycache__" -print0 | xargs -0 rm -fr
+cd deployment/pypi/ || printf "%s\n" "Directory unknowni: deployment/pypi/"
 sed -i 's/VERSION/'"$CI_COMMIT_TAG"'/'  setup.py
 python setup.py sdist
 twine upload dist/*

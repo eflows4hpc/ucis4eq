@@ -3,7 +3,7 @@
 ###############################################################################
 
 # Start building the Docker image from the UCIS4EQ base image
-FROM registry.gitlab.com/martapien/ucis4eq-containers/base:latest AS build
+FROM registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/base:latest AS build
 
 # Install dependencies
 RUN pip install haversine shapely pandas scikit-learn pickle-mixin xgboost kneed webdavclient3

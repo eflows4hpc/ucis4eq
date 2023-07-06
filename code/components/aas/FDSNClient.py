@@ -19,11 +19,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-################################################################################
+# ###############################################################################
 # Module imports
 import os
 import uuid
-import sys
+#import sys
 import json
 import requests
 import sched, time
@@ -35,15 +35,15 @@ import datetime
 from ucis4eq.dal import staticDataMap
 from ucis4eq.misc import config
 
-################################################################################
+# ###############################################################################
 # Methods and classes
+
 
 # Interface class
 class WSGeneral:
 
     # Methods
     def __init__(self):
-
         # Wait for the process to finish
         #if( 'opid' in config['listener'] ):
         #    while psutil.pid_exists(config['listener']['opid']):
@@ -55,7 +55,7 @@ class WSGeneral:
         # Attributes
         self.results = {}
         self.outdir = "./"
-        self.tmpdata =  ""
+        self.tmpdata = ""
         self.query = ""
 
         # Object UUID
@@ -64,21 +64,21 @@ class WSGeneral:
         # Initialize DAL
         r = requests.post("http://127.0.0.1:5000/dal", json={})
         config.checkPostRequest(r)
-        
+
         # Index documents with regard this component
         self.fileMapping = staticDataMap.StaticDataMap(self.__class__.__name__)
-            
+
     # Start client
     def start(self, file):
-        
-        # Read the configuration file    
+
+        # Read the configuration file
         with open(self.fileMapping[file], 'r') as f:
             self.config = json.load(f)
-            
+
         print(self.config, flush=True)
-            
+
         # Check if an output directory was provided
-        if( not "outputdir" in self.config["listener"] ):
+        if ("outputdir" not in self.config["listener"]):
             self.config["listener"]["outputdir"] = self.outdir
         self.outdir = self.config["listener"]["outputdir"] + "/"
         self.tmpdata = self.outdir + "temporary_data/"
@@ -96,8 +96,7 @@ class WSGeneral:
         self.s.run()
 
     # Explore the set of input repositories
-    def _exploreRepositories(self, pool = None):
-
+    def _exploreRepositories(self, pool=None):
         # Variables
         output = {}
         dump = {}
@@ -113,7 +112,7 @@ class WSGeneral:
         query = ws['interface'] + "/" + ws['majorversion'] + "/"
         query = query + ws["application"] + "?"
         for p in ws["parameters"]:
-            query = query + p + "=" + ws["parameters"][p]+"&"
+            query = query + p + "=" + ws["parameters"][p] + "&"
 
         self.query = query.strip('&')
 
@@ -133,31 +132,31 @@ class WSGeneral:
 
         # Store the current timestamp
         output = self._postprocess_actions()
-        
+
         # If there are elements, write them and trigger the set action
         if( output ):
             #time2 = datetime.datetime.now(datetime.timezone.utc).strftime('%d%m%Y_%H%M%S')+"_"
             #file = self.outdir + time2 + self.config['listener']['results_name']
 
             #print(json.dumps(output), flush=True)
-            
+
             # Do a trigger for each event received
             event = {}
             for e in output['events']:
-                
+
                 event['alerts'] = output['events'][e]
                 event['uuid'] = e
                 event['sources'] = {}
-                
+
                 for a in event['alerts']:
                     agency = a['agency']
                     event['sources'][agency] = output['sources'][agency]
                 #print(json.dumps(event), flush=True)
-                
+
                 file = self.outdir + e + "." + self.config['listener']['results_name']
                 with open(file, "w") as f:
                     json.dump(event, f, indent=4)
-                
+
                 # Start running the triggering system
                 os.system((self.config['listener']['trigger'] + "&").replace("%s", file))
 
@@ -167,16 +166,16 @@ class WSGeneral:
             #print("Next report in ", interval, "seconds")
             self.s.enter(interval, 1, self._exploreRepositories, kwargs={'pool': pool})
 
+
     # Do the REST-GET petition
     def _requestRepository(self, name, url):
         # Request data
         #print("Requesting info from '" + url + "'")
         self.r = requests.get(url, stream=True)
-
         nelems, result = self._process_data(self.r, name)
-
         # Process data
         return (name, nelems, result)
+
 
     # Process obtained data
     def _process_data(self, results, name):
@@ -185,13 +184,14 @@ class WSGeneral:
         # Write file to disk
         with open(file, 'wb') as f:
             f.write(results.content)
-
         # Return the complete filename
         return file
+
 
     # Post-process actions
     def _postprocess_actions(self):
         pass
+
 
     # For parallel computing
     def __execute(self,func, args):
@@ -201,14 +201,13 @@ class WSGeneral:
     def _runtask(self, args):
         return self.__execute(*args)
 
+
 class WSEvents(WSGeneral):
 
     def __init__(self):
-
         # Attributes
         self.currenttime = None
         self.events = []
-
         #WSGeneral.__init__(self,config)
         super(WSEvents, self).__init__()
         #self.uuid = uuid.uuid1()
@@ -219,11 +218,9 @@ class WSEvents(WSGeneral):
 
         # Write the original file to disk
         file = super(WSEvents, self)._process_data(results, name)
-
         # Check the requested format
         if( 'format' in params.keys() and params['format'] == "xml"):
             return self._process_xml_data(results, file, name)
-
         return 0
 
     # Process a QuakeML data
@@ -255,7 +252,7 @@ class WSEvents(WSGeneral):
         #print("[", name, "] --> ", cat.count(),"events found")
 
         for e in cat:
-            if( currenttime < e.origins[0]['time'].timestamp ):
+            if(currenttime < e.origins[0]['time'].timestamp):
                 # Calculate the elapsed time from last event occurred
                 now = datetime.datetime.now(datetime.timezone.utc)
                 delay = now.timestamp() - e.origins[0]['time'].timestamp
@@ -269,12 +266,12 @@ class WSEvents(WSGeneral):
 
                 # Don't add the event if a deadline time was reached
                 # SPRUCE [P.Beckman 2006]
-                if( delay > self.config['listener']['deadline'] ):
-                  print("WARNING: The event occurred at " +  str(e.origins[0]['time'].datetime) +
-                  " in (" + str(e.origins[0]['latitude']) + ", " + str(e.origins[0]['longitude']) 
-                  + ") and magnitude " + str(e.magnitudes[0]['mag']) 
-                  + " overpassed the set deadline and will be not triggered", flush=True)
-                  continue
+                if(delay > self.config['listener']['deadline']):
+                    print("WARNING: The event occurred at " +  str(e.origins[0]['time'].datetime) +
+                    " in (" + str(e.origins[0]['latitude']) + ", " + str(e.origins[0]['longitude'])
+                    + ") and magnitude " + str(e.magnitudes[0]['mag'])
+                    + " overpassed the set deadline and will be not triggered", flush=True)
+                    continue
 
                 # Obtain information about the event
                 event = {}
