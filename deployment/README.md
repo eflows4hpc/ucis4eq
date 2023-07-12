@@ -1,6 +1,5 @@
 # Installation guide
 _________________
-
 ### 1- Install software Dependencies
 
 * Docker (Community Edition)
@@ -22,16 +21,16 @@ _________________
 
 ### 2 - Install image on the local host
 
-Due to the image was registered on the GitLab repository, first step is doing login
+Docker images being stored in the Docker registry of https://gitlab.bsc.es repo, logging into the docker reistry is necessary.
 
 ```
-  docker login registry.gitlab.com
+  docker login registry.gitlab.bsc.es
 ```
 
 ##### Option 1: Obtain the docker-composer.yml file from the GitLab repository
 
 ```
-  curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/deployment%2Fdockers%2Fdocker-compose.yml/raw?ref=master' > docker-compose.yml
+  curl --request GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/deployment%2Fdockers%2Fdocker-compose.yml/raw?ref=migration-fixes' >| docker-compose.yml
 ```
 
 ```
@@ -40,57 +39,55 @@ Due to the image was registered on the GitLab repository, first step is doing lo
 
 ##### Option 2: Get and run the docker containers manually
 
-1 - Pull the ucis4eq image from the registry
+1 - Pull UCIS4EQ images from the registry, at registry.gitlab.bsc.es
 ```
-  docker pull registry.gitlab.com/cheese-coe/ucis4eq/listener
-  docker pull registry.gitlab.com/cheese-coe/ucis4eq/dispatcher
-  docker pull registry.gitlab.com/cheese-coe/ucis4eq/slip-gen
+  docker pull registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/listener
+  docker pull registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/dispatcher
+  docker pull registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/slip-gen
 ```
 
-2 - Indicate the configuration file of the ucis4eq listener service 
+2 - Indicate the configuration file of the ucis4eq listener service
 ```
-  export UCIS4EQ_LISTENER_CONFIG=/local/path/to/config_events.json
+  export UCIS4EQ_LISTENER_CONFIG=/path/to/config_events.json
 ```
 
 3 - Start the Docker containers
 
 ```
-  docker run -ti --net="host" -v "$PWD:/workspace" registry.gitlab.com/cheese-coe/ucis4eq/dispatcher
-  docker run -ti --net="host" -v "$UCIS4EQ_LISTENER_CONFIG:/root/services/config.json" -v "$PWD:/workspace" registry.gitlab.com/cheese-coe/ucis4eq/listener
-  docker run -ti -v "$PWD:/workspace" registry.gitlab.com/cheese-coe/ucis4eq/slip-gen
+  docker run -ti --net="host" -v "$PWD:/workspace" registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/dispatcher
+  docker run -ti --net="host" -v "$UCIS4EQ_LISTENER_CONFIG:/root/services/config.json" -v "$PWD:/workspace" registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/listener
+  docker run -ti -v "$PWD:/workspace" registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/slip-gen
 ```
 
 # Additional actions
 _________________
-
 ### Generate the ucis4eq-service Docker local image
 
 This steps is just for users who wants to create the Docker image from scratch.
 
-
 1 - Obtain the Dockerfiles with the Docker images setup
 ```
-  curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/deployment%2Fdockers%2FDockerfile-listener/raw?ref=master' > Dockerfile-listener
-  curl --request GET --header 'PRIVATE-TOKEN: bZA9JyDsdqyzawJngzzy' 'https://gitlab.com/api/v4/projects/12232768/repository/files/deployment%2Fdockers%2FDockerfile-dispatcher/raw?ref=master' > Dockerfile-dispatcher
+  curl --request GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/deployment%2Fdockers%2FDockerfile-listener/raw?ref=migration-fixes' >| Dockerfile-listener
+  curl --request GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/deployment%2Fdockers%2FDockerfile-dispatcher/raw?ref=migration-fixes' >| Dockerfile-dispatcher
 ```
 
 2 - Building the images with the environement for ucis4eq services
 
 ```
-  docker build -f Dockerfile-listener -t registry.gitlab.com/cheese-coe/ucis4eq/listener .
-  docker build -f Dockerfile-dispatcher -t registry.gitlab.com/cheese-coe/ucis4eq/dispatcher .
+  docker build -f Dockerfile-listener -t registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/listener .
+  docker build -f Dockerfile-dispatcher -t registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/dispatcher .
 ```
 
 3 - Register the built images
 ```
-  docker push registry.gitlab.com/cheese-coe/ucis4eq/listener
-  docker push registry.gitlab.com/cheese-coe/ucis4eq/dispatcher
+  docker push registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/listener
+  docker push registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/dispatcher
 ```
-  
+
 
 ### Start container in a terminal
 
 ```
-  docker run -ti --net="host" -v "$PWD:/workspace" --entrypoint=bash registry.gitlab.com/cheese-coe/ucis4eq/dispatcher
-  docker run -ti --net="host" -v "$PWD:/workspace" --entrypoint=bash registry.gitlab.com/cheese-coe/ucis4eq/listener
+  docker run -ti --net="host" -v "$PWD:/workspace" --entrypoint=bash registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/dispatcher
+  docker run -ti --net="host" -v "$PWD:/workspace" --entrypoint=bash registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/listener
 ```

@@ -6,15 +6,20 @@ scenario.
 ## Disclaimer
 ```
 
-This software solution was developed under the ChEESE-COE project
+This software solution was developed at BSC as part of the ChEESE-COE project.
+It was later modified as part of the ChEESE-2P and eFlows4HPC projects.
 
 Author:  Juan Esteban Rodríguez, Marisol Monterrubio, Josep de la Puente
-Contact: juan.rodriguez@bsc.es, marisol.monterrubio@bsc.es, josep.delapuente@bsc.es
+Contributor: Cedric Bhihe
+Contacts:
+    marisol.monterrubio@bsc.es
+    josep.delapuente@bsc.es
+    cedric.bhihe@bsc.es
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -38,7 +43,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
   ```
   Find more installation options in:
   https://docs.docker.com/install/linux/docker-ce/ubuntu/
-  
+
 * Docker compose
   ```
   sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -52,13 +57,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 Because the Docker images are registered on the GitLab repository, first step is login on it
 
 ```
-  docker login registry.gitlab.com
+  docker login registry.gitlab.bsc.es
 ```
 
 For obtaining docker-composer.yml, setup and test files, create a working directory, move there and then:
 
 ```
-  bash -c "$(curl --request GET --header 'PRIVATE-TOKEN: glpat-8SmAHs1yjVmWq6-q_bkz' 'https://gitlab.com/api/v4/projects/12232768/repository/files/install.sh/raw?ref=master')"
+  bash -c "$(curl --request GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/install.sh/raw?ref=migration-fixes')"
 ```
 
 Follow the instructions
@@ -71,7 +76,7 @@ From working directory:
 Open a terminal and be sure that both .env and docker-compose.yml are in the such directory. Then, run:
 
 ```
-SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose up 
+> SSH_PRV="$(cat ~/.ssh/<my_id_rsa>)" docker-compose up
 ```
 
 IMPORTANT: During first deployment, some images will be created for adding user's ssh credentials.
