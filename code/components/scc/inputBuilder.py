@@ -117,16 +117,40 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
             
         paths['topography'] = dataFormat.getPathTo('topography', ["topography"])
         paths['bathymetry'] = dataFormat.getPathTo('bathymetry')
-        
+
+        # MPC in the case of precomputed meshes you don't actaully need the topo and bathy files,
+        # as the mesh already includes them. It is worth to have them for reproducibility, but we just
+        # add this as a warning here rather than making it a blocking point for simulations.
+        if not paths['topography'] and paths['mesh_precomputed']:
+            print("WARNING: the topography file was not found, "
+                  "but the precomputed mesh is assumed to include the topography.")
+            paths['topography'] = " "
+
+        if not paths['bathymetry'] and paths['mesh_precomputed']:
+            print("WARNING: the bathymetry file was not found, "
+                  "but the precomputed mesh is assumed to include the bathymetry.")
+            paths['bathymetry'] = " "
+
         self.geometry['filepaths'] = paths
     
-        self.source['magnitude'] = body['event']["magnitude"]
-        self.source['longitude'] = body['event']["longitude"]
-        self.source['latitude'] = body['event']["latitude"]
-        self.source['depth'] = body['event']["depth"]
-        self.source['strike'] = body["CMT"]["strike"]
-        self.source['rake'] = body["CMT"]["rake"]
-        self.source['dip'] = body["CMT"]["dip"]
+        if body['ensemble'] == "statisticalCMT":
+            self.source['magnitude'] = body['event']["magnitude"]
+            self.source['longitude'] = body['event']["longitude"]
+            self.source['latitude'] = body['event']["latitude"]
+            self.source['depth'] = body['event']["depth"]
+            self.source['strike'] = body["CMT"]["strike"]
+            self.source['rake'] = body["CMT"]["rake"]
+            self.source['dip'] = body["CMT"]["dip"]
+        elif body['ensemble'] == "seisEnsMan":
+            self.source['magnitude'] = body['CMT']["magnitude"]
+            self.source['longitude'] = body['CMT']["longitude"]
+            self.source['latitude'] = body['CMT']["latitude"]
+            self.source['depth'] = body['CMT']["depth"]
+            self.source['strike'] = body["CMT"]["strike"]
+            self.source['rake'] = body["CMT"]["rake"]
+            self.source['dip'] = body["CMT"]["dip"]
+        else:
+            raise Exception("not recognized ensemble")
 
         self.rupture['filename'] = body["rupture"]
 

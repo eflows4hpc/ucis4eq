@@ -54,7 +54,9 @@ def postRequest(fn):
         except:
             # Bad request as request body is not available
             # Add message for debugging purpose
-            return "", 400
+            print("Error in JSON request")
+            traceback.print_exc()
+            return "Error in JSON request format ", 400
 
         # Call the decorated method passing it the input JSON
         return fn(body)

@@ -134,6 +134,29 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         relations['HYPO_DOWN_DIP'] = relations['FAULT_WIDTH']/2 #16.24
 
         return relations
+        
+        
+    def _SeisEnsManRelations(self, mw, lat, lon, depth, length, area):
+        
+        
+        relations = {}
+        
+        relations['FAULT_LENGTH'] = float(length)
+        relations['FAULT_WIDTH'] =  float(area)/relations['FAULT_LENGTH']
+
+        if float(depth) < relations['FAULT_WIDTH']/2:
+            relations['DEPTH_TO_TOP'] =  0 
+            relations['HYPO_DOWN_DIP'] =  float(depth) 
+        else:
+            relations['DEPTH_TO_TOP'] = float(depth) - (relations['FAULT_WIDTH']/2)
+            relations['HYPO_DOWN_DIP'] = relations['FAULT_WIDTH']/2
+
+        relations['LAT_TOP_CENTER'] = float(lat)
+        relations['LON_TOP_CENTER'] = float(lon)
+        relations['HYPO_ALONG_STK'] = 0.0 
+
+        return relations
+
 
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration                
@@ -171,18 +194,29 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         source = path + "inputs.src"
         
         # Generate GP source file
-        srcParams = self._MaiBerozaRelations(event['magnitude'], event['latitude'], 
-                                  event['longitude'], event['depth'] )
-
-        srcParams['MAGNITUDE'] = event['magnitude']                                     
-        srcParams['STRIKE'] = cmt['strike']                        
-        srcParams['RAKE'] = cmt['rake']
-        srcParams['DIP'] = cmt['dip']
+        if body['ensemble'] == "statisticalCMT":
+            srcParams = self._MaiBerozaRelations(event['magnitude'], event['latitude'],event['longitude'], event['depth'] ) 
+            srcParams['MAGNITUDE'] = event['magnitude']                         
+            srcParams['STRIKE'] = cmt['strike']                        
+            srcParams['RAKE'] = cmt['rake']
+            srcParams['DIP'] = cmt['dip']
+            setup = body['setup']
+            srcParams['DWID'] = setup['dwid']
+            srcParams['DLEN'] = setup['dlen']
+            srcParams['CORNER_FREQ'] = setup['corner_freq']
         
-        setup = body['setup']
-        srcParams['DWID'] = setup['dwid']
-        srcParams['DLEN'] = setup['dlen']
-        srcParams['CORNER_FREQ'] = setup['corner_freq']
+        elif body['ensemble'] == "seisEnsMan":
+            srcParams = self._SeisEnsManRelations(cmt['magnitude'], cmt['latitude'], cmt['longitude'],cmt['depth'], cmt['faultLength'], cmt['faultArea'])
+            srcParams['MAGNITUDE'] = cmt['magnitude']                       
+            srcParams['STRIKE'] = cmt['strike']                        
+            srcParams['RAKE'] = cmt['rake']
+            srcParams['DIP'] = cmt['dip']
+            setup = body['setup']
+            srcParams['DWID'] = setup['dwid']
+            srcParams['DLEN'] = setup['dlen']
+            srcParams['CORNER_FREQ'] = setup['corner_freq']
+        else:
+            raise Exception ('Not recognized ensemble')
         
         if 'seed' in body.keys():
             srcParams['SEED'] =  body['seed']

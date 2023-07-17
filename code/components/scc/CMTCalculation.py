@@ -76,6 +76,65 @@ class Event():
         return {"strike": str(self.strike), 
                 "dip": str(self.dip),
                 "rake": str(self.rake)}
+                
+                
+@staticDataMap.build
+class CMTSeisEnsMan(microServiceABC.MicroServiceABC):
+    # Attibutes 
+    setup = {}             # Setup for the CMT calculation
+    event = None           # Input event
+    
+    # Initialization method
+    def __init__(self):
+        """
+        Initialize the CMT SeisEnsMan component integration
+        """
+        
+    # Service's entry point definition
+    @microServiceABC.MicroServiceABC.runRegistration    
+    def entryPoint(self, body):
+        """
+        Generate a CMT inputs given for SeisEnsMan
+        """
+        ensembleType = "seisEnsMan"
+        print('body_seisEnsMan', body)
+        print('#########################################################')
+
+     	# Some correctness control
+        if not body['setup']['source_ensemble'] == ensembleType:
+            raise Exception('Requested ensamble' + body['setup']['source_ensemble'] 
+                            + 'is not compatible with SeisEnsMan CMT calculation' )                
+        
+        if not body['setup']['source_ensemble'] in body['region']['available_ensemble']:
+            raise Exception('Requested ensamble' + body['setup']['source_ensemble'] 
+                            + 'is not available for region ' + body['region']['id'] )
+                            
+        # Create the data structure
+        dataFormat = dataStructure.formats[body['region']['file_structure']]()
+        dataFormat.prepare(body['region']['id'])
+        
+        # Select an available ensamble
+        parametersFileName = body['region']['path'] + "/" + \
+                            dataFormat.getPathTo('source_ensemble') + "/" + ensembleType + \
+                             ".json"
+                    
+        # Read the input from file 
+        with open(parametersFileName, 'r') as f:
+            inputSeisEnsMan = json.load(f)
+           
+        print('inputseisEnsMan', inputSeisEnsMan)
+        # Retrieve the event's complete information 
+        #event = ucis4eq.dal.database.Requests.find_one({"_id": ObjectId(body['id'])})
+        
+        # Add the current event
+        #inputSeisEnsMan.update({
+        #                        "event": {
+        #                            "_id": body['id'],
+        #                            "alerts": event['alerts'],
+        #                            }
+        #                       })
+
+        return jsonify(result = inputSeisEnsMan, response = 201)    
         
 @staticDataMap.build
 class CMTInputs(microServiceABC.MicroServiceABC):

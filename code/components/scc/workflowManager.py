@@ -239,8 +239,8 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
         
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']) + " notified for region " + str(domain['region']), response = 201)
-
-
+        
+        
 class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
 
     # Initialization method
@@ -258,6 +258,7 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
 
         print("__ Running PyCOMPSs workflow __")
         event = body
+        #print(body)
         
         # Set event's name
         basename = "event_" + event['uuid']
@@ -265,27 +266,49 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
         # Obtain the Event Id. (useful during all the workflow livecycle)    
         eid = register_event(event)
         
+        ensemble = 'statisticalCMT'
+        if 'ensemble' in body:
+            ensemble = body['ensemble']
+
         # Obtain the region where the event occured        
         region = get_region(eid)
         
-        # Obtain the setup depending of the incomming event
-        setup = get_setup(eid)
-        
+        # Obtain the setup depending on the incoming event
+        setup = get_setup(eid,ensemble)
+                
         # Wait for future to check if continue or abort
         region = compss_wait_on(region)
-        
+        setup = compss_wait_on(setup)
+
+
         if not region:
             eid = set_event_state(eid, "REJECTED")
 
-            raise Exception("There is not enough information for simulating the EQ in region")  
-        
+            # MPC improve the error message about which eq is not simulated
+            # MPC try to always print the info from IRIS for consistency unless it is not available
+
+            IRIS_idx = next((index for (index, d) in enumerate(event['alerts']) if d["agency"] == "IRIS"), None)
+
+            if IRIS_idx:
+                print_info = event['alerts'][IRIS_idx]
+            else:
+                print_info = event['alerts'][0]
+
+            error_message = f" \n WARNING: There is not enough information for simulating the following event: \n " \
+                             f"Time: {print_info['time']}, \n " \
+                             f"Description: {print_info['description']}, \n " \
+                             f"Latitude: {print_info['latitude']:.1f}, \n " \
+                             f"Longitude: {print_info['longitude']:.1f}, \n " \
+                             f"Magnitude: {print_info['magnitude']} \n"
+
+
+            return error_message, 500
+
+            #raise Exception("There is not enough information for simulating the EQ in region")
         else:        
             
             # Calculate computational resources for the given domain
-            resources = compute_resources(eid, region)
-                    
-            # Calculate the CMT input parameters
-            precmt = build_cmt_input(eid, region, resources, setup)
+            resources = compute_resources(eid, region)            
             
             # Obtain rupture generator's setup
             gpsetup = graves_pitarka_setup(eid, region, setup)     
@@ -293,51 +316,66 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
             # Wait for GP Setup
             gpsetup = compss_wait_on(gpsetup)            
             
-            # Compute alerts
-            all_results = []
-            for alert in event['alerts']:
-                
-                # Calculating CMTs
-                cmts = calculate_cmt(alert, eid, region, precmt)
-    
-                # Wait for calculated CMTs
-                cmts = compss_wait_on(cmts)
-                
-                # For each calculated or provided CMT
-                for cmt in cmts.keys():
-                    
+            if ensemble == "seisEnsMan":
+                print("__ Reading SeisEnsMan data __")            	
+            	# Read the json that has the outputs of SeisEnsMan
+                inputsSeisEnsMan = input_seisensman(eid, region, resources, setup)          
+                inputsSeisEnsMan = compss_wait_on(inputsSeisEnsMan) 		            
+	        # Compute and launch a simulation per each input given in the SeisEnsMan json
+                all_results = []
+                for alert in event['alerts']:
+                    for i in range(len(inputsSeisEnsMan)):
+                        # For each GP defined trial
+                        for slip in range(1, gpsetup['trials']+1):
+                            # Set the trial path
+                            path = basename + "/trial_" + ".".join(["seisEnsMan"+str(i), "slip"+str(slip)])
+                            data_seisEnsMan = inputsSeisEnsMan[i]['data']		                    
+		            # Call Graves-Pitarka's rupture generator for seisensman
+                            
+                            rupture = compute_graves_pitarka(eid,alert, path, data_seisEnsMan, region, gpsetup, resources, ensemble)                               
+		            # Call input parameters builder
+                            inputs = build_input_parameters(eid, alert, data_seisEnsMan, rupture, region, resources, gpsetup, ensemble)
+		                    # TODO:
+		                    # Call a service in charge of deciding the kernel
+		                    # (simulation code)
+		            # Build the Salvus input parameter file (remotely)
+                            salvus_inputs = build_salvus_parameters( eid, path, inputs, resources)
+		            # Build the Salvus input parameter file (remotely)
+                            result = run_salvus( eid, path, salvus_inputs, resources)		                    
+		            # Call Salvus post 
+                            all_results.append(run_salvus_post(eid, result, path, resources))   	       
+            else: 		   # setup["source_ensemble"] == "statisticalCMT"
+		        # Calculate the CMT input parameters
+                precmt = build_cmt_input(eid, region, resources, setup)		       
+                # Compute alerts
+                all_results = []
+                for alert in event['alerts']:	           
+                  # Calculating CMTs
+                  cmts = calculate_cmt(alert, eid, region, precmt)        
+                  # Wait for calculated CMTs
+                  cmts = compss_wait_on(cmts)	           
+                  # For each calculated or provided CMT
+                  for cmt in cmts.keys():
                     # For each GP defined trial
                     for slip in range(1, gpsetup['trials']+1):
-                        # Set the trial path
-                        path = basename + "/trial_" + ".".join([cmt, "slip"+str(slip)])
-                    
-                        # Call Graves-Pitarka's rupture generator
-                        rupture = compute_graves_pitarka(eid, alert, path,
-                                     cmts[cmt], region, gpsetup, resources)
-                                     
-                        # Call input parameters builder
-                        inputs = build_input_parameters( eid, alert, cmts[cmt], 
-                                rupture, region, resources, gpsetup)
-    
-                        # TODO:
-                        # Call a service in charge of deciding the kernel
-                        # (simulation code)
-    
-                        # Build the Salvus input parameter file (remotely)
-                        salvus_inputs = build_salvus_parameters( eid, path, 
-                                inputs, resources)
-    
-                        # Build the Salvus input parameter file (remotely)
-                        result = run_salvus( eid, path, salvus_inputs,
-                                resources)
-                        
-                        # Call Salvus post 
-                        all_results.append(run_salvus_post(eid, result, path, 
-                                        resources))        
-                        
-                        # break
+                      # Set the trial path
+                      path = basename + "/trial_" + ".".join([cmt, "slip"+str(slip)])	                
+                      # Call Graves-Pitarka's rupture generator
+                      rupture = compute_graves_pitarka(eid, alert, path, cmts[cmt], region, gpsetup, resources, ensemble)                                 
+                      # Call input parameters builder
+                      inputs = build_input_parameters(eid, alert, cmts[cmt], rupture, region, resources, gpsetup,ensemble)      
+                      # TODO
+                      # Call a service in charge of deciding the kernel
+                      # (simulation code)        
+                      # Build the Salvus input parameter file (remotely)
+                      salvus_inputs = build_salvus_parameters( eid, path, inputs, resources)        
+                      # Build the Salvus input parameter file (remotely)
+                      result = run_salvus( eid, path, salvus_inputs,resources)	                    
+                      # Call Salvus post 
+                      all_results.append(run_salvus_post(eid, result, path, resources))        
+                      #  break
+                     # break
                     # break
-                # break
     
             #TODO: Be sure this continue being necessary
             compss_wait_on(all_results)
@@ -357,6 +395,10 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                 
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']), response = 201)
+
+
+
+
 
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="eventRegistration", service_name="microServices",
@@ -379,10 +421,10 @@ def get_region(event_id):
     
 #@on_failure(management='IGNORE', returns=0)    
 @http(request="POST", resource="eventSetup", service_name="microServices",
-      payload='{ "id" : {{event_id}} }', 
+      payload='{ "id" : {{event_id}}, "ensemble" : "{{ensemble}}" }', 
       produces='{"result" : "{{return_0}}" }')
 @task(returns=1)
-def get_setup(event_id):
+def get_setup(event_id, ensemble):
     """
     """
     pass    
@@ -396,6 +438,17 @@ def set_event_state(event_id, state):
     """
     """
     pass   
+    
+#@on_failure(management='IGNORE', returns=0)    
+@http(request="POST", resource="cmtSeisEnsMan", service_name="microServices",
+      payload='{ "id" : {{event_id}}, "region": {{region}}, \
+                 "resources": {{resources}}, "setup": {{setup}} }', 
+      produces='{"result" : "{{return_0}}" }')
+@task(returns=1)
+def input_seisensman(event_id, region, resources, setup):
+    """
+    """
+    pass  
     
 #@on_failure(management='IGNORE', returns=0)    
 @http(request="POST", resource="precmt", service_name="microServices",
@@ -442,27 +495,27 @@ def graves_pitarka_setup(event_id, region, setup):
     pass      
     
 #@on_failure(management='IGNORE', returns=0)
-@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="Graves-Pitarka", service_name="slipgen",
       payload='{ "event" : {{alert}}, "id" : {{event_id}}, "CMT" : {{cmt}}, \
-                 "trial" : "{{trial}}", "region": {{region}}, "setup" : {{setup}}, \
-                 "resources" : {{resources}} }',
+                 "trial" : "{{path}}", "region": {{region}}, "setup" : {{setup}}, \
+                 "resources" : {{resources}} , "ensemble" : "{{ensemble}}" }',
       produces='{"result" : "{{return_0}}"}')
 @task(returns=1)
-def compute_graves_pitarka(event_id, alert, trial, cmt, region, setup, resources):
+def compute_graves_pitarka(event_id, alert, path, cmt, region, setup, resources, ensemble):    
     """
     """
     pass
     
+    
+    
 #@on_failure(management='IGNORE', returns=0)
-@on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="inputParametersBuilder", service_name="microServices",
       payload='{ "id" : {{event_id}}, "event" : {{alert}}, "CMT" : {{cmt}}, \
                  "rupture" : {{rupture}}, "region" : {{region}}, \
-                 "resources" : {{resources}}, "setup" : {{setup}} }',
+                 "resources" : {{resources}}, "setup" : {{setup}}, "ensemble" : "{{ensemble}}" }',
       produces='{"result" : "{{return_0}}"}')
 @task(returns=1)
-def build_input_parameters(event_id, alert, cmt, rupture, region, resources, setup):
+def build_input_parameters(event_id, alert, cmt, rupture, region, resources, setup, ensemble):   
     """
     """
     pass

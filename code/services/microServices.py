@@ -36,7 +36,7 @@ from flask import Flask, request, jsonify
 # Load micro-services implemented components
 from ucis4eq.misc import config
 from ucis4eq.scc.event import EventRegistration, EventRegion, EventCountry, EventSetState, EventSetup
-from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs 
+from ucis4eq.scc.CMTCalculation import CMTCalculation, CMTInputs, CMTSeisEnsMan
 from ucis4eq.scc.sourceAssesment import SourceType, PunctualSource 
 from ucis4eq.scc.inputBuilder import InputParametersBuilder
 from ucis4eq.scc.indexPriority import IndexPriority
@@ -60,11 +60,14 @@ def postRequest(fn):
         """
         # Create new events
         try:
+            #print("INFO: Received JSON: " + str(request.get_json()))
             body = ast.literal_eval(json.dumps(request.get_json()))
         except:
             # Bad request as request body is not available
-            # Add message for debugging purpose
-            return "", 400
+            # MPC printing information for debugging
+            print("Error in JSON request. Received the following JSON: " + str(request.get_json()))
+            traceback.print_exc()
+            return "Error in JSON request format " + str(request.get_json()), 400
 
         # Call the decorated method passing it the input JSON
         return fn(body)
@@ -125,6 +128,16 @@ def CMTCalculationService(body):
     """
     
     return CMTCalculation().entryPoint(body)
+    
+# CMT SeisEnsMan
+@microServicesApp.route("/cmtSeisEnsMan", methods=['POST'])
+@postRequest
+def CMTSeisEnsManService(body):
+    """
+    Call component implementing this micro service
+    """
+    
+    return CMTSeisEnsMan().entryPoint(body)
     
 
 # Index Priority

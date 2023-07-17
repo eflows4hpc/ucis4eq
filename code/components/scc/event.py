@@ -218,7 +218,7 @@ class EventSetup(microServiceABC.MicroServiceABC):
         # TODO: Add a clever way of setting that parameters from a set of options 
         setup = {} 
         setup["fmax_policy"] = "max"
-        setup["source_ensemble"] = "statisticalCMT"
+        setup["source_ensemble"] = body["ensemble"]
 
         # Return the event setup
         return jsonify(result = setup, response = 201)        
