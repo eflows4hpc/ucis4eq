@@ -3,8 +3,12 @@
 # Events dispatcher
 # This module is part of the Smart Center Control (SSC) solution
 #
-# Author:  Juan Esteban Rodríguez, Josep de la Puente
-# Contact: juan.rodriguez@bsc.es, josep.delapuente@bsc.es
+# Author:  Juan Esteban Rodríguez
+# Contributors: Josep de la Puentes <josep.delapuente@bsc.es>
+#               Jorge Ejarque <jorge.ejarque@bsc.es>
+#               Marisol Monterrubio <marisol.monterrubio@bsc.es>
+#               Cedric Bhihe <cedric.bhihe@bc.es>
+#
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,9 +23,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-################################################################################
-# Module imports
-# System
+# ###############################################################################
+
 import sys
 import traceback
 import json
@@ -43,15 +46,16 @@ from ucis4eq.misc import config, microServiceABC
 from ucis4eq.dal import staticDataMap, dataStructure
 
 
-################################################################################
+# ###############################################################################
 # Methods and classes
 
+
 class Event():
-    
+
     # Initialization method
     def __init__(self, lat, lon, depth, mag, strike=0., dip=0., rake=0., datetime=None):
         """
-        Initialize the event instance    
+        Initialize the event instance
         """
         self.lat = lat
         self.lon = lon
@@ -67,31 +71,31 @@ class Event():
 
     def __repr__(self):
         return "Event()"
-         
+
     def __str__(self):
         return "Strike: " + str(self.strike) + " Dip: " + str(self.dip) + " Rake: " + str(self.rake)
-        
-        
+
+
     def toJSON(self):
-        return {"strike": str(self.strike), 
+        return {"strike": str(self.strike),
                 "dip": str(self.dip),
                 "rake": str(self.rake)}
-                
-                
+
+
 @staticDataMap.build
 class CMTSeisEnsMan(microServiceABC.MicroServiceABC):
-    # Attibutes 
+    # Attibutes
     setup = {}             # Setup for the CMT calculation
     event = None           # Input event
-    
+
     # Initialization method
     def __init__(self):
         """
         Initialize the CMT SeisEnsMan component integration
         """
-        
+
     # Service's entry point definition
-    @microServiceABC.MicroServiceABC.runRegistration    
+    @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Generate a CMT inputs given for SeisEnsMan
@@ -100,32 +104,32 @@ class CMTSeisEnsMan(microServiceABC.MicroServiceABC):
         print('body_seisEnsMan', body)
         print('#########################################################')
 
-     	# Some correctness control
+        # Some correctness control
         if not body['setup']['source_ensemble'] == ensembleType:
-            raise Exception('Requested ensamble' + body['setup']['source_ensemble'] 
-                            + 'is not compatible with SeisEnsMan CMT calculation' )                
-        
+            raise Exception('Requested ensamble' + body['setup']['source_ensemble']
+                            + 'is not compatible with SeisEnsMan CMT calculation' )
+
         if not body['setup']['source_ensemble'] in body['region']['available_ensemble']:
-            raise Exception('Requested ensamble' + body['setup']['source_ensemble'] 
+            raise Exception('Requested ensamble' + body['setup']['source_ensemble']
                             + 'is not available for region ' + body['region']['id'] )
-                            
+
         # Create the data structure
         dataFormat = dataStructure.formats[body['region']['file_structure']]()
         dataFormat.prepare(body['region']['id'])
-        
+
         # Select an available ensamble
         parametersFileName = body['region']['path'] + "/" + \
                             dataFormat.getPathTo('source_ensemble') + "/" + ensembleType + \
                              ".json"
-                    
-        # Read the input from file 
+
+        # Read the input from file
         with open(parametersFileName, 'r') as f:
             inputSeisEnsMan = json.load(f)
-           
+
         print('inputseisEnsMan', inputSeisEnsMan)
-        # Retrieve the event's complete information 
+        # Retrieve the event's complete information
         #event = ucis4eq.dal.database.Requests.find_one({"_id": ObjectId(body['id'])})
-        
+
         # Add the current event
         #inputSeisEnsMan.update({
         #                        "event": {
@@ -134,56 +138,56 @@ class CMTSeisEnsMan(microServiceABC.MicroServiceABC):
         #                            }
         #                       })
 
-        return jsonify(result = inputSeisEnsMan, response = 201)    
-        
+        return jsonify(result = inputSeisEnsMan, response = 201)
+
+
 @staticDataMap.build
 class CMTInputs(microServiceABC.MicroServiceABC):
-    
-    # Attibutes 
+    # Attibutes
     setup = {}             # Setup for the CMT calculation
     event = None           # Input event
-    
+
     # Initialization method
     def __init__(self):
         """
         Initialize the CMT Preprocess component implementation
         """
-        
+
     # Service's entry point definition
-    @microServiceABC.MicroServiceABC.runRegistration    
+    @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Generate a CMT input for a posterior CMT calculation
         """
         ensembleType = "statisticalCMT"
-        
+
         # Some correctness control
         if not body['setup']['source_ensemble'] == ensembleType:
-            raise Exception('Requested ensamble' + body['setup']['source_ensemble'] 
-                            + 'is not compatible with statistical CMT calculation' )                
-        
+            raise Exception('Requested ensamble' + body['setup']['source_ensemble']
+                            + 'is not compatible with statistical CMT calculation' )
+
         if not body['setup']['source_ensemble'] in body['region']['available_ensemble']:
-            raise Exception('Requested ensamble' + body['setup']['source_ensemble'] 
+            raise Exception('Requested ensamble' + body['setup']['source_ensemble']
                             + 'is not available for region ' + body['region']['id'] )
-        
+
         # Create the data structure
         dataFormat = dataStructure.formats[body['region']['file_structure']]()
         dataFormat.prepare(body['region']['id'])
-        
+
         # Select an available ensamble
         parametersFileName = body['region']['path'] + "/" + \
                             dataFormat.getPathTo('source_ensemble') + "/" + ensembleType + \
                              ".json"
-                    
-        # Read the input from file 
+
+        # Read the input from file
         with open(parametersFileName, 'r') as f:
             inputParameters = json.load(f)
-        
+
         # TODO: This part should be done by the workflow manager
-                    
-        # Retrieve the event's complete information 
+
+        # Retrieve the event's complete information
         event = ucis4eq.dal.database.Requests.find_one({"_id": ObjectId(body['id'])})
-        
+
         # Add the current event
         inputParameters.update({
                                 "event": {
@@ -191,27 +195,27 @@ class CMTInputs(microServiceABC.MicroServiceABC):
                                     "alerts": event['alerts'],
                                     }
                                })
-        
+
         return jsonify(result = inputParameters, response = 201)
+
 
 @staticDataMap.build
 class CMTCalculation(microServiceABC.MicroServiceABC):
-    
-    # Attibutes 
+    # Attibutes
     setup = {}             # Setup for the CMT calculation
     event = None           # Input event
-    
+
     # Initialization method
     def __init__(self):
         """
         Initialize the CMT statistical component implementation
         """
-        
+
         # Load the DB
         self.db = ucis4eq.dal.database
-                    
+
     # Service's entry point definition
-    @microServiceABC.MicroServiceABC.runRegistration    
+    @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Calculate a CMT approximation from historical earthquake events
@@ -222,47 +226,47 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
 
         # Configure the component
         self.setup = body['setup']
-        
+
         # Read the input catalog from file
         catalogFileName = body['region']['path'] + "/" + \
                           dataFormat.getPathTo('source_ensemble') + "/" + \
                           self.setup['catalog']
         self.cat = obspy.read_events(catalogFileName)
-                
-        
-        # Check input parameters 
+
+
+        # Check input parameters
         #if self.setup['k']['min'] > self.setup['k']['max']:
         #    raise Exception('k-min value must be >= k-max')
-            
+
         if self.setup['distance']['growthrate'] <= 1:
             raise Exception('The growthrate value must be > 1')
-        
+
         if self.setup['distance']['threshold'] <= 0:
             raise Exception('Threshold must be > 0')
-        
+
         # Set an input event with an unknown CMT
         e = body['event']
         print(e)
-        self.event = Event(e['latitude'], 
-                           e['longitude'], 
-                           e['depth'], 
+        self.event = Event(e['latitude'],
+                           e['longitude'],
+                           e['depth'],
                            e['magnitude'],
                            datetime=e['time']
                           )
-        
+
         # Obtain Focal Mechanisms
         cmts = self._getFocalMechanism()
-        
+
         # Append input CMT's to the list of calculated ones
         # MPC commenting this because we don't necessarily want to simulate that every time.
         # if "cmt" in body['event'].keys():
         #     cmts.update(body['event']["cmt"])
 
         return jsonify(result = cmts, response = 201)
-                        
+
     def _getFocalMechanism(self):
         """
-        This method obtains the Focal Mechanism from an historical provided 
+        This method obtains the Focal Mechanism from an historical provided
         earthquakes events
         """
 
@@ -298,7 +302,7 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                                      rake=fm.rake
                                     )
                              )
-                        
+
         # Print the total number of events in the catalog and known focal
         # mechanisms
         print("\nINFO: (CMT calculation) Total number of events: " + str(len(hEvents)))
@@ -308,17 +312,17 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
         #vecMagMediana[contEventosThresholdDist,kk] = vecMagMed[kk]
         #latiMediana[contEventosThresholdDist,kk] = latiMed[kk]
         #longMediana[contEventosThresholdDist,kk] = longMed[kk]
-        #deptMediana[contEventosThresholdDist,kk] = deptMed[kk]   
+        #deptMediana[contEventosThresholdDist,kk] = deptMed[kk]
         #vecFocalMecanismMed[contEventosThresholdDist,kk,:] = mt2[kk,:]
 
         # Calculate Euclidean distances
         i = 0
         #print('self.event.depth',self.event.depth,flush=True)
-        for e in hEvents:             
+        for e in hEvents:
             #print('i=',i,flush=True)
             sphereDist = haversine((e.lat, e.lon), (self.event.lat, self.event.lon)) * 1000
             #print('e.depth',e.depth,flush=True)  ## TODOOOOOOO Check UNITS
-            depthDist = (e.depth - self.event.depth)                          
+            depthDist = (e.depth - self.event.depth)
             euclideanDist = np.sqrt(sphereDist**2 + depthDist**2)
             # Store the calculated information
             vectorDistances[i, :] = [i, euclideanDist, sphereDist, depthDist, e.strike, e.dip, e.rake,  e.mag, e.depth, e.lat, e.lon]
@@ -326,22 +330,22 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
 
         # Sort by the distance by 'euclideanDist' field
         distSorted = vectorDistances[vectorDistances[:,1].argsort()]
-        
+
         # Increase distance threshold till the minimum k-neighbors be reached
         kmin = self.setup['k']['min']
         growthrate = self.setup['distance']['growthrate']
         threshold = self.setup['distance']['threshold']*1000
-        
+
         while True:
 
             # Sort and filter with the new threshold value
             #print('distSorted[:,1] <= threshold',distSorted[:,1],' <= ' ,threshold)
             distFiltered = distSorted[np.where(distSorted[:,1] <= threshold)]
-            #print("distFiltered", distFiltered)      
+            #print("distFiltered", distFiltered)
             # distFiltered = distFiltered[0:self.setup['k']['max'], :]
-            
+
             k = len(distFiltered)
-            vecMagNeig = distFiltered[0:k,7]            
+            vecMagNeig = distFiltered[0:k,7]
             vecDepNeig = distFiltered[0:k,8]
             vecLatNeig = distFiltered[0:k,9]
             vecLonNeig = distFiltered[0:k,10]
@@ -352,27 +356,27 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
             # Check if the number of neighbors found was enough
             if (kmin <= k) or (k == len(distSorted)):
                 break
-            
+
             # Increase the search threshold
             threshold = threshold * growthrate
 
         #print("Neighbors found:", str(k), "Final threshold:", str(threshold), "meters")
-        
+
         # Check if the algorithm can continue
         if k < kmin:
             raise Exception('{}-neighbors found while the minimum required is {}'.format(k, kmin))
-        
+
         # Calculate the median Focal Mechanism
         self.event.strike = np.percentile(distFiltered[0:k, 4], 50, interpolation = 'midpoint')
         self.event.dip = np.percentile(distFiltered[0:k, 5], 50, interpolation = 'midpoint')
         self.event.rake = np.percentile(distFiltered[0:k, 6], 50, interpolation = 'midpoint')
-        
+
         AuxNodalPlanes = []
         contNodalPlanes = -1
         # Build the list of CMTs for the current events
         cmts = {"Median": self.event.toJSON()}
         aux_plane_median = aux_plane(self.event.strike, self.event.dip, self.event.rake)
-        AuxNodalPlanes.append(Event(0.0,0.0,0.0,0.0,aux_plane_median[0],aux_plane_median[1],aux_plane_median[2]))  
+        AuxNodalPlanes.append(Event(0.0,0.0,0.0,0.0,aux_plane_median[0],aux_plane_median[1],aux_plane_median[2]))
         contNodalPlanes += 1
         e = AuxNodalPlanes[contNodalPlanes]
         cmts.update({"Median_AuxPlane" : e.toJSON()})
@@ -389,7 +393,7 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
 
         for i in range(0, nb_nearest_neighbours):
             #hEvents[distFiltered[0:self.setup['output']['focalmechanisms'], 0]]:
-            name = "k-" + str(i+1) +  ""             
+            name = "k-" + str(i+1) +  ""
             e = hEvents[int(distFiltered[i, 0])]
             #print("[" + name + "]"+ " --> " + str(e))
             cmts.update({name: e.toJSON()})
@@ -429,54 +433,61 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                 # distEpicentral = haversine(dataCoordinatesCentroidEvent, (vecLatNeig[kk],vecLonNeig[kk]))
                 X_results[cont, 0:3] = X_results_FM[cont, :]
                 distEpicentral = haversine(dataCoordinatesCentroidEvent, (vecLatNeig[kk], vecLonNeig[kk]))
-                X_results[cont, 3] = np.sqrt(distEpicentral ** 2 + ((profEvent / 1000) - (vecDepNeig[kk] / 1000)) ** 2)
+                X_results[cont, 3] = np.sqrt(distEpicentral **2 \
+                        + ((profEvent / 1000) - (vecDepNeig[kk] / 1000)) **2
+                                             )
 
                 # print('distEpicentral',distEpicentral)
                 # print('vecDepNeig[kk]',vecDepNeig[kk])
                 # print('profEvent/1000',profEvent/1000,flush=True)
-                # distancesEvents[cont] = np.sqrt(distEpicentral**2 + ((profEvent/1000) - (vecDepNeig[kk]/1000))**2)
+                # distancesEvents[cont] = np.sqrt(distEpicentral**2 + ((profEvent / 1000) - (vecDepNeig[kk]/1000))**2)
                 # print('distancesEvents[cont]',distancesEvents[cont],flush=True)
                 # X_results[cont, 3] = distancesEvents[cont]
                 # print('X_results[cont,:]',  X_results[cont,:], flush=True)
         ## DBSCAN hyperparameters
         nearest_neighbors = NearestNeighbors(n_neighbors=2)
-        neighbors = nearest_neighbors.fit(X_results[0:cont+1,:])
-        distances, indices = neighbors.kneighbors(X_results[0:cont+1,:])
-        distances = np.sort(distances[:,1], axis=0)
+        neighbors = nearest_neighbors.fit(X_results[0:cont + 1, :])
+        distances, indices = neighbors.kneighbors(X_results[0:cont + 1, :])
+        distances = np.sort(distances[:, 1], axis=0)
         i = np.arange(len(distances))
-        knee = KneeLocator(i, distances, S=1, curve='convex', direction='increasing', interp_method='polynomial')
-
+        knee = KneeLocator(i, distances, S=1, curve='convex',
+                           direction='increasing',
+                           interp_method='polynomial'
+                           )
         try:
-            clustering = DBSCAN(eps = distances[knee.knee], min_samples=2).fit(X_results[0:cont+1,:])
-            X_resultsCluster = np.zeros((cont+1,9))
-            X_resultsCluster[:,0:4] = X_results[0:cont+1,:]
-            X_resultsCluster[:,4] = clustering.labels_
-            vecNumElementsCluster = np.zeros(cont+1)
+            clustering = DBSCAN(eps=distances[knee.knee],
+                                min_samples=2).fit(X_results[0:cont + 1, :])
+            X_resultsCluster = np.zeros((cont + 1, 9))
+            X_resultsCluster[:, 0:4] = X_results[0:cont + 1, :]
+            X_resultsCluster[:, 4] = clustering.labels_
+            vecNumElementsCluster = np.zeros(cont + 1)
             contCluster = 0
             contNumberCluster = -1
-            for iCluster in np.arange(min(X_resultsCluster[:,4]),max(X_resultsCluster[:,4])+1):
-              contNumberCluster += 1
-              for kk in range(0,cont+1):
-                if X_resultsCluster[kk,4] == iCluster:
-                  contCluster += 1
-              vecNumElementsCluster[contNumberCluster] = contCluster
-              contCluster = 0
+            for iCluster in np.arange(min(X_resultsCluster[:, 4]),
+                                      max(X_resultsCluster[:, 4]) + 1):
+                contNumberCluster += 1
+                for kk in range(0, cont + 1):
+                    if X_resultsCluster[kk, 4] == iCluster:
+                        contCluster += 1
+                vecNumElementsCluster[contNumberCluster] = contCluster
+                contCluster = 0
 
-            percentageEachCluster = np.zeros(contNumberCluster+1)
-            sumTotEvents = sum(vecNumElementsCluster[0:contNumberCluster+1])
+            percentageEachCluster = np.zeros(contNumberCluster + 1)
+            sumTotEvents = sum(vecNumElementsCluster[0:contNumberCluster + 1])
 
-            for ij in np.arange(contNumberCluster+1):
-              percentageEachCluster[ij] = vecNumElementsCluster[ij]/sumTotEvents
+            for ij in np.arange(contNumberCluster + 1):
+                percentageEachCluster[ij] = vecNumElementsCluster[ij] / sumTotEvents
 
             contNumberCluster = -1
-            for iCluster in np.arange(min(X_resultsCluster[:,4]),max(X_resultsCluster[:,4])+1):
+            for iCluster in np.arange(min(X_resultsCluster[:, 4]),
+                                      max(X_resultsCluster[:, 4]) + 1):
                 contNumberCluster += 1
-                for kk in range(0,cont+1):
-                    if X_resultsCluster[kk,4] == iCluster:
-                        X_resultsCluster[kk,5] = percentageEachCluster[contNumberCluster]
-                        X_resultsCluster[kk,6] = vecLatNeig[kk]
-                        X_resultsCluster[kk,7] = vecLonNeig[kk]
-                        X_resultsCluster[kk,8] = vecDepNeig[kk]
+                for kk in range(0,cont + 1):
+                    if X_resultsCluster[kk, 4] == iCluster:
+                        X_resultsCluster[kk, 5] = percentageEachCluster[contNumberCluster]
+                        X_resultsCluster[kk, 6] = vecLatNeig[kk]
+                        X_resultsCluster[kk, 7] = vecLonNeig[kk]
+                        X_resultsCluster[kk, 8] = vecDepNeig[kk]
 
             # For each cluster obtained the median and the mean of the FM considering each angle as independent variable. Compare with the k-closest neighbors
 
@@ -561,4 +572,4 @@ class CMTCalculation(microServiceABC.MicroServiceABC):
                   )
         # Return the JSON file!!!!
         return cmts
-      
+

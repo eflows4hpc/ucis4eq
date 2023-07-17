@@ -32,11 +32,12 @@ if [ $? -ne 0 ]; then
 fi
 
 curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/docker-compose-add-ssh-key-to-docker.yml/raw?ref=migration-fixes' >| docker-compose-add-ssh-key-to-docker.yml
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/docker-compose-debug.yml/raw?ref=migration-fixes' >| docker-compose-debug.yml
 curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/deployment%2Fdockers%2FDockerfile-credentials/raw?ref=migration-fixes' >| deployment/dockers/Dockerfile-credentials
 
 printf "%s\n" "... for compute and data repositories setup..."
-curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2FDAL.template.json/raw?ref=migration-fixes' >| data/DAL.json
-curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2FSites.template.json/raw?ref=migration-fixes' >| data/Sites.json
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2FDAL.template.json/raw?ref=migration-fixes' >| data/DAL.template.json
+curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2FSites.template.json/raw?ref=migration-fixes' >| data/Sites.template.json
 curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2Fresources.xml/raw?ref=migration-fixes' >| data/resources.xml
 curl --silent GET --header 'PRIVATE-TOKEN: ER9nSBQo8xsiczs47pAn' 'https://gitlab.bsc.es/api/v4/projects/2703/repository/files/data%2Fproject.xml/raw?ref=migration-fixes' >| data/project.xml
 

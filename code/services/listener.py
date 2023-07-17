@@ -21,7 +21,7 @@
 
 # ###############################################################################
 
-#import os, json
+import os, json
 import sys
 import traceback
 import argparse
@@ -45,7 +45,6 @@ def parser():
     return args
 
 
-# Main Method
 def main():
     try:
         # Call the parser
@@ -59,6 +58,7 @@ def main():
         print('-' * 80)
         traceback.print_exc(file=sys.stdout)
         print('-' * 80)
+
 
 # ###############################################################################
 # Run the program

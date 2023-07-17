@@ -21,7 +21,7 @@
 
 # ###############################################################################
 
-#import sys
+import sys
 import json
 import ast
 import traceback
@@ -83,15 +83,14 @@ def get_initial_response():
     # Returning the object
     return resp
 
-################################################################################
+# ###############################################################################
 # Services definition
-################################################################################
+# ###############################################################################
+
 
 # Generate input parameters for Salvus
 @salvusServiceApp.route("/SalvusPrepare", methods=['POST'])
 @postRequest
-
-
 def SalvusPrepareService(body):
     """
     Call component implementing this service

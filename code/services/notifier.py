@@ -19,8 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-################################################################################
-# Module imports
+# ###############################################################################
+
 import os
 import sys
 import traceback
@@ -28,10 +28,7 @@ import argparse
 import json
 import requests
 
-################################################################################
-# Methods and classes
 
-# Arguments parser
 def parser():
 
     # Parse the arguments
@@ -44,12 +41,11 @@ def parser():
 
     # Check the arguments
     if not os.path.isfile(args.config):
-      raise Exception("The configuration file '"+args.config+ "' doesn't exist")
+        raise Exception("The configuration file '"+args.config+ "' doesn't exist")
 
     # Return them
     return args
 
-# Main Method
 def main():
     try:
         # Call the parser
@@ -67,8 +63,7 @@ def main():
         try:
             req = requests.post(config['url']+config['routes']['POST'], json=data)
         except Exception as error:
-            print("Unaccesible event dispatcher: Please, check that \
- dispatcher is running and avaible")
+            print("Unaccesible event dispatcher: check that dispatcher is running and available")
 
     except Exception as error:
         print("Exception in code:")
@@ -76,7 +71,7 @@ def main():
         traceback.print_exc(file=sys.stdout)
         print('-'*80)
 
-################################################################################
-# Run the program
+# ###############################################################################
+
 if __name__ == "__main__":
     main()

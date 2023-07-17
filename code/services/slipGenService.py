@@ -19,10 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-################################################################################
-# Module imports
+# ###############################################################################
 
-# System imports
 import sys
 import json
 import ast
@@ -35,9 +33,9 @@ from flask import Flask, request, jsonify
 # Load slip-gen service implemented components
 from ucis4eq.scc.slipGen import SlipGenGP, SlipGenGPSetup
 
-################################################################################
+# ###############################################################################
 # Dispatcher App creation
-################################################################################
+# ###############################################################################
 slipGenServiceApp = Flask(__name__)
 
 
@@ -80,9 +78,9 @@ def get_initial_response():
     # Returning the object
     return resp
 
-################################################################################
+# ###############################################################################
 # Services definition
-################################################################################
+# ###############################################################################
 
 # Determine the kind of source for the simulation
 @slipGenServiceApp.route("/preGraves-Pitarka", methods=['POST'])
@@ -102,9 +100,9 @@ def slipGenGPService(body):
     """
     return SlipGenGP().entryPoint(body)
 
-################################################################################
+# ###############################################################################
 # Start the micro-services aplication
-################################################################################
+# ###############################################################################
 
 if __name__ == '__main__':
     # Running app in debug mode

@@ -3,8 +3,8 @@
 # Events dispatcher
 # This module is part of the Smart Center Control (SSC) solution
 #
-# Author:  Juan Esteban Rodríguez, Josep de la Puente
-# Contact: juan.rodriguez@bsc.es, josep.delapuente@bsc.es
+# Author:  Juan Esteban Rodríguez2s
+# Contributor: Josep de la Puente <josep.delapuente@bsc.es>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,9 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-################################################################################
-# Module imports
-# System
+# ###############################################################################
+
 import sys
 import os
 import traceback
@@ -37,7 +36,6 @@ from bson.json_util import dumps
 from bson import ObjectId
 from urllib.request import urlopen
 
-# Third parties
 from flask import jsonify
 
 # Internal
@@ -46,16 +44,16 @@ import ucis4eq as ucis4eq
 from ucis4eq.dal import staticDataMap
 import ucis4eq.dal as dal
 
-################################################################################
+# ###############################################################################
 # Methods and classes
 class EventRegistration(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
         """
-        Initialize the eventDispatcher component implementation    
+        Initialize the eventDispatcher component implementation
         """
-        
+
         # Select the database
         self.db = ucis4eq.dal.database
 
@@ -75,24 +73,24 @@ class EventRegistration(microServiceABC.MicroServiceABC):
         field['uuid'] = body['uuid']
         field['state'] = 'LAUNCHED'
         event = self.db.Requests.insert_one(field).inserted_id
-        
+
         print("Request Id. [" + str(event) + "] registered for event [" + \
              field['uuid'] + "]", flush=True)
 
         # Return list of Id of the newly created item
         return jsonify(result = str(event), response = 201)
-        
-        
-################################################################################
+
+
+# ###############################################################################
 # Methods and classes
 class EventSetState(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
         """
-        Initialize the eventDispatcher component implementation    
+        Initialize the eventDispatcher component implementation
         """
-        
+
         # Select the database
         self.db = ucis4eq.dal.database
 
@@ -108,53 +106,47 @@ class EventSetState(microServiceABC.MicroServiceABC):
 
         # Return list of Id of the newly created item
         return jsonify(result = str(body['id']), response = 201)
-        
-@staticDataMap.build        
+
+@staticDataMap.build
 class EventRegion(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
         """
-        Initialize the eventDispatcher component implementation    
+        Initialize the eventDispatcher component implementation
         """
-        
+
         # Select the database
         self.db = ucis4eq.dal.database
-        
+
         # Initialize output results
         self.region = None
+
 
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Figure out the region which the incoming EQ event belong
-        """                    
-        # Retrieve the event's complete information 
+        """
+        # Retrieve the event's complete information
         rid = body['id']
-        
+
         # Build the pipeline for obtaining the AVG of the set of alerts
         avgPosPipeline = [
-            { 
-              "$match" : {
-                "_id": ObjectId(rid)
-              }
-            },
-            {
-              "$unwind": "$alerts"
-            },
-            {
-              "$group": {
+            {"$match" : {"_id": ObjectId(rid)}},
+            {"$unwind": "$alerts"},
+            {"$group": {
                 "_id": ObjectId(rid),
                 "avgLatitude": { "$avg": "$alerts.latitude" },
                 "avgLongitude": { "$avg": "$alerts.longitude" }
-              }
+             }
             }
-         ]
+        ]
 
         # It assumed that just one result is obtained
         for event in self.db['Requests'].aggregate(avgPosPipeline):
-            # Build the pipeline for obtaining the regon from a concrete given 
+            # Build the pipeline for obtaining the regon from a concrete given
             # event
             regionPipeline = [
                {
@@ -163,17 +155,17 @@ class EventRegion(microServiceABC.MicroServiceABC):
                         "$toString": "$_id"
                     },
                     "id": 1,
-                    "file_structure": 1, 
-                    "available_ensemble": 1, 
-                    "available_fmax": 1,    
-                    "depth_in_m": 1,                
+                    "file_structure": 1,
+                    "available_ensemble": 1,
+                    "available_fmax": 1,
+                    "depth_in_m": 1,
                     "min_latitude" : "$min_latitude",
                     "max_latitude" : "$max_latitude",
                     "min_longitude" : "$min_longitude",
-                    "max_longitude" : "$max_longitude" 
+                    "max_longitude" : "$max_longitude"
                  }
                },
-               { 
+               {
                  "$match" : {
                    "$and" : [
                     {"min_latitude": {"$lte": event["avgLatitude"]}},
@@ -185,43 +177,43 @@ class EventRegion(microServiceABC.MicroServiceABC):
                }
             ]
 
-            #for region in self.db['Regions'].aggregate(regionPipeline): 
+            #for region in self.db['Regions'].aggregate(regionPipeline):
             regions = list(self.db['Regions'].aggregate(regionPipeline))
             if regions:
                 # Select the region
                 #TODO: Calculate the area of each of the regions an choose the minimal one
-                # Ref: https://stackoverflow.com/questions/4681737/how-to-calculate-the-area-of-a-polygon-on-the-earths-surface-using-python   
+                # Ref: https://stackoverflow.com/questions/4681737/how-to-calculate-the-area-of-a-polygon-on-the-earths-surface-using-python
                 self.region = regions[0]
-                
+
                 # Download remote region's setup
                 self.region['path'] = self.fileMapping[self.region['id']]
-                        
+
         # Return list of Id of the newly created item
-        return jsonify(result = self.region, response = 201)
+        return jsonify(result=self.region, response=201)
+
 
 @staticDataMap.build
 class EventSetup(microServiceABC.MicroServiceABC):
-
     # Initialization method
     def __init__(self):
         """
-        Initialize the eventSetup component implementation    
+        Initialize the eventSetup component implementation
         """
-         
+
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
         Determine the setup that better fit the incomming event charasteristics
         """
-        
-        # TODO: Add a clever way of setting that parameters from a set of options 
-        setup = {} 
+        # TODO: Add a clever way of setting that parameters from a set of options
+        setup = {}
         setup["fmax_policy"] = "max"
         setup["source_ensemble"] = body["ensemble"]
 
         # Return the event setup
-        return jsonify(result = setup, response = 201)        
+        return jsonify(result = setup, response = 201)
+
 
 @staticDataMap.build
 class EventCountry(microServiceABC.MicroServiceABC):
@@ -229,107 +221,95 @@ class EventCountry(microServiceABC.MicroServiceABC):
     # Initialization method
     def __init__(self):
         """
-        Initialize the eventDispatcher component implementation    
+        Initialize the eventDispatcher component implementation
         """
-         
+
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
-        Figure out the country which the incoming EQ event belong 
+        Figure out the country which the incoming EQ event belong
         """
-        
         alert = body['alerts'][0];
         country = self._getPlace(alert['latitude'], alert['longitude'])
 
         # Return list of Id of the newly created item
         return jsonify(result = country, response = 201)
-        
+
+
     def _getPlace(self, lat, lon):
-                
-        ###################################################
+        # ##################################################
         # TODO: This is not a good solution at all, please check!!!!!!!!!1
-        ###################################################
-        
-        # TODO: Download the countries.geojson to save in local 
+        # ##################################################
+
+        # TODO: Download the countries.geojson to save in local
         # data = requests.get("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").json()
         with open(self.fileMapping["countries"], 'r', encoding='utf-8') as f:
             data = json.load(f)
-                
+
         countries = {}
         for feature in data["features"]:
             geom = feature["geometry"]
             country = feature["properties"]["ADMIN"]
             countries[country] = prep(shape(geom))
-            
-            
+
         def get_country(lon, lat):
-          point = Point(lon, lat)
-          for country, geom in countries.items():
-              if geom.contains(point):
-                  return country
-        
+            point = Point(lon, lat)
+            for country, geom in countries.items():
+                if geom.contains(point):
+                    return country
+
         country = get_country(lon, lat)
-        if not country: 
-          raise Exception("Ouch! No country was found")
-              
+        if not country:
+            raise Exception("Ouch! No country was found")
+
         return country.upper()
-      
-      
+
+
 class EventEPSG(microServiceABC.MicroServiceABC):
 
     # Initialization method
     def __init__(self):
         """
-        Initialize the eventDispatcher component implementation    
+        Initialize the eventDispatcher component implementation
         """
 
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration
     def entryPoint(self, body):
         """
-        Figure out the country which the incoming EQ event belong 
+        Figure out the country which the incoming EQ event belong
         """
-        
-        alert = body['alerts'][0];
-        epsg = self._getEPSG(alert['longitude'],alert['latitude'])
-        print(epsg, flush = True)
-        # Return list of Id of the newly created item
-        return jsonify(result = epsg, response = 201)
-        
-    def _getEPSG(self, longitude, latitude):   
-      
-    
-      # Special zones for Svalbard and Norway
-      # Source: https://gis.stackexchange.com/questions/365584/convert-utm-zone-into-epsg-code
-        def getZones(longitude, latitude) :
-            
-            if (latitude >= 72.0 and latitude < 84.0 ) :
-                if (longitude >= 0.0  and longitude <  9.0) :
-                      return 31              
-            if (longitude >= 9.0  and longitude < 21.0):
-                  return 33
-            if (longitude >= 21.0 and longitude < 33.0):
-                  return 35
-            if (longitude >= 33.0 and longitude < 42.0) :
-                  return 37
-            return (math.floor((longitude + 180) / 6) ) + 1 
-    
 
-        def findEPSG(longitude, latitude) :
-            
+        alert = body['alerts'][0]
+        epsg = self._getEPSG(alert['longitude'], alert['latitude'])
+        print(epsg, flush=True)
+        # Return list of Id of the newly created item
+        return jsonify(result=epsg, response=201)
+
+    def _getEPSG(self, longitude, latitude):
+        # Special zones for Svalbard and Norway
+        # Source: https://gis.stackexchange.com/questions/365584/convert-utm-zone-into-epsg-code
+        def getZones(longitude, latitude):
+
+            if (latitude >= 72.0 and latitude < 84.0):
+                if (longitude >= 0.0 and longitude < 9.0):
+                    return 31
+            if (longitude >= 9.0 and longitude < 21.0):
+                return 33
+            if (longitude >= 21.0 and longitude < 33.0):
+                return 35
+            if (longitude >= 33.0 and longitude < 42.0):
+                return 37
+            return (math.floor((longitude + 180) / 6)) + 1
+
+        def findEPSG(longitude, latitude):
             zone = getZones(longitude, latitude)
-            #zone = (math.floor((longitude + 180) / 6) ) + 1  # without special zones for Svalbard and Norway         
+            #zone = (math.floor((longitude + 180) / 6) ) + 1  # without special zones for Svalbard and Norway
             epsg_code = 32600
             epsg_code += int(zone)
-            if (latitude < 0): # South
-                epsg_code += 100    
+            if (latitude < 0):   # South
+                epsg_code += 100
             return epsg_code
-              
-              
-        return(findEPSG(longitude,latitude))
-      
-      
-      
-      
-      
+
+        return (findEPSG(longitude, latitude))

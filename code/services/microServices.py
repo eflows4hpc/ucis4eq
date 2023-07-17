@@ -3,8 +3,8 @@
 # RESTful server for event treatment
 # This module is part of the Automatic Alert System (AAS) solution
 #
-# Author:  Juan Esteban Rodríguez, Josep de la Puente
-# Contact: juan.rodriguez@bsc.es, josep.delapuente@bsc.es
+# Author:  Juan Esteban Rodríguez
+# Contributor: Josep de la Puente <josep.delapuente@bsc.es>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,9 +20,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # ###############################################################################
-# Module imports
 
-# import sys, os, json
+import sys, os, json
 import ast
 import traceback
 from functools import wraps
