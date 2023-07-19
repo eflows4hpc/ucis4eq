@@ -3,8 +3,8 @@
 # FDSN-WebService Listener
 # This module is part of the Automatic Alert System (AAS) solution
 #
-# Author:  Juan Esteban Rodríguez, Josep de la Puente
-# Contact: juan.rodriguez@bsc.es, josep.delapuente@bsc.es
+# Author:  Juan Esteban Rodríguez
+# Contributor: Josep de la Puente <josep.delapuente@bsc.es>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,14 +23,14 @@
 # Module imports
 import os
 import uuid
-#import sys
+import sys
 import json
 import requests
 import sched, time
 import multiprocessing
 import obspy
 import datetime
-#import psutil
+import psutil
 
 from ucis4eq.dal import staticDataMap
 from ucis4eq.misc import config
@@ -119,7 +119,7 @@ class WSGeneral:
         # For each provided repository
         tasks = [(self._requestRepository,
                  (r, self.config['repositories'][r]+self.query))
-                    for r in self.config['repositories'].keys()]
+                 for r in self.config['repositories'].keys()]
         imap_unordered_it = pool.imap_unordered(self._runtask, tasks)
 
         #print("All ready!", flush=True)
@@ -127,14 +127,14 @@ class WSGeneral:
         # Wait the tasks to finish
         for name, nelems, result in imap_unordered_it:
             self.results[name] = result
-            if( nelems ):
+            if (nelems):
                 dump[name] = nelems
 
         # Store the current timestamp
         output = self._postprocess_actions()
 
         # If there are elements, write them and trigger the set action
-        if( output ):
+        if (output):
             #time2 = datetime.datetime.now(datetime.timezone.utc).strftime('%d%m%Y_%H%M%S')+"_"
             #file = self.outdir + time2 + self.config['listener']['results_name']
 
