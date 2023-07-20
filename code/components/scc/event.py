@@ -90,7 +90,6 @@ class EventSetState(microServiceABC.MicroServiceABC):
         """
         Initialize the eventDispatcher component implementation
         """
-
         # Select the database
         self.db = ucis4eq.dal.database
 
@@ -100,12 +99,12 @@ class EventSetState(microServiceABC.MicroServiceABC):
         """
         Update the status of an earthquake event
         """
-
         self.db.Requests.update_one({'_id': ObjectId(body['id'])},
-            {'$set': {"state": body['state']}})
+                                    {'$set': {"state": body['state']}})
 
         # Return list of Id of the newly created item
-        return jsonify(result = str(body['id']), response = 201)
+        return jsonify(result=str(body['id']), response=201)
+
 
 @staticDataMap.build
 class EventRegion(microServiceABC.MicroServiceABC):
@@ -115,13 +114,11 @@ class EventRegion(microServiceABC.MicroServiceABC):
         """
         Initialize the eventDispatcher component implementation
         """
-
         # Select the database
         self.db = ucis4eq.dal.database
 
         # Initialize output results
         self.region = None
-
 
     # Service's entry point definition
     @microServiceABC.MicroServiceABC.runRegistration
@@ -134,54 +131,42 @@ class EventRegion(microServiceABC.MicroServiceABC):
 
         # Build the pipeline for obtaining the AVG of the set of alerts
         avgPosPipeline = [
-            {"$match" : {"_id": ObjectId(rid)}},
+            {"$match": {"_id": ObjectId(rid)}},
             {"$unwind": "$alerts"},
-            {"$group": {
-                "_id": ObjectId(rid),
-                "avgLatitude": { "$avg": "$alerts.latitude" },
-                "avgLongitude": { "$avg": "$alerts.longitude" }
+            {"$group": {"_id": ObjectId(rid),
+                        "avgLatitude": {"$avg": "$alerts.latitude"},
+                        "avgLongitude": {"$avg": "$alerts.longitude"}
+                        }
              }
-            }
         ]
 
         # It assumed that just one result is obtained
         for event in self.db['Requests'].aggregate(avgPosPipeline):
-            # Build the pipeline for obtaining the regon from a concrete given
-            # event
-            regionPipeline = [
-               {
-                 "$project" : {
-                    "_id" : {
-                        "$toString": "$_id"
-                    },
-                    "id": 1,
-                    "file_structure": 1,
-                    "available_ensemble": 1,
-                    "available_fmax": 1,
-                    "depth_in_m": 1,
-                    "min_latitude" : "$min_latitude",
-                    "max_latitude" : "$max_latitude",
-                    "min_longitude" : "$min_longitude",
-                    "max_longitude" : "$max_longitude"
-                 }
-               },
-               {
-                 "$match" : {
-                   "$and" : [
+            # Build pipeline to obtain the region from a concrete given event
+            regionPipeline = [{"$project": {
+                "_id": {"$toString": "$_id"},
+                "id": 1,
+                "file_structure": 1,
+                "available_ensemble": 1,
+                "available_fmax": 1,
+                "depth_in_m": 1,
+                "min_latitude": "$min_latitude",
+                "max_latitude": "$max_latitude",
+                "min_longitude": "$min_longitude",
+                "max_longitude": "$max_longitude"}
+            }, {
+                "$match": {"$and": [
                     {"min_latitude": {"$lte": event["avgLatitude"]}},
                     {"max_latitude": {"$gte": event["avgLatitude"]}},
                     {"min_longitude": {"$lte": event["avgLongitude"]}},
-                    {"max_longitude": {"$gte": event["avgLongitude"]}}
-                   ]
-                 }
-               }
+                    {"max_longitude": {"$gte": event["avgLongitude"]}}]}}
             ]
 
-            #for region in self.db['Regions'].aggregate(regionPipeline):
+            # For region in self.db['Regions'].aggregate(regionPipeline):
             regions = list(self.db['Regions'].aggregate(regionPipeline))
             if regions:
                 # Select the region
-                #TODO: Calculate the area of each of the regions an choose the minimal one
+                # TODO: Calculate the area of each of the regions an choose the minimal one
                 # Ref: https://stackoverflow.com/questions/4681737/how-to-calculate-the-area-of-a-polygon-on-the-earths-surface-using-python
                 self.region = regions[0]
 
