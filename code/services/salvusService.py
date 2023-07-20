@@ -53,11 +53,7 @@ def postRequest(fn):
             body = ast.literal_eval(json.dumps(request.get_json()))
         except:
             # Bad request as request body is not available
-<<<<<<< HEAD
-            # Add message for debugging purpose
-=======
-            # MPC printing information for debugging
->>>>>>> aa4808f (add messages to silent errors)
+            # MPC: add info message for debugging purposes
             print("Error in JSON request. Received the following JSON: " + str(request.get_json()))
             traceback.print_exc()
             return "Error in JSON request format " + str(request.get_json()), 400
