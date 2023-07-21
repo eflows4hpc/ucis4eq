@@ -9,8 +9,8 @@ scenario.
 This software solution was developed at BSC as part of the ChEESE-COE project.
 It was later modified as part of the ChEESE-2P and eFlows4HPC projects.
 
-Author:  Juan Esteban Rodríguez, Marisol Monterrubio, Josep de la Puente
-Contributor: Cedric Bhihe, Jorge Ejarque
+Authors:  Juan Esteban Rodríguez, Marisol Monterrubio, Josep de la Puente
+Contributors: Marta Pienkowska-Cote, Jorge Ejarque, Cedric Bhihe
 Contacts:
     marisol.monterrubio@bsc.es
     cedric.bhihe@bsc.es
@@ -91,4 +91,4 @@ Open a browser and go to http://127.0.0.1:8050/
 
 ### 4 - Quickstart tutorial
 
-Independently from the aboves, this repo contains a  quickstart tutorial in PDF format to guide you step by step through basic installation and launch on the Marenostrum infrastructure at BSC.
+Independently from the above, this repo contains a quickstart tutorial in PDF format to guide you step by step through basic installation and launch on the BSC infrastructure.
