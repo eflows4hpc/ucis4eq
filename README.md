@@ -89,6 +89,6 @@ curl -X POST -H 'Content-Type: application/json' -d @data/SAMOS_EQ_Event_DEMO.js
 
 Open a browser and go to http://127.0.0.1:8050/
 
-### 4 - Quickstart tutorial
+## Quickstart tutorial
 
 Independently from the above, this repo contains a quickstart tutorial in PDF format to guide you step by step through basic installation and launch on the BSC infrastructure.
