@@ -107,8 +107,29 @@ class SimulationRun(microServiceABC.MicroServiceABC):
         relations['HYPO_DOWN_DIP'] = relations['FAULT_WIDTH']/2 #16.24
 
         return relations
+    
+    def _SeisEnsManRelations(self, mw, lat, lon, depth, length, area):
 
-    def create_rupture_inputsss(self, path, remote_path, body):
+
+        relations = {}
+
+        relations['FAULT_LENGTH'] = float(length)
+        relations['FAULT_WIDTH'] =  float(area)/relations['FAULT_LENGTH']
+
+        if float(depth) < relations['FAULT_WIDTH']/2:
+            relations['DEPTH_TO_TOP'] =  0
+            relations['HYPO_DOWN_DIP'] =  float(depth)
+        else:
+            relations['DEPTH_TO_TOP'] = float(depth) - (relations['FAULT_WIDTH']/2)
+            relations['HYPO_DOWN_DIP'] = relations['FAULT_WIDTH']/2
+
+        relations['LAT_TOP_CENTER'] = float(lat)
+        relations['LON_TOP_CENTER'] = float(lon)
+        relations['HYPO_ALONG_STK'] = 0.0
+
+        return relations
+
+    def create_rupture_inputs(self, path, remote_path, body):
         cmt = body['CMT']
         event = body['event']
         setup = body['setup']
@@ -116,16 +137,37 @@ class SimulationRun(microServiceABC.MicroServiceABC):
         source = path +"/inputs.src"
         remote_source = remote_path + "/inputs.src"
         # Generate GP source file
-        srcParams = self._MaiBerozaRelations(event['magnitude'], event['latitude'],
-                                  event['longitude'], event['depth'] )
+        if body['ensemble'] == "statisticalCMT":
+            srcParams = self._MaiBerozaRelations(event['magnitude'],
+                                                 event['latitude'],
+                                                 event['longitude'],
+                                                 event['depth'])
+            srcParams['MAGNITUDE'] = event['magnitude']
+            srcParams['STRIKE'] = cmt['strike']
+            srcParams['RAKE'] = cmt['rake']
+            srcParams['DIP'] = cmt['dip']
+            setup = body['setup']
+            srcParams['DWID'] = setup['dwid']
+            srcParams['DLEN'] = setup['dlen']
+            srcParams['CORNER_FREQ'] = setup['corner_freq']
 
-        srcParams['MAGNITUDE'] = event['magnitude']
-        srcParams['STRIKE'] = cmt['strike']
-        srcParams['RAKE'] = cmt['rake']
-        srcParams['DIP'] = cmt['dip']
-        srcParams['DWID'] = setup['dwid']
-        srcParams['DLEN'] = setup['dlen']
-        srcParams['CORNER_FREQ'] = setup['corner_freq']
+        elif body['ensemble'] == "seisEnsMan":
+            srcParams = self._SeisEnsManRelations(cmt['magnitude'],
+                                                  cmt['latitude'],
+                                                  cmt['longitude'],
+                                                  cmt['depth'],
+                                                  cmt['faultLength'],
+                                                  cmt['faultArea'])
+            srcParams['MAGNITUDE'] = cmt['magnitude']
+            srcParams['STRIKE'] = cmt['strike']
+            srcParams['RAKE'] = cmt['rake']
+            srcParams['DIP'] = cmt['dip']
+            setup = body['setup']
+            srcParams['DWID'] = setup['dwid']
+            srcParams['DLEN'] = setup['dlen']
+            srcParams['CORNER_FREQ'] = setup['corner_freq']
+        else:
+            raise Exception('Not recognized ensemble')
 
         if 'seed' in body.keys():
             srcParams['SEED'] =  body['seed']
@@ -184,7 +226,7 @@ class SimulationRun(microServiceABC.MicroServiceABC):
         remote_exec_dir = dataRepo.path + "/" + remote_working_path
 
         # Define Source file and Generate GP source file
-        source, remote_source = self.create_rupture_inputsss(path, remote_exec_dir, body)
+        source, remote_source = self.create_rupture_inputs(path, remote_exec_dir, body)
         # Define and Generate salvus input
         input_yaml, remote_input_yaml = self._create_salvus_input_yml(workSpace, remote_exec_dir, body)
         remote_region_file = remote_exec_dir + "/" + setup['model']

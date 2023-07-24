@@ -218,17 +218,11 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                                 lalert['event']['seed'] = a['seed']
 
                             futures.append(executor.submit(WorkflowManagerEmulator.compute, lalert, self.url))
-<<<<<<< HEAD
 
                             #break  ## Avoid to run 66 times this (swarm runs)
                         #break  ## Avoid to run 66 times this (swarm runs)
                     #break
-=======
-                            
-                    #         break  ## Avoid to run 66 times this (swarm runs)
-                    #     break  ## Avoid to run 66 times this (swarm runs)
-                    # break
->>>>>>> cdc6337... Updates PyCOMPSs HPC workflow
+
 
                 print("Waiting for results", flush=True)
                 for future in concurrent.futures.as_completed(futures):
@@ -337,7 +331,7 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                             data_seisEnsMan = inputsSeisEnsMan[i]['data']		
 		            
                             # Call Graves-Pitarka's rupture generator for seisensman
-                            all_results.append(launch_simulation(eid, alert, path, data_seisEnsMan, region, gpsetup, inputs, resources, ensemble))
+                            all_results.append(launch_simulation(eid, alert, path, data_seisEnsMan, region, gpsetup, resources, ensemble))
             else: 		   # setup["source_ensemble"] == "statisticalCMT"
 		# Calculate the CMT input parameters
                 precmt = build_cmt_input(eid, region, resources, setup)		
@@ -354,12 +348,12 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                         for slip in range(1, gpsetup['trials']+1):
                             # Set the trial path
                             path = basename + "/trial_" + ".".join([cmt, "slip"+str(slip)])	
-                            all_results.append(launch_simulation(eid, alert, path, cmts[cmt], region, gpsetup, inputs, resources, ensemble))
+                            all_results.append(launch_simulation(eid, alert, path, cmts[cmt], region, gpsetup, resources, ensemble))
                             # break
                         # break
                     # break
 
-            result = launch_post_swarm(eid, region, basename, resources, all_results)_swarm, region, basename, resources)
+            result = launch_post_swarm(eid, region, basename, resources, all_results)
 
             # Set the event with SUCCESS state
             result = compss_wait_on(result)
@@ -371,7 +365,7 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']), response = 201)
 
-def launch_simulation(eid, alert, path, data, region, gpsetup, inputs, resources, ensemble):
+def launch_simulation(eid, alert, path, data, region, gpsetup, resources, ensemble):
     HPC_RUN_PYCOMPSS=bool(os.environ.get("HPC_RUN_PYCOMPSS", "False"))
     if HPC_RUN_PYCOMPSS:
         rupture = path + "/scratch/outdata/rupture/rupture.srf"
@@ -381,15 +375,15 @@ def launch_simulation(eid, alert, path, data, region, gpsetup, inputs, resources
         result = run_simulation(eid, alert, path, data, region, gpsetup, inputs, resources, ensemble)
     else:
         # Call Graves-Pitarka's rupture generator
-        rupture = compute_graves_pitarka(eid, alert, path, cmts[cmt], region, gpsetup, resources, ensemble)
+        rupture = compute_graves_pitarka(eid, alert, path, data, region, gpsetup, resources, ensemble)
         # Call input parameters builder
-        inputs = build_input_parameters(eid, alert, cmts[cmt], rupture, region, resources, gpsetup,ensemble)
+        inputs = build_input_parameters(eid, alert, data, rupture, region, resources, gpsetup, ensemble)
         # Build the Salvus input parameter file (remotely)
         salvus_inputs = build_salvus_parameters( eid, path, inputs, resources)
         # Build the Salvus input parameter file (remotely)
         salvus_result = run_salvus( eid, path, salvus_inputs,resources)
         # Call Salvus post
-        result = run_salvus_post(eid, result, path, resources))
+        result = run_salvus_post(eid, salvus_result, path, resources)
     return result
 
 def launch_post_swarm(eid, region, basename, resources, all_results):
