@@ -429,7 +429,7 @@ def get_setup(event_id, ensemble):
 
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="eventSetState", service_name="microServices",
-      payload='{ "id" : "{{event_id}}", "state": "{{state}}" }',
+      payload='{ "id" : {{event_id}}, "state": "{{state}}" }',
       produces='{"result" : "{{return_0}}" }')
 @task(returns=1)
 def set_event_state(event_id, state):
@@ -556,7 +556,7 @@ def run_salvus_post(event_id, salvus_result, trial, resources):
 @on_failure(management ='CANCEL_SUCCESSORS')
 @http(request="POST", resource="SalvusPostSwarm", service_name="salvus",
       payload='{ "id" : {{event_id}}, "base" : "{{base}}", "resources" : {{resources}} }',
-      produces='{"result" : "{{return_0}}"simulationServiceApp.route}')
+      produces='{"result" : "{{return_0}}"}')
 @task(returns=1)
 def run_salvus_post_swarm(event_id, base, resources):
     """

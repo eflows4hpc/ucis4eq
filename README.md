@@ -125,4 +125,3 @@ HPC_RUN_PYCOMPSS=True SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose -f docker-co
  
 
 
->>>>>>> cdc6337... Updates PyCOMPSs HPC workflow
