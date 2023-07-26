@@ -107,19 +107,25 @@ docker-compose -f docker-compose-build.yml build
 To debug just code (no changes in dependencies):
 
 ```
-SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose -f docker-compose-debug.yml up
+docker-compose -f docker-compose-debug.yml up
 ```
 
 If you want to start only a service (DAL is started because of dependencies): 
 
 ```
-SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose -f docker-compose-debug.yml up <service> 
+docker-compose -f docker-compose-debug.yml up <service> 
 ```
 To Run with PyCOMPSs in HPC Workflow run with this 
 ``` 
-HPC_RUN_PYCOMPSS=True SSH_PRV="$(cat ~/.ssh/id_rsa)" docker-compose -f docker-compose-debug.yml up simulation workflowmanager slipgen microservices listener
+HPC_RUN_PYCOMPSS=True docker-compose -f docker-compose-debug.yml up simulation workflowmanager slipgen microservices listener
 ```
+# Troubleshooting
 
+By default the docker-compose files are prepared to forward the SSH Agent environment. Some OS distribution SSH agent do not store any SSH key. Check with command 'ssh-add -L' if there is any key added in the agent. If no keys are loaded load the key to access the supercomputer with the follwong command:
+
+```
+ssh-add <path/to/private-key>
+```
 
 
  

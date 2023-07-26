@@ -17,8 +17,8 @@ launchers = Provider()
 
 # Register each data repository
 launchers.registerBuilder('LOCAL', localRunner.LocalRunnerBuilder())
-HPC_RUN_PYCOMPSS=bool(os.environ.get("HPC_RUN_PYCOMPSS", "False"))
-if HPC_RUN_PYCOMPSS:
+HPC_RUN_PYCOMPSS=str(os.environ.get("HPC_RUN_PYCOMPSS", "False")).lower()
+if HPC_RUN_PYCOMPSS == "true":
     launchers.registerBuilder('MN4', PyCOMPSsRunner.PyCOMPSsRunnerBuilder())
     launchers.registerBuilder('DAINT', PyCOMPSsRunner.PyCOMPSsRunnerBuilder())
 else:

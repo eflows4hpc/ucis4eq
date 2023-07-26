@@ -56,6 +56,7 @@ def postRequest(fn):
         except Exception as e:
             # Bad request as request body is not available
             # Add message for debugging purpose
+            print("Data:" +str(request.data))
             print(e)
             return str(e), 400
 

@@ -44,6 +44,7 @@ from ucis4eq.misc import config, microServiceABC
 
 ################################################################################
 # Methods and classes
+HPC_RUN_PYCOMPSS=os.environ.get("HPC_RUN_PYCOMPSS", "False").lower()
 
 class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
 
@@ -349,9 +350,9 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                             # Set the trial path
                             path = basename + "/trial_" + ".".join([cmt, "slip"+str(slip)])	
                             all_results.append(launch_simulation(eid, alert, path, cmts[cmt], region, gpsetup, resources, ensemble))
-                            # break
-                        # break
-                    # break
+                            break
+                        break
+                    break
 
             result = launch_post_swarm(eid, region, basename, resources, all_results)
 
@@ -366,9 +367,8 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
         return jsonify(result = "Event with UUID " + str(body['uuid']), response = 201)
 
 def launch_simulation(eid, alert, path, data, region, gpsetup, resources, ensemble):
-    HPC_RUN_PYCOMPSS=bool(os.environ.get("HPC_RUN_PYCOMPSS", "False"))
-    if HPC_RUN_PYCOMPSS:
-        rupture = path + "/scratch/outdata/rupture/rupture.srf"
+    if HPC_RUN_PYCOMPSS == 'true':
+        rupture = '"'+ path + '/scratch/outdata/rupture/rupture.srf"'
         # Call input parameters builder
         inputs = build_input_parameters( eid, alert, data, rupture, region, resources, gpsetup, ensemble)
         # Call Graves-Pitarka's rupture generator
@@ -387,8 +387,7 @@ def launch_simulation(eid, alert, path, data, region, gpsetup, resources, ensemb
     return result
 
 def launch_post_swarm(eid, region, basename, resources, all_results):
-    HPC_RUN_PYCOMPSS=bool(os.environ.get("HPC_RUN_PYCOMPSS", "False"))
-    if HPC_RUN_PYCOMPSS:
+    if HPC_RUN_PYCOMPSS == 'true':
         result = post_simulation(eid, region, basename, resources, all_results)
     else:
         # Call postprocessing swarm
@@ -481,9 +480,14 @@ def compute_resources(event_id, region):
     """
     pass
 
-#@on_failure(management='IGNORE', returns=0)
+if HPC_RUN_PYCOMPSS == 'true':
+    preGP_service_name="simulation"
+else :
+    preGP_service_name="slipgen"
+
+ #@on_failure(management='IGNORE', returns=0)
 @on_failure(management ='CANCEL_SUCCESSORS')
-@http(request="POST", resource="preGraves-Pitarka", service_name="slipgen",
+@http(request="POST", resource="preGraves-Pitarka", service_name=preGP_service_name,
       payload='{ "id" : {{event_id}}, "region": {{region}}, "setup": {{setup}} }',
       produces='{"result" : "{{return_0}}" }')
 @task(returns=1)
@@ -579,7 +583,7 @@ def run_salvus_plots(event_id, salvus_post_results, region, base, resources):
 
 # @on_failure(management='IGNORE')
 @http(request="POST", resource="simulation-run", service_name="simulation",
-      payload='{ "event" : {{alert}}, "id" : "{{event_id}}", "CMT" : {{cmt}}, \
+      payload='{ "event" : {{alert}}, "id" : {{event_id}}, "CMT" : {{cmt}}, \
                  "trial" : "{{trial}}", "region": {{region}}, "setup" : {{setup}}, \
                  "input" : {{input}}, "resources" : {{resources}}, "ensemble" : "{{ensemble}}"  }',
       produces='{"result" : "{{return_0}}"}')
@@ -592,7 +596,7 @@ def run_simulation(event_id, alert, trial, cmt, region, setup, input, resources,
 
 # @on_failure(management='IGNORE')
 @http(request="POST", resource="simulation-post", service_name="simulation",
-      payload='{ "id" : "{{event_id}}", "region" : {{region}}, "base" : "{{base}}", \
+      payload='{ "id" : {{event_id}}, "region" : {{region}}, "base" : "{{base}}", \
                  "resources" : {{resources}} }',
       produces='{"result" : "{{return_0}}"}')
 @task(returns=1, all_results=COLLECTION_IN)

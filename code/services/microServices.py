@@ -56,11 +56,13 @@ def postRequest(fn):
         """
         # Create new events
         try:
+                
             #print("INFO: Received JSON: " + str(request.get_json()))
             body = ast.literal_eval(json.dumps(request.get_json()))
         except Exception as e:
             # Bad request as request body is not available
             # MPC printing information for debugging
+            print("Data:" +str(request.data))
             print(e)
             import traceback
             traceback.format_exc()

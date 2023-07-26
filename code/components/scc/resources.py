@@ -21,18 +21,12 @@
 
 ################################################################################
 # Module imports
-# System
-import sys
-import traceback
-import json
-import yaml
-from bson.json_util import dumps
 
 # Third parties
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config, microServiceABC
+from ucis4eq.misc import microServiceABC
 import ucis4eq.launchers as launchers
 import ucis4eq as ucis4eq
 import ucis4eq.dal as dal
@@ -74,7 +68,8 @@ class ComputeResources(microServiceABC.MicroServiceABC):
         conf = launchers.config[tmp]
         conf.update(resource)
         # Create a launcher to obtain the Setup
-        launcher = launchers.launchers.create(tmp, **conf)
+        launcher = launchers.launchers.create(tmp, **launchers.config)
+
         if launcher.setup:
             resource['setup'] = launcher.setup
             

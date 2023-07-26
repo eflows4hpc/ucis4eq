@@ -11,6 +11,7 @@ services:
     network_mode: "host"
     environment:
       - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
+      - HPC_RUN_PYCOMPSS=$HPC_RUN_PYCOMPSS
     volumes:
       - ./data/DAL.json:/opt/DAL.json
       - ./data/Sites.json:/opt/Sites.json
@@ -70,6 +71,9 @@ services:
     image: registry.gitlab.bsc.es/wavephenomenagroup/ucis4eq/workflowmanager
     environment:
       - UCIS4EQ_LOCATION=${LOCATION}
+      - COMPSS_HTTP_POOL_SIZE=100
+      - HPC_RUN_PYCOMPSS=$HPC_RUN_PYCOMPSS
+
     volumes:
       - ./data/project.xml:/opt/project.xml
       - ./data/resources.xml:/opt/resources.xml
