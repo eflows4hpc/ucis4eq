@@ -350,9 +350,9 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                             # Set the trial path
                             path = basename + "/trial_" + ".".join([cmt, "slip"+str(slip)])	
                             all_results.append(launch_simulation(eid, alert, path, cmts[cmt], region, gpsetup, resources, ensemble))
-                            break
-                        break
-                    break
+                            # break
+                        # break
+                    #break
 
             result = launch_post_swarm(eid, region, basename, resources, all_results)
 
