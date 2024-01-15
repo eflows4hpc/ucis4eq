@@ -1,7 +1,7 @@
                BSD 3-CLAUSE or MODIFIED BSD LICENSE
 
-Copyright 2024 Josep de la Puente, Juan Esteban Rodriguez, Marisol Monterrubio,
-          _________
+Copyright 2023,2024 Josep de la Puente, Juan Esteban Rodriguez, Marisol Monterrubio,
+          Marta Pienkowska
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
