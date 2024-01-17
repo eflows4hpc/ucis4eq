@@ -6,27 +6,28 @@ scenario.
 ## Disclaimer
 ```
 
-This software solution was developed at BSC as part of the ChEESE-COE project.
-It was later modified as part of the ChEESE-2P and eFlows4HPC projects.
+This software solution was developed at BSC as part of the ChEESE-COE
+project. It was later modified as part of the ChEESE-2P and eFlows4HPC
+projects.
 
-Authors:  Juan Esteban Rodríguez, Marisol Monterrubio, Josep de la Puente
+Authors:  Juan Esteban Rodríguez, Marisol Monterrubio, Josep de la
+Puente
 Contributors: Marta Pienkowska-Cote, Jorge Ejarque, Cedric Bhihe
 Contacts:
     marisol.monterrubio@bsc.es
     cedric.bhihe@bsc.es
 
-This program is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later
-version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the Modified BSD (3-clause) License as published
+by the Regents of the University of California.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+LICENSE.md file included in this repository for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the Modified BSD License along
+with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
 
 
