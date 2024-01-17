@@ -6,20 +6,21 @@ scenario.
 ## Disclaimer
 ```
 
-This software solution was developed at BSC as part of the ChEESE-COE
-project. It was later modified as part of the ChEESE-2P and eFlows4HPC
-projects.
+This software solution was developed at the Barcelona Supercomputing
+Center (BSC) - Centro Nacional de Supercomputación (CNS), as part of
+the ChEESE-COE project. It was later modified within the framework
+of the ChEESE-2P and eFlows4HPC projects.
 
 Authors:  Juan Esteban Rodríguez, Marisol Monterrubio, Josep de la
-Puente
-Contributors: Marta Pienkowska-Cote, Jorge Ejarque, Cedric Bhihe
+Puente, Marta Pienkowska-Cote.
+Contributors: Jorge Ejarque, Cedric Bhihe
 Contacts:
     marisol.monterrubio@bsc.es
     cedric.bhihe@bsc.es
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the Modified BSD (3-clause) License as published
-by the Regents of the University of California.
+This program is free software: you can redistribute it and/or
+modify it under the terms of the Modified BSD (3-clause) License
+as published by the Regents of the University of California.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
