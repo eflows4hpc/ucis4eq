@@ -11,16 +11,18 @@ Center (BSC) - Centro Nacional de Supercomputación (CNS), as part of
 the ChEESE-COE project. It was later modified within the framework
 of the ChEESE-2P and eFlows4HPC projects.
 
-Authors:  Juan Esteban Rodríguez, Marisol Monterrubio, Josep de la
-Puente, Marta Pienkowska-Cote.
+Authors: Josep de la Puente, Juan Esteban Rodríguez, Marisol Monterrubio,
+Marta Pienkowska-Cote.
 Contributors: Jorge Ejarque, Cedric Bhihe
 Contacts:
     marisol.monterrubio@bsc.es
+    jorge.ejarque@bsc.es
     cedric.bhihe@bsc.es
 
 This program is free software: you can redistribute it and/or
-modify it under the terms of the Modified BSD (3-clause) License
-as published by the Regents of the University of California.
+modify it under the terms of the Modified BSD (3-clause) License,
+aka BSD NEW License, aka BSD REVISED License, aka MODIFIED BSD
+License as published by the Regents of the University of California.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
