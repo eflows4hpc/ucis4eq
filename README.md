@@ -9,7 +9,8 @@ scenario.
 This software solution was developed at BSC as part of the ChEESE-COE project.
 It was later modified as part of the ChEESE-2P and eFlows4HPC projects.
 
-Authors: Josep de la Puente, Juan Esteban Rodríguez, Marisol Monterrubio, Marta Pienkowska
+Authors: Josep de la Puente, Juan Esteban Rodríguez, Marisol Monterrubio,s
+Marta Pienkowska
 Contributors: Jorge Ejarque, Cedric Bhihe
 
 Contacts:
@@ -18,7 +19,9 @@ Contacts:
     cedric.bhihe@bsc.es
 
 This program is free software: you can redistribute it and/or modify it under
-the terms of the Modified BSD (aka BSD 3-clause) License as published by the 
+the terms of the BSD 3-clause License , aka BSD NEW License, aka BSD REVISED
+License, aka MODIFIED BSD License as published by the Regents of the
+University of California.
 
 This program is distributed as is, in the hope that it will be useful,
 but WITHOUT ANY WARRANTY, without even the implied warranty of

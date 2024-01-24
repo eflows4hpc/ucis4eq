@@ -1,4 +1,4 @@
-               BSD 3-CLAUSE or MODIFIED BSD LICENSE
+      BSD 3-CLAUSE, aka BSD NEW, aka BSD REVISED, aka MODIFIED BSD LICENSE
 
 Copyright 2023,2024 Josep de la Puente, Juan Esteban Rodriguez, Marisol
 Monterrubio, Marta Pienkowska.
