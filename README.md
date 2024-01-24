@@ -9,23 +9,23 @@ scenario.
 This software solution was developed at BSC as part of the ChEESE-COE project.
 It was later modified as part of the ChEESE-2P and eFlows4HPC projects.
 
-Authors:  Juan Esteban Rodríguez, Marisol Monterrubio, Josep de la Puente
-Contributors: Marta Pienkowska-Cote, Jorge Ejarque, Cedric Bhihe
+Authors: Josep de la Puente, Juan Esteban Rodríguez, Marisol Monterrubio, Marta Pienkowska
+Contributors: Jorge Ejarque, Cedric Bhihe
+
 Contacts:
     marisol.monterrubio@bsc.es
+    jorge.ejarque@bsc.es
     cedric.bhihe@bsc.es
 
 This program is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later
-version.
+the terms of the Modified BSD (aka BSD 3-clause) License as published by the 
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+This program is distributed as is, in the hope that it will be useful,
+but WITHOUT ANY WARRANTY, without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MODIFIED BSD LICENSE for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the MODIFIED BSD LICENSE
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 ```
 
