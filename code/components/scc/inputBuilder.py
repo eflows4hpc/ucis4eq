@@ -133,7 +133,7 @@ class InputParametersBuilder(microServiceABC.MicroServiceABC):
 
         self.geometry['filepaths'] = paths
     
-        if body['ensemble'] == "statisticalCMT":
+        if (body['ensemble'] == "statisticalCMT") or (body['ensemble'] == "onlyOne") :
             self.source['magnitude'] = body['event']["magnitude"]
             self.source['longitude'] = body['event']["longitude"]
             self.source['latitude'] = body['event']["latitude"]

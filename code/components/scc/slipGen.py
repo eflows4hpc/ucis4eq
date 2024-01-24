@@ -194,7 +194,7 @@ class SlipGenGP(microServiceABC.MicroServiceABC):
         source = path + "inputs.src"
 
         # Generate GP source file
-        if body['ensemble'] == "statisticalCMT":
+        if (body['ensemble'] == "statisticalCMT") or (body['ensemble'] == "onlyOne"):
             srcParams = self._MaiBerozaRelations(event['magnitude'],
                                                  event['latitude'],
                                                  event['longitude'],

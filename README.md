@@ -7,7 +7,7 @@ scenario.
 ```
 
 This software solution was developed at BSC as part of the ChEESE-COE project.
-It was later modified as part of the ChEESE-2P and eFlows4HPC projects.
+It was later modified as part of the eFlows4HPC projects.
 
 Authors: Josep de la Puente, Juan Esteban Rodríguez, Marisol Monterrubio,
 Marta Pienkowska

@@ -257,13 +257,13 @@ app.layout = html.Div(
             ],
             style={"position": "absolute", "top": 10, "right": 10},
         ),
-        #html.Div(id="logos",
-        #         children=[
-        #                   dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(cheeseLogo)), className="card-logo-cheese"),
-        #                   dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(eflowsLogo)), className="card-logo-eflows")
-        #                  ],
-        #         style={"position": "absolute", "top": 250, "left": 15, "width": 340},
-        #        ),
+        html.Div(id="logos",
+                 children=[
+                           # dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(cheeseLogo)), className="card-logo-cheese"),
+                           dbc.Card(dbc.CardImg(src='data:image/png;base64,{}'.format(eflowsLogo)), className="card-logo-eflows")
+                          ],
+                 style={"position": "absolute", "top": 35, "left": 10, "width": 250},
+                ),
     ]
 )
 
@@ -944,6 +944,7 @@ def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake, seed):
             json.dump(job, f, indent=4)
 
         # Start running the triggering system
+        #subprocess.Popen(["curl", "-X", "POST", "-H", "Content-Type: application/json", "-d", "@"+file, "http://127.0.0.1:5001/WMEmulator"])
         subprocess.Popen(["curl", "-X", "POST", "-H", "Content-Type: application/json", "-d", "@"+file, "http://127.0.0.1:5001/PyCOMPSsWM"])
         #cmd ="curl -X POST -H 'Content-Type: application/json' -d @%s http://127.0.0.1:5001/WMEmulator"
         #cmd = cmd.replace("%s", file)

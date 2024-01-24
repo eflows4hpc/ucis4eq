@@ -332,9 +332,18 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                             data_seisEnsMan = inputsSeisEnsMan[i]['data']		
 		            
                             # Call Graves-Pitarka's rupture generator for seisensman
-                            all_results.append(launch_simulation(eid, alert, path, data_seisEnsMan, region, gpsetup, resources, ensemble))
-            else: 		   # setup["source_ensemble"] == "statisticalCMT"
-		# Calculate the CMT input parameters
+                            all_results.append(launch_simulation(eid, alert, path, data_seisEnsMan, region, gpsetup, resources, ensemble)) 	
+            elif ensemble == "onlyOne":
+                all_results = []
+                for alert in event['alerts']:
+                    cmt = event['alerts'][0]['cmt']['GCMT']
+                    for slip in range(1, gpsetup['trials']+1):
+                    # Set the trial path
+                        path = basename + "/trial_" + ".".join(["onlyOne_", "slip"+str(slip)])
+                        # Call Graves-Pitarka's rupture generator for only One event
+                        all_results.append(launch_simulation(eid, alert, path, cmt, region, gpsetup, resources, ensemble))
+            else: 		   
+		        # Calculate the CMT input parameters
                 precmt = build_cmt_input(eid, region, resources, setup)		
                 # Compute alerts
                 all_results = []
