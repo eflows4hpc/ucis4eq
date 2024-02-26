@@ -32,24 +32,24 @@ import ucis4eq.misc.config as config
 ################################################################################
 # Methods and classes
 class MicroServiceABC(ABC):
-    
+
     # Method for defining the entry point to the service implementation
     @abstractmethod    
     def entryPoint(self, body):
         raise NotImplementedError("Error: 'entryPoint' method should be implemented")
-        
+
     # Static method for decorating microservices
     @classmethod
     def runRegistration(cls, func):
         def func_wrapper(*args, **kwargs):
                # Initialize
                runInfo = {}
-               status = "RUNNING"               
+               status = "RUNNING"
                serviceRun = None
-               className = args[0].__class__.__bases__[0].__name__               
+               className = args[0].__class__.__bases__[0].__name__
                if className == cls.__name__:
                   className = args[0].__class__.__name__
-               
+
                # Check if the request provides a Dict 
                if isinstance(args[1], dict) and 'id' in args[1].keys():
                     runInfo['serviceName'] = className
@@ -71,25 +71,22 @@ class MicroServiceABC(ABC):
                    results = func(*args, **kwargs)
                    status = "SUCCESS"
                except Exception as e:
-                   
                    config.printException()
-                   
                    status = "FAILED"
-                   
                    if runInfo.keys():
                        dal.database.Requests.update_one(
                             {'_id': ObjectId(runInfo['requestId'])},
                             {'$set': {"state": status}})
-                        
+
                    # Return error code and message
-                   results = jsonify(result = str(e), response = 501)                                  
-               
+                   results = jsonify(result = str(e), response = 501)
+
                try:
                    dal.database.ServiceRuns.update_one({'_id': ObjectId(serviceRun)},
                    {'$set': {"endTime": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"), 
                    "status": status}})
                except Exception as e:
-                   config.printException()               
-                                                 
+                   config.printException()
+
                return results
         return func_wrapper
