@@ -31,31 +31,53 @@ import pandas as pd
 GEOTIFF_ID = "geotiff-id"
 GEOTIFF_MARKER_ID = "geotiff-marker-id"
 COORDINATE_CLICK_ID = "coordinate-click-id"
+HPC_RUN_PYCOMPSS=os.environ.get("HPC_RUN_PYCOMPSS", "False").lower()
+if HPC_RUN_PYCOMPSS == 'true':
+    progressValues = {
+       'EventSetup': { 'value': 1, 'init':0 },
+       'EventRegion': { 'value': 1, 'init':1 },
+       'ComputeResources': { 'value': 1 , 'init': 2},
+       'SlipGenGPSetup': { 'value': 1, 'init': 3},
+       'CMTInputs': { 'value': 1, 'init': 4},
+       'CMTCalculation': { 'value': 1, 'init': 5},
+       'InputParametersBuilder': { 'value': 1, 'init': 6},
+       'SimulationRun': { 'value': 80, 'init': 7},
+       'SimulationPost': { 'value': 13, 'init': 87}
+    }
 
-progressValues = {
-   'EventRegion': { 'value': 1, 'init':0 },
-   'EventRegion': { 'value': 1, 'init':1 },
-   'ComputeResources': { 'value': 1 , 'init': 2},
-   'CMTInputs': { 'value': 1, 'init': 3},
-   'CMTCalculation': { 'value': 1, 'init': 4},
-   'SourceType': { 'value': 1, 'init': 5},
-   'SlipGenGPSetup': { 'value': 1, 'init': 6},
-   'SlipGenGP': { 'value': 3, 'init': 7},
-   'InputParametersBuilder': { 'value': 1, 'init': 10},
-   'SalvusPrepare': { 'value': 7, 'init': 11},
-   'SalvusRun': { 'value':  65, 'init': 18},
-   'SalvusPost': { 'value': 5, 'init': 83},
-   'SalvusPostSwarm': { 'value': 5, 'init': 88},
-   'SalvusPlots': { 'value': 7, 'init': 93}
-}
+    trialProgressValues = {
+       'InputParametersBuilder': { 'value': 5, 'init': 0},
+       'SimulationRun': { 'value': 95, 'init': 5}
+    }
 
-trialProgressValues = {
-   'SlipGenGP': { 'value': 5, 'init': 0},
-   'InputParametersBuilder': { 'value': 5, 'init': 5},
-   'SalvusPrepare': { 'value': 5, 'init': 10},
-   'SalvusRun': { 'value':  80, 'init': 15},
-   'SalvusPost': { 'value': 5, 'init': 95}
-}
+else :
+    
+    progressValues = {
+       'EventSetup': { 'value': 1, 'init':0 },
+       'EventRegion': { 'value': 1, 'init':1 },
+       'ComputeResources': { 'value': 1 , 'init': 2},
+       'CMTInputs': { 'value': 1, 'init': 3},
+       'CMTCalculation': { 'value': 1, 'init': 4},
+       'SourceType': { 'value': 1, 'init': 5},
+       'SlipGenGPSetup': { 'value': 1, 'init': 6},
+       'SlipGenGP': { 'value': 3, 'init': 7},
+       'InputParametersBuilder': { 'value': 1, 'init': 10},
+       'SalvusPrepare': { 'value': 7, 'init': 11},
+       'SalvusRun': { 'value':  65, 'init': 18},
+       'SalvusPost': { 'value': 5, 'init': 83},
+       'SalvusPostSwarm': { 'value': 5, 'init': 88},
+       'SalvusPlots': { 'value': 7, 'init': 93},
+    }
+    
+    trialProgressValues = {
+       'SlipGenGP': { 'value': 5, 'init': 0},
+       'InputParametersBuilder': { 'value': 5, 'init': 5},
+       'SalvusPrepare': { 'value': 5, 'init': 10},
+       'SalvusRun': { 'value':  80, 'init': 15},
+       'SalvusPost': { 'value': 5, 'init': 95},
+       'SimulationRun': { 'value': 90, 'init': 10}
+    
+    }
 
 doneSelectedRow = None
 regionID = None
@@ -516,7 +538,7 @@ def showEvent(layer, latitude, longitude):
     col = dal.database["Regions"]
     region = list(col.aggregate(regionPipeline))
     sitesMarkers = {}
-    if domains:
+    if region:
         col = dal.database["Receivers"]
         sitesTypes = col.find_one({"id": region['id']})
         for siteType in sitesTypes:
@@ -922,7 +944,7 @@ def submitJob(n_clicks, ename, mw, lat, lon, depth, stk, dip, rake, seed):
             json.dump(job, f, indent=4)
 
         # Start running the triggering system
-        subprocess.Popen(["curl", "-X", "POST", "-H", "Content-Type: application/json", "-d", "@"+file, "http://127.0.0.1:5001/WMEmulator"])
+        subprocess.Popen(["curl", "-X", "POST", "-H", "Content-Type: application/json", "-d", "@"+file, "http://127.0.0.1:5001/PyCOMPSsWM"])
         #cmd ="curl -X POST -H 'Content-Type: application/json' -d @%s http://127.0.0.1:5001/WMEmulator"
         #cmd = cmd.replace("%s", file)
         #os.system(cmd.replace("%s", file))
@@ -1061,7 +1083,7 @@ def executionSnapshot(n, data, idx):
     cursor= col.find({"requestId": data[idx[0]]['Run']})
     service = list(cursor)[-1]
     map = True
-    if service['serviceName'] == "SalvusRun":
+    if service['serviceName'] == "SalvusRun" or service['serviceName'] == "SimulationRun":
 
         # Creating the repository instance for data transfer
         # TODO: Select the repository from the DB 'Resources' document
@@ -1092,6 +1114,7 @@ def executionSnapshot(n, data, idx):
             map = False
         except:
             pass
+    
 
     if map:
         latitude = float(data[idx[0]]['Latitude'])
@@ -1141,7 +1164,12 @@ def executionDetails(n, data, idx):
             "$group": { 
                 "_id": { "trial": "$inputs.trial"},
                 } 
+        },
+        {
+        "$sort": {
+            "_id.trial": 1  # Sort by inputs.trial in ascending order
         }
+    }
     ] 
         
     col = dal.database["ServiceRuns"]
@@ -1152,12 +1180,12 @@ def executionDetails(n, data, idx):
     for trial in cursor:    
         name = trial["_id"]["trial"]
         cursor2 = col.find({"inputs.trial": name})
-
         service=list(cursor2)[-1]
         if name == "event_cabc0e50-a0ec-11ea-9ec0-test/trial_WESTERN_TURKEY_3D.GCMT.slip2":
             show = True
         else:
             show = False
+        
         progress, label, color = calculateProgress(service, trialProgressValues, show)
             
         elem = dbc.Row([
@@ -1250,7 +1278,8 @@ def executionDetails(n, data, idx):
                         'color': 'black',
                         'fontWeight': 'bold',
                         'textAlign': 'center'
-                    }
+                    },
+                    style_table={'overflowY': 'auto'}
             )
 
     content = html.Div(
@@ -1329,8 +1358,22 @@ def calculateProgress(service, progressValues, show=False):
                     value = int(value * (task['current'] / task['total']))
             if show:
                 print(service['serviceName'] + "    ---> " + str(value))
-    else:
-        value = 0
+    elif service['serviceName'] == "SimulationRun":
+        if service['status'] == "RUNNING":
+            r = requests.post("http://127.0.0.1:5004/SimulationPing", json=service['inputs'])
+            if r.json()['response'] == 501 or not r.json()['result']:
+                #raise Exception(r.json()['result'])
+                value = 0
+            else:
+                result = r.json()['result']
+                if len(result['tasks']) == 2:
+                    task = result['tasks'][1]
+                    if 'current' in task.keys():
+                        value = int(value * (task['current'] / task['total']))
+                if show:
+                    print(service['serviceName'] + "    ---> " + str(value))
+        else:
+            value = 0
         
 
     if service['status'] == "SUCCESS":
@@ -1339,7 +1382,9 @@ def calculateProgress(service, progressValues, show=False):
     else:
         progress = progressValues[service['serviceName']]['init'] + value
         if service['status'] == "FAILED":
-            color = "danger"    
+            color = "danger"
+        elif service['status'] == "CANCELED":
+            color = "warning"
     
     return progress, f"{progress} %" if progress >= 8 else "", color
 
@@ -1449,7 +1494,7 @@ def queryDomains(data, idx):
 
     columns = ['Region']
 
-    df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
+    #df = pd.DataFrame.from_dict(fieldsEQ, orient='index', columns=columns)
 
     content= html.Div(
                     children=[
