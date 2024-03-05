@@ -25,7 +25,6 @@
           "export SLIPGEN_IMAGE=/gpfs/projects/bsc44/earthquake/UCIS4EQ/slipgen/slipgen.simg"
         ]
       },
-
       "SimulationPost": {
         "name": "urgent___192837",
         "wtime": 100,
@@ -43,7 +42,6 @@
           "source activate salvus"
         ]
       },
-
       "SlipGenGP": {
         "wtime": 360,
         "nodes": 1,
