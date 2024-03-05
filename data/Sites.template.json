@@ -1,7 +1,7 @@
 { "MN4": {
-    "user": "your_bsc_username",
+    "user": "your_bsc_hpc_username",
     "url": "mn3.bsc.es",
-    "path": "/gpfs/scratch/your_bsc_group/your_bsc_username/Eflows4hpc/Ucis4eq/",
+    "path": "/gpfs/scratch/your_bsc_hpc_group/your_bsc_hpc_username/Eflows4hpc/Ucis4eq/",
     "resources": {
       "SimulationRun": {
         "name": "urgent___192837",
