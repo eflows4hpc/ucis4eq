@@ -7,7 +7,7 @@ scenario.
 ```
 
 This software solution was developed at BSC as part of the ChEESE-COE project.
-It was later modified as part of the ChEESE-2P and eFlows4HPC projects.
+It was later modified as part of the eFlows4HPC projects.
 
 Authors: Josep de la Puente, Juan Esteban Rodríguez, Marisol Monterrubio,
 Marta Pienkowska
@@ -95,3 +95,39 @@ Open a browser and go to http://127.0.0.1:8050/
 ## Quickstart tutorial
 
 Independently from the above, this repo contains a quickstart tutorial in PDF format to guide you step by step through basic installation and launch on the BSC infrastructure.
+
+## Development Instructions:
+
+To build the services (no push, must be done manually):
+
+```
+docker-compose -f docker-compose-build.yml build
+```
+
+To debug just code (no changes in dependencies):
+
+```
+docker-compose -f docker-compose-debug.yml up
+```
+
+If you want to start only a service (DAL is started because of dependencies): 
+
+```
+docker-compose -f docker-compose-debug.yml up <service> 
+```
+To Run with PyCOMPSs in HPC Workflow run with this 
+``` 
+HPC_RUN_PYCOMPSS=True docker-compose -f docker-compose-debug.yml up simulation workflowmanager slipgen microservices listener
+```
+# Troubleshooting
+
+By default the docker-compose files are prepared to forward the SSH Agent environment. Some OS distribution SSH agent do not store any SSH key. Check with command 'ssh-add -L' if there is any key added in the agent. If no keys are loaded load the key to access the supercomputer with the follwong command:
+
+```
+ssh-add <path/to/private-key>
+```
+
+
+ 
+
+

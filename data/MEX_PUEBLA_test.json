@@ -1,0 +1,29 @@
+{
+  "sources": {
+    "INGV": {
+      "data": "xx",
+      "timestamp": 0,
+      "query": "xx"
+    }
+  },
+  "uuid": "Test_onlyOne_Mex_Puebla-LargeDomain_1Hz-statisticalCMT_moreStations_bsc_case_queue_16Nodes",
+  "alerts": [
+    {
+      "agency": "USER EVENT",
+      "time": "2017/09/19, 18:14:38",
+      "latitude": 18.550,
+      "longitude": -98.489,
+      "magnitude": 7.1,
+      "depth": 48000,
+      "elapsedtime": 2456,
+      "description": "Mexico Puebla manual trigger",
+      "cmt": {
+        "GCMT": {
+          "strike": 108,
+          "dip": 47,
+          "rake": -98
+        }
+      }
+    }
+  ]
+}

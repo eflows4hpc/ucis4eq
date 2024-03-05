@@ -3,7 +3,7 @@
     "user": "your_b2drop_username",
     "pass": "your_b2drop",
     "url": "https://b2drop.bsc.es/remote.php/webdav/",
-    "datamapping": "UCIS4EQ/StaticDataMappingV2.json",
+    "datamapping": "UCIS4EQ/StaticDataMappingV2_nihad.json",
     "output": "UCIS4EQ/Runs"
   },
   "local": {
@@ -13,6 +13,9 @@
     "user": "your_bsc_username",
     "url": "dt01.bsc.es",
     "path": "/gpfs/scratch/your_bsc_group/your_bsc_username/Eflows4hpc/Ucis4eq/"
+    "user": "bsc19139",
+    "url": "dt01.bsc.es",
+    "path": "/gpfs/projects/bsc44/earthquake/UCIS4EQ/runs"
   },
   "ETH_DAINT":{
     "user": "your_pd_username",

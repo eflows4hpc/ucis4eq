@@ -21,18 +21,12 @@
 
 ################################################################################
 # Module imports
-# System
-import sys
-import traceback
-import json
-import yaml
-from bson.json_util import dumps
 
 # Third parties
 from flask import jsonify
 
 # Internal
-from ucis4eq.misc import config, microServiceABC
+from ucis4eq.misc import microServiceABC
 import ucis4eq.launchers as launchers
 import ucis4eq as ucis4eq
 import ucis4eq.dal as dal
@@ -63,15 +57,19 @@ class ComputeResources(microServiceABC.MicroServiceABC):
         
         # Decide what site to use among the availables
         resource = None
-        
-        resources = self.db.Resources.find({}, {'_id': False}).sort('order', 1)
-        for site in list(resources):
-            if site['id'] in launchers.config.keys():
+
+        resources = list(self.db.Resources.find({}, {'_id': False}).sort('order', 1))
+        for site in resources:
+            if site['id'] in launchers.config:
                 resource = site
                 break
-                
+
+        tmp = resource['id']
+        conf = launchers.config[tmp]
+        conf.update(resource)
         # Create a launcher to obtain the Setup
-        launcher = launchers.launchers.create(resource['id'], **launchers.config)
+        launcher = launchers.launchers.create(tmp, **launchers.config)
+
         if launcher.setup:
             resource['setup'] = launcher.setup
             

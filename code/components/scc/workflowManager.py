@@ -44,6 +44,7 @@ from ucis4eq.misc import config, microServiceABC
 
 ################################################################################
 # Methods and classes
+HPC_RUN_PYCOMPSS=os.environ.get("HPC_RUN_PYCOMPSS", "False").lower()
 
 class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
 
@@ -223,6 +224,7 @@ class WorkflowManagerEmulator(microServiceABC.MicroServiceABC):
                         #break  ## Avoid to run 66 times this (swarm runs)
                     #break
 
+
                 print("Waiting for results", flush=True)
                 for future in concurrent.futures.as_completed(futures):
                     data = future.result()
@@ -328,64 +330,43 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
                             # Set the trial path
                             path = basename + "/trial_" + ".".join(["seisEnsMan"+str(i), "slip"+str(slip)])
                             data_seisEnsMan = inputsSeisEnsMan[i]['data']		
-		            # Call Graves-Pitarka's rupture generator for seisensman
-
-                            rupture = compute_graves_pitarka(eid,alert, path, data_seisEnsMan, region, gpsetup, resources, ensemble)
-		            # Call input parameters builder
-                            inputs = build_input_parameters(eid, alert, data_seisEnsMan, rupture, region, resources, gpsetup, ensemble)
-		                    # TODO:
-		                    # Call a service in charge of deciding the kernel
-		                    # (simulation code)
-		            # Build the Salvus input parameter file (remotely)
-                            salvus_inputs = build_salvus_parameters( eid, path, inputs, resources)
-		            # Build the Salvus input parameter file (remotely)
-                            result = run_salvus( eid, path, salvus_inputs, resources)		
-		            # Call Salvus post
-                            all_results.append(run_salvus_post(eid, result, path, resources))   	
-            else: 		   # setup["source_ensemble"] == "statisticalCMT"
+		            
+                            # Call Graves-Pitarka's rupture generator for seisensman
+                            all_results.append(launch_simulation(eid, alert, path, data_seisEnsMan, region, gpsetup, resources, ensemble)) 	
+            elif ensemble == "onlyOne":
+                all_results = []
+                for alert in event['alerts']:
+                    cmt = event['alerts'][0]['cmt']['GCMT']
+                    for slip in range(1, gpsetup['trials']+1):
+                    # Set the trial path
+                        path = basename + "/trial_" + ".".join(["onlyOne_", "slip"+str(slip)])
+                        # Call Graves-Pitarka's rupture generator for only One event
+                        all_results.append(launch_simulation(eid, alert, path, cmt, region, gpsetup, resources, ensemble))
+            else: 		   
 		        # Calculate the CMT input parameters
                 precmt = build_cmt_input(eid, region, resources, setup)		
                 # Compute alerts
                 all_results = []
                 for alert in event['alerts']:	
-                  # Calculating CMTs
-                  cmts = calculate_cmt(alert, eid, region, precmt)
-                  # Wait for calculated CMTs
-                  cmts = compss_wait_on(cmts)	
-                  # For each calculated or provided CMT
-                  for cmt in cmts.keys():
-                    # For each GP defined trial
-                    for slip in range(1, gpsetup['trials']+1):
-                      # Set the trial path
-                      path = basename + "/trial_" + ".".join([cmt, "slip"+str(slip)])	
-                      # Call Graves-Pitarka's rupture generator
-                      rupture = compute_graves_pitarka(eid, alert, path, cmts[cmt], region, gpsetup, resources, ensemble)
-                      # Call input parameters builder
-                      inputs = build_input_parameters(eid, alert, cmts[cmt], rupture, region, resources, gpsetup,ensemble)
-                      # TODO
-                      # Call a service in charge of deciding the kernel
-                      # (simulation code)
-                      # Build the Salvus input parameter file (remotely)
-                      salvus_inputs = build_salvus_parameters( eid, path, inputs, resources)
-                      # Build the Salvus input parameter file (remotely)
-                      result = run_salvus( eid, path, salvus_inputs,resources)	
-                      # Call Salvus post
-                      all_results.append(run_salvus_post(eid, result, path, resources))
-                      #  break
-                     # break
-                    # break
+                    # Calculating CMTs
+                    cmts = calculate_cmt(alert, eid, region, precmt)
+                    # Wait for calculated CMTs
+                    cmts = compss_wait_on(cmts)	
+                    # For each calculated or provided CMT
+                    for cmt in cmts.keys():
+                        # For each GP defined trial
+                        for slip in range(1, gpsetup['trials']+1):
+                            # Set the trial path
+                            path = basename + "/trial_" + ".".join([cmt, "slip"+str(slip)])	
+                            all_results.append(launch_simulation(eid, alert, path, cmts[cmt], region, gpsetup, resources, ensemble))
+                            # break
+                        # break
+                    #break
 
-            #TODO: Be sure this continue being necessary
-            compss_wait_on(all_results)
-
-            # Call postprocessing swarm
-            output_swarm = run_salvus_post_swarm(eid, basename, resources)
-
-            # General post-processing for generating plots
-            result = run_salvus_plots(eid, output_swarm, region, basename, resources)
+            result = launch_post_swarm(eid, region, basename, resources, all_results)
 
             # Set the event with SUCCESS state
-            compss_wait_on(result)
+            result = compss_wait_on(result)
             eid = set_event_state(eid, "SUCCESS")
 
         # Wait for the workflow to finish
@@ -394,6 +375,36 @@ class PyCommsWorkflowManager(microServiceABC.MicroServiceABC):
         # Return list of Id of the newly created item
         return jsonify(result = "Event with UUID " + str(body['uuid']), response = 201)
 
+def launch_simulation(eid, alert, path, data, region, gpsetup, resources, ensemble):
+    if HPC_RUN_PYCOMPSS == 'true':
+        rupture = '"'+ path + '/scratch/outdata/rupture/rupture.srf"'
+        # Call input parameters builder
+        inputs = build_input_parameters( eid, alert, data, rupture, region, resources, gpsetup, ensemble)
+        # Call Graves-Pitarka's rupture generator
+        result = run_simulation(eid, alert, path, data, region, gpsetup, inputs, resources, ensemble)
+    else:
+        # Call Graves-Pitarka's rupture generator
+        rupture = compute_graves_pitarka(eid, alert, path, data, region, gpsetup, resources, ensemble)
+        # Call input parameters builder
+        inputs = build_input_parameters(eid, alert, data, rupture, region, resources, gpsetup, ensemble)
+        # Build the Salvus input parameter file (remotely)
+        salvus_inputs = build_salvus_parameters( eid, path, inputs, resources)
+        # Build the Salvus input parameter file (remotely)
+        salvus_result = run_salvus( eid, path, salvus_inputs,resources)
+        # Call Salvus post
+        result = run_salvus_post(eid, salvus_result, path, resources)
+    return result
+
+def launch_post_swarm(eid, region, basename, resources, all_results):
+    if HPC_RUN_PYCOMPSS == 'true':
+        result = post_simulation(eid, region, basename, resources, all_results)
+    else:
+        # Call postprocessing swarm
+        output_swarm = run_salvus_post_swarm(eid, basename, resources)
+
+        # General post-processing for generating plots
+        result = run_salvus_plots(eid, output_swarm, region, basename, resources)
+    return result
 
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="eventRegistration", service_name="microServices",
@@ -478,9 +489,14 @@ def compute_resources(event_id, region):
     """
     pass
 
-#@on_failure(management='IGNORE', returns=0)
+if HPC_RUN_PYCOMPSS == 'true':
+    preGP_service_name="simulation"
+else :
+    preGP_service_name="slipgen"
+
+ #@on_failure(management='IGNORE', returns=0)
 @on_failure(management ='CANCEL_SUCCESSORS')
-@http(request="POST", resource="preGraves-Pitarka", service_name="slipgen",
+@http(request="POST", resource="preGraves-Pitarka", service_name=preGP_service_name,
       payload='{ "id" : {{event_id}}, "region": {{region}}, "setup": {{setup}} }',
       produces='{"result" : "{{return_0}}" }')
 @task(returns=1)
@@ -500,8 +516,6 @@ def compute_graves_pitarka(event_id, alert, path, cmt, region, setup, resources,
     """
     """
     pass
-
-
 
 #@on_failure(management='IGNORE', returns=0)
 @http(request="POST", resource="inputParametersBuilder", service_name="microServices",
@@ -571,6 +585,31 @@ def run_salvus_post_swarm(event_id, base, resources):
 #@task(returns=1, results=COLLECTION_IN)
 @task(returns=1)
 def run_salvus_plots(event_id, salvus_post_results, region, base, resources):
+    """
+    """
+    pass    
+    
+
+# @on_failure(management='IGNORE')
+@http(request="POST", resource="simulation-run", service_name="simulation",
+      payload='{ "event" : {{alert}}, "id" : {{event_id}}, "CMT" : {{cmt}}, \
+                 "trial" : "{{trial}}", "region": {{region}}, "setup" : {{setup}}, \
+                 "input" : {{input}}, "resources" : {{resources}}, "ensemble" : "{{ensemble}}"  }',
+      produces='{"result" : "{{return_0}}"}')
+@task(returns=1)
+def run_simulation(event_id, alert, trial, cmt, region, setup, input, resources, ensemble):
+    """
+    """
+    pass
+
+
+# @on_failure(management='IGNORE')
+@http(request="POST", resource="simulation-post", service_name="simulation",
+      payload='{ "id" : {{event_id}}, "region" : {{region}}, "base" : "{{base}}", \
+                 "resources" : {{resources}} }',
+      produces='{"result" : "{{return_0}}"}')
+@task(returns=1, all_results=COLLECTION_IN)
+def post_simulation(event_id, region, base, resources, all_results):
     """
     """
     pass

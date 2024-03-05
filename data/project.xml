@@ -5,7 +5,11 @@
 	<Http BaseUrl="http://127.0.0.1:5000/">
 		<LimitOfTasks>1</LimitOfTasks>
 	</Http>
-	
+
+	<Http BaseUrl="http://127.0.0.1:5004/">
+		<LimitOfTasks>10</LimitOfTasks>
+	</Http>
+
 	<Http BaseUrl="http://127.0.0.1:5003/">
 		<LimitOfTasks>1</LimitOfTasks>
 	</Http>
