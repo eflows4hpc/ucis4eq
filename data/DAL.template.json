@@ -1,9 +1,9 @@
 {
   "BSC_B2DROP": {
     "user": "your_b2drop_username",
-    "pass": "your_b2drop",
+    "pass": "your_b2drop_passwd",
     "url": "https://b2drop.bsc.es/remote.php/webdav/",
-    "datamapping": "UCIS4EQ/StaticDataMappingV2.json",
+    "datamapping": "UCIS4EQ/StaticDataMappingV2_Jorge.json",
     "output": "UCIS4EQ/Runs"
   },
   "local": {
