@@ -6,7 +6,7 @@
       "query": "xx"
     }
   },
-  "uuid": "Test_onlyOne_Mex_Puebla-1Hz",
+  "uuid": "ckb_20240307_onlyOne_Mex_Puebla_1Hz",
   "alerts": [
     {
       "agency": "USER EVENT",
@@ -26,5 +26,5 @@
       }
     }
   ],
-  "ensemble" : "onlyOne"
+  "ensemble": "onlyOne"
 }

@@ -1,0 +1,69 @@
+{ "MN4": {
+    "user": "bsc21005",
+    "url": "mn3.bsc.es",
+    "path": "/gpfs/scratch/bsc21/bsc21005/Eflows4hpc/Ucis4eq/",
+    "resources": {
+      "SlipGenGP": {
+        "wtime": 360,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "qos": "debug",
+        "environment": [
+          "module load singularity"
+        ]
+      },
+      "SalvusPrepare": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 1,
+        "constraint_optional": "highmem",
+        "qos": "debug",
+        "environment": [
+          "module load ANACONDA/5.0.1",
+          "source activate salvus"
+        ]
+      },
+      "SalvusRun": {
+        "wtime": 2400,
+        "nodes": 16,
+        "tasks-per-node": 48,
+        "qos": "bsc_case",
+        "environment":[
+          "module load fabric",
+          "export I_MPI_EXTRA_FILESYSTEM_LIST=gpfs",
+          "export I_MPI_EXTRA_FILESYSTEM=on"
+        ]
+      },
+      "SalvusPost": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 48,
+        "qos": "debug",
+        "environment": [
+          "module load ANACONDA/5.0.1",
+          "source activate salvus"
+        ]
+      },
+      "SalvusPostSwarm": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 48,
+        "qos": "debug",
+        "environment": [
+          "module load ANACONDA/5.0.1",
+          "source activate salvus"
+        ]
+      },
+      "SalvusPlots": {
+        "wtime": 1800,
+        "nodes": 1,
+        "tasks-per-node": 48,
+        "qos": "debug",
+        "environment": [
+          "module load ANACONDA/5.0.1",
+          "source activate salvus"
+        ]
+      }
+    }
+  }
+}
