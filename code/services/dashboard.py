@@ -229,7 +229,7 @@ app.layout = html.Div(
                         label='Results',
                         value='tab-4', className='custom-tab',
                         selected_className='custom-tab--selected'
-                    ),                  
+                    ),
                 ]),
         ),
 
@@ -237,7 +237,7 @@ app.layout = html.Div(
                  children=[
                 ],
                 className='wrapper'),
-                
+
         html.Div(
             [
                 dbc.Button("Acknowledgement", id="button-logos", className='modal-button', n_clicks=0),
@@ -338,7 +338,7 @@ def render_content(tab):
                         size="xl",
                         is_open=False,
                         keyboard=False,
-                        backdrop="static",                        
+                        backdrop="static",
                     )])
 
         return html.Div(children = [

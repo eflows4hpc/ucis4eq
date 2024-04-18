@@ -67,7 +67,7 @@ if __name__ == '__main__':
           description=description(),
           url="https://www.bsc.es/",
           download_url="",
-          license='To be defined',
+          license='MODIFIED BSD 3-CLAUSE',
           packages=['ucis4eq'],
           include_dirs=get_ext_modules(),
           install_requires=['numpy', 'flask', 'pymongo', 'requests', 'obspy'],
